@@ -1,0 +1,716 @@
+/* ==========================================================================
+   UTNContenidos - Sistema Didáctica AI (FRD)
+   Hoja de Estilos Principal (Vanilla CSS Moderno)
+   ========================================================================== */
+
+/* --- 1. VARIABLES GLOBALES (Diseño Institucional UTN) --- */
+:root {
+    /* Paleta de Colores UTN */
+    --utn-blue: #0055A6;
+    --utn-dark: #003d7a;
+    --utn-light: #e6f0fa;
+    --utn-accent: #00A4E4;
+    
+    /* Grises y Neutros */
+    --bg-main: #f8fafc;
+    --bg-card: #ffffff;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+    
+    /* Estados */
+    --error: #ef4444;
+    --success: #10b981;
+    
+    /* Tipografía y Espaciado */
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    --radius-sm: 0.375rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 1rem;
+    --radius-xl: 1.5rem;
+    
+    /* Sombras (Elevación) */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-hover: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+}
+
+/* --- 2. RESET Y BASE --- */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    scroll-behavior: smooth;
+    font-size: 16px;
+}
+
+body {
+    font-family: var(--font-sans);
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    line-height: 1.5;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    -webkit-font-smoothing: antialiased;
+}
+
+a {
+    text-decoration: none;
+    color: var(--utn-blue);
+    transition: color 0.2s ease;
+}
+
+a:hover {
+    color: var(--utn-dark);
+}
+
+button {
+    cursor: pointer;
+    font-family: inherit;
+    border: none;
+    background: none;
+}
+
+/* Ocultar elementos con atributo hidden */
+[hidden] {
+    display: none !important;
+}
+
+/* --- 3. ANIMACIONES ÉPICAS --- */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin {
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes dash {
+    0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; }
+    50% { stroke-dasharray: 90, 150; stroke-dashoffset: -35; }
+    100% { stroke-dasharray: 90, 150; stroke-dashoffset: -124; }
+}
+
+.spa-view {
+    animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* --- 4. HEADER INSTITUCIONAL --- */
+#main-header {
+    background-color: var(--bg-card);
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    box-shadow: var(--shadow-sm);
+}
+
+.header-container {
+    max-w-7xl: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    height: 5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+#main-nav ul {
+    display: flex;
+    gap: 2rem;
+    list-style: none;
+}
+
+#main-nav a {
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+#main-nav a:hover {
+    color: var(--utn-blue);
+}
+
+.user-profile button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    background-color: var(--utn-light);
+    color: var(--utn-blue);
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.user-profile button:hover {
+    background-color: var(--utn-blue);
+    color: white;
+}
+
+/* --- 5. CONTENEDOR PRINCIPAL --- */
+#app-root {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 2rem 1.5rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* --- 6. VISTA: LOGIN --- */
+#view-login {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+}
+
+.login-wrapper {
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-card);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    max-width: 900px;
+    width: 100%;
+}
+
+@media (min-width: 768px) {
+    .login-wrapper { flex-direction: row; }
+}
+
+.login-info-panel {
+    background: linear-gradient(135deg, var(--utn-blue), var(--utn-dark));
+    color: white;
+    padding: 3rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.login-info-panel h1 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+}
+
+.login-info-panel p {
+    color: var(--utn-light);
+    margin-bottom: 2rem;
+}
+
+.login-info-panel ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.login-info-panel li::before {
+    content: "✓";
+    color: var(--utn-accent);
+    font-weight: bold;
+    margin-right: 0.5rem;
+}
+
+.login-form-panel {
+    padding: 3rem;
+    flex: 1.2;
+}
+
+.login-form-panel h2 {
+    font-size: 1.5rem;
+    color: var(--text-main);
+    margin-bottom: 0.5rem;
+}
+
+.login-form-panel p {
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+    font-size: 0.875rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text-main);
+}
+
+.form-group input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    background-color: var(--bg-main);
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--utn-blue);
+    box-shadow: 0 0 0 3px var(--utn-light);
+    background-color: var(--bg-card);
+}
+
+.error-message {
+    color: var(--error);
+    font-size: 0.75rem;
+    margin-top: 0.5rem;
+    display: block;
+}
+
+#btn-login-submit {
+    width: 100%;
+    padding: 0.875rem;
+    background-color: var(--utn-blue);
+    color: white;
+    font-weight: bold;
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    margin-top: 1rem;
+}
+
+#btn-login-submit:hover {
+    background-color: var(--utn-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.form-help {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1.5rem;
+    font-size: 0.875rem;
+}
+
+/* --- 7. VISTA: DASHBOARD --- */
+.view-header {
+    margin-bottom: 2.5rem;
+    text-align: center;
+}
+
+.view-header h1 {
+    font-size: 2.25rem;
+    color: var(--text-main);
+    margin-bottom: 0.5rem;
+}
+
+.view-header p {
+    color: var(--text-muted);
+    font-size: 1.125rem;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2rem;
+}
+
+.subject-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.subject-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-hover);
+    border-color: var(--utn-light);
+}
+
+.subject-header {
+    background-color: var(--bg-main);
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    position: relative;
+}
+
+.subject-header h2 {
+    font-size: 1.25rem;
+    color: var(--text-main);
+    margin-bottom: 0.5rem;
+}
+
+.badge {
+    display: inline-block;
+    background-color: var(--utn-light);
+    color: var(--utn-blue);
+    font-size: 0.75rem;
+    font-weight: bold;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    margin-bottom: 0.5rem;
+}
+
+.subject-body {
+    padding: 1.5rem;
+    flex-grow: 1;
+}
+
+.subject-body > p {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    margin-bottom: 1.5rem;
+}
+
+.subject-body h3 {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    margin-bottom: 1rem;
+}
+
+.topic-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.topic-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    border-radius: var(--radius-md);
+    transition: background-color 0.2s ease;
+}
+
+.topic-list li:hover {
+    background-color: var(--utn-light);
+}
+
+.topic-list span {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-main);
+}
+
+.btn-select-topic {
+    opacity: 0;
+    background-color: white;
+    color: var(--utn-blue);
+    border: 1px solid var(--utn-blue);
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: bold;
+    transition: all 0.2s ease;
+}
+
+.topic-list li:hover .btn-select-topic {
+    opacity: 1;
+}
+
+.btn-select-topic:hover {
+    background-color: var(--utn-blue);
+    color: white;
+}
+
+/* --- 8. VISTA: GENERADOR (CORE IA) --- */
+.breadcrumb-nav {
+    margin-bottom: 2rem;
+}
+
+.breadcrumb-nav ol {
+    list-style: none;
+    display: flex;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.breadcrumb-nav li:not(:last-child)::after {
+    content: "/";
+    margin-left: 0.5rem;
+}
+
+.action-toolbar {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 1.5rem;
+}
+
+.btn-primary, .btn-secondary {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background-color: var(--utn-blue);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: var(--utn-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-secondary {
+    background-color: white;
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+    background-color: var(--bg-main);
+    border-color: var(--text-muted);
+}
+
+.generator-content-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+    margin-top: 3rem;
+}
+
+.content-section h2 {
+    font-size: 1.5rem;
+    color: var(--utn-dark);
+    margin-bottom: 0.5rem;
+    border-bottom: 2px solid var(--utn-light);
+    padding-bottom: 0.5rem;
+}
+
+.section-desc {
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+    font-size: 0.875rem;
+}
+
+/* Bloques de Código / Prompts */
+.code-blocks pre {
+    background-color: var(--text-main);
+    color: #e2e8f0;
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    margin-bottom: 1rem;
+    font-family: monospace;
+    font-size: 0.875rem;
+    white-space: pre-wrap;
+}
+
+.prompt-label {
+    color: var(--utn-accent);
+    font-weight: bold;
+}
+
+/* Tabla de Plan de Estudio */
+.table-plan {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    background: white;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.table-plan th, .table-plan td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.table-plan th {
+    background-color: var(--bg-main);
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+/* Grilla de Slides */
+.slides-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.slide-card {
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.slide-card header {
+    background-color: var(--utn-blue);
+    color: white;
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.slide-content {
+    padding: 1.5rem;
+}
+
+.slide-content h4 {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-top: 1rem;
+}
+
+.slide-content h4:first-child {
+    margin-top: 0;
+}
+
+.slide-content p, .slide-content ul {
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+.slide-content ul {
+    padding-left: 1.5rem;
+}
+
+.slide-note {
+    margin-top: 1rem !important;
+    padding: 0.5rem;
+    background-color: #fffbeb;
+    border-left: 3px solid #f59e0b;
+    font-size: 0.75rem !important;
+    color: #92400e !important;
+}
+
+/* Prompts de Imágenes */
+.prompt-list blockquote {
+    background-color: var(--bg-main);
+    border-left: 4px solid var(--utn-accent);
+    padding: 1rem;
+    margin: 0.5rem 0 1.5rem 0;
+    font-style: italic;
+    color: var(--text-muted);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+/* --- 9. MODALES (DIALOG) --- */
+dialog {
+    margin: auto;
+    padding: 0;
+    border: none;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-hover);
+    max-width: 400px;
+    width: 90%;
+}
+
+dialog::backdrop {
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+}
+
+.loader-content, .dialog-content {
+    padding: 2rem;
+    text-align: center;
+    background: white;
+}
+
+.loader-content h2, .dialog-content h2 {
+    margin: 1rem 0 0.5rem 0;
+    color: var(--text-main);
+}
+
+.loader-content p, .dialog-content p {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+/* Spinner SVG */
+.spinner {
+    animation: spin 2s linear infinite;
+    margin: 0 auto;
+}
+
+.spinner .path {
+    stroke: var(--utn-blue);
+    stroke-linecap: round;
+    animation: dash 1.5s ease-in-out infinite;
+}
+
+.dialog-actions {
+    margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+#link-open-slides {
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+}
+
+/* --- 10. FOOTER INSTITUCIONAL --- */
+#main-footer {
+    background-color: white;
+    border-top: 1px solid var(--border-color);
+    margin-top: auto;
+}
+
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+}
+
+.footer-column h3 {
+    font-size: 1rem;
+    color: var(--text-main);
+    margin-bottom: 1rem;
+}
+
+.footer-column p, .footer-column address, .footer-column a {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    font-style: normal;
+    line-height: 1.6;
+}
+
+.footer-column ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.footer-bottom {
+    text-align: center;
+    padding: 1.5rem;
+    background-color: var(--bg-main);
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    border-top: 1px solid var(--border-color);
+}
