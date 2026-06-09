@@ -6,55 +6,55 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     
     <!-- Metadatos Institucionales UTN FRD -->
-    <title>UTNContenidos | Sistema Didáctica AI - Facultad Regional Delta</title>
-    <meta name="description" content="Plataforma web para la automatización y planificación de clases presenciales para docentes de la Universidad Tecnológica Nacional, Facultad Regional Delta.">
-    <meta name="author" content="Ingeniería en Sistemas - UTN FRD">
-    <meta name="robots" content="noindex, nofollow"> <!-- Sistema interno, no indexable -->
+    <title>UTN Contenidos | Creador Inteligente de Clases - Facultad Regional Delta</title>
+    <meta name="description" content="Herramienta de asistencia didáctica para la planificación de clases presenciales de los docentes de la UTN Facultad Regional Delta.">
+    <meta name="author" content="UTN FRD">
+    <meta name="robots" content="noindex, nofollow">
     
-    <!-- Open Graph / Redes (Preparado para compartir internamente) -->
-    <meta property="og:title" content="UTNContenidos - Dashboard Docente">
-    <meta property="og:description" content="Generador de microcontenidos didácticos con IA para profesores de la UTN.">
+    <!-- Open Graph -->
+    <meta property="og:title" content="Asistente de Contenidos UTN">
+    <meta property="og:description" content="Planificación didáctica e ideas para tus clases con un solo clic.">
     <meta property="og:type" content="website">
     <meta property="og:locale" content="es_AR">
 
-    <!-- Preconexiones para futuras fuentes (ej. Roboto) -->
-     <link rel="stylesheet" href="style.css">
+    <!-- Estilos y Tipografía Premium -->
+    <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Nota del Arquitecto: CSS y JS omitidos por requerimiento estricto. -->
+    <!-- Generador de PDFs en el cliente (Costo $0) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
 
     <!-- ==========================================
-         HEADER INSTITUCIONAL
+         HEADER FLOTANTE (ESTILO iOS 26)
          ========================================== -->
-    <header role="banner" id="main-header">
+    <header role="banner" id="main-header" class="glass-panel">
         <div class="header-container">
-            <!-- Logo UTN (SVG Inline para evitar peticiones HTTP extra) -->
-            <a href="#login" aria-label="Ir al inicio de UTNContenidos">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" width="200" height="60" aria-hidden="true">
-                    <!-- Representación abstracta del logo UTN -->
-                    <circle cx="30" cy="30" r="20" fill="none" stroke="#0055A6" stroke-width="4"/>
-                    <path d="M30 10 L30 50 M10 30 L50 30" stroke="#0055A6" stroke-width="4"/>
-                    <text x="60" y="38" font-family="sans-serif" font-size="24" font-weight="bold" fill="#333333">UTN</text>
-                    <text x="115" y="38" font-family="sans-serif" font-size="24" font-weight="normal" fill="#0055A6">Contenidos</text>
+            <div class="brand-logo-container">
+                <!-- Icono de marca minimalista inspirado en UTN -->
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="36" height="36" aria-hidden="true" style="border-radius: 10px; background: var(--ios-blue-gradient); padding: 5px; box-shadow: 0 4px 10px rgba(0,122,255,0.3);">
+                    <path d="M24 6 L38 18 L38 34 L24 42 L10 34 L10 18 Z" fill="none" stroke="white" stroke-width="3" stroke-linejoin="round"/>
+                    <path d="M24 14 L24 34 M14 24 L34 24" stroke="white" stroke-width="3" stroke-linecap="round"/>
                 </svg>
-            </a>
+                <span class="brand-text">UTN Contenidos</span>
+            </div>
 
-            <!-- Navegación Principal (Oculta en Login, visible en Dashboard) -->
+            <!-- Navegación Principal (Se muestra al ingresar) -->
             <nav role="navigation" aria-label="Navegación principal" id="main-nav" hidden>
                 <ul>
-                    <li><a href="#dashboard">Mis Materias</a></li>
-                    <li><a href="#historial">Historial de Clases</a></li>
-                    <li><a href="#recursos">Recursos FRD</a></li>
+                    <li><a href="#dashboard" class="active">Mis Materias</a></li>
+                    <li><a href="#historial">Historial</a></li>
+                    <li><a href="#recursos">Recursos</a></li>
                 </ul>
             </nav>
 
-            <!-- Menú de Usuario (Oculto en Login) -->
+            <!-- Menú de Usuario -->
             <div class="user-profile" id="user-menu" hidden>
                 <button aria-haspopup="true" aria-expanded="false" aria-controls="user-dropdown">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--ios-blue);">
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                         <circle cx="12" cy="7" r="4"></circle>
                     </svg>
@@ -62,7 +62,7 @@
                 </button>
                 <ul id="user-dropdown" role="menu" hidden>
                     <li role="menuitem"><a href="#perfil">Mi Perfil</a></li>
-                    <li role="menuitem"><a href="#configuracion">Configuración</a></li>
+                    <li role="menuitem"><a href="#configuracion">Preferencias</a></li>
                     <li role="menuitem"><button id="btn-logout">Cerrar Sesión</button></li>
                 </ul>
             </div>
@@ -70,50 +70,58 @@
     </header>
 
     <!-- ==========================================
-         CONTENEDOR PRINCIPAL SPA
+         CONTENEDOR PRINCIPAL
          ========================================== -->
     <main role="main" id="app-root">
 
         <!-- 
-          FASE 1: VISTA DE AUTENTICACIÓN (LOGIN)
-          Estado inicial: Visible
+          FASE 1: VISTA DE BIENVENIDA E INGRESO (LOGIN)
         -->
         <section id="view-login" class="spa-view" aria-labelledby="login-title">
-            <div class="login-wrapper">
+            <div class="login-wrapper glass-panel">
                 <div class="login-info-panel">
-                    <h1 id="login-title">Sistema Didáctica AI</h1>
-                    <p>Bienvenido a la plataforma de planificación automatizada para docentes de la <strong>Facultad Regional Delta</strong>.</p>
+                    <h1 id="login-title">Tus clases listas, en un clic</h1>
+                    <p>Diseñá de forma simple tus materiales didácticos, guías de clase y presentaciones para la <strong>Facultad Regional Delta</strong>.</p>
                     <ul>
-                        <li>Generación de planes de clase basados en la currícula oficial.</li>
-                        <li>Estructuración automática para Google Slides.</li>
-                        <li>Sugerencias de material visual y bibliografía.</li>
+                        <li>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                            Armado didáctico según tu materia
+                        </li>
+                        <li>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                            Diapositivas listas en tu Google Slides
+                        </li>
+                        <li>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                            Propuestas pedagógicas e imágenes
+                        </li>
                     </ul>
                 </div>
 
                 <div class="login-form-panel">
-                    <h2>Acceso Docente</h2>
-                    <p>Por favor, ingrese sus credenciales institucionales.</p>
+                    <h2>¡Hola, Profe!</h2>
+                    <p>Ingresá tus datos para comenzar a planificar.</p>
                     
                     <form id="form-login" action="#" method="POST" novalidate>
                         <div class="form-group">
                             <label for="input-legajo">Número de Legajo</label>
                             <input type="text" id="input-legajo" name="legajo" required aria-required="true" placeholder="Ej: 12345" pattern="[0-9]+">
-                            <span class="error-message" id="error-legajo" aria-live="polite" hidden>El legajo es obligatorio y debe ser numérico.</span>
+                            <span class="error-message" id="error-legajo" aria-live="polite" hidden>El legajo es necesario y debe ser numérico.</span>
                         </div>
 
                         <div class="form-group">
-                            <label for="input-dni">Documento Nacional de Identidad (DNI)</label>
-                            <input type="password" id="input-dni" name="dni" required aria-required="true" placeholder="Sin puntos ni espacios">
-                            <span class="error-message" id="error-dni" aria-live="polite" hidden>El DNI es obligatorio.</span>
+                            <label for="input-dni">Número de DNI</label>
+                            <input type="password" id="input-dni" name="dni" required aria-required="true" placeholder="Escribilo sin puntos ni espacios">
+                            <span class="error-message" id="error-dni" aria-live="polite" hidden>El DNI es necesario para ingresar.</span>
                         </div>
 
                         <div class="form-actions">
-                            <button type="submit" id="btn-login-submit">Ingresar al Sistema</button>
+                            <button type="submit" id="btn-login-submit">Comenzar</button>
                         </div>
 
                         <div class="form-help">
-                            <a href="#recuperar-legajo">¿Olvidó su legajo?</a>
-                            <a href="#soporte-tecnico">Contactar a Soporte FRD</a>
+                            <a href="#recuperar-legajo">¿No recordás tu legajo?</a>
+                            <a href="#soporte-tecnico">Pedir ayuda técnica</a>
                         </div>
                     </form>
                 </div>
@@ -121,101 +129,28 @@
         </section>
 
         <!-- 
-          FASE 2: VISTA DE DASHBOARD ACADÉMICO
-          Estado inicial: Oculto (hidden)
+          FASE 2: VISTA DE MATERIAS (DASHBOARD)
         -->
         <section id="view-dashboard" class="spa-view" aria-labelledby="dashboard-title" hidden>
             <header class="view-header">
-                <h1 id="dashboard-title">Panel de Control Académico</h1>
-                <p>Seleccione una materia para comenzar la planificación de su próxima clase.</p>
+                <h1 id="dashboard-title">¿Qué clase preparamos hoy?</h1>
+                <p>Elegí un tema de tu materia para armar tus diapositivas y guías pedagógicas al instante.</p>
             </header>
 
             <div class="dashboard-grid">
-                <!-- Materia 1 -->
+                <!-- Tarjetas de materias de demostración (se reemplazan dinámicamente) -->
                 <article class="subject-card">
-                    <header class="subject-header">
-                        <h2>Análisis Matemático I</h2>
+                    <div class="subject-header">
                         <span class="badge">1er Año</span>
-                    </header>
+                        <h2>Análisis Matemático I</h2>
+                    </div>
                     <div class="subject-body">
-                        <p>Estudio del cálculo diferencial e integral de funciones de una variable real.</p>
-                        <h3>Temas de la currícula:</h3>
+                        <p>Conceptos clave sobre el cálculo de una sola variable.</p>
+                        <h3>Temas del programa:</h3>
                         <ul class="topic-list">
                             <li>
                                 <span>Límites y Continuidad</span>
-                                <button class="btn-select-topic" data-subject="am1" data-topic="limites" aria-label="Generar clase sobre Límites y Continuidad">Generar Clase</button>
-                            </li>
-                            <li>
-                                <span>Derivadas y Reglas de Derivación</span>
-                                <button class="btn-select-topic" data-subject="am1" data-topic="derivadas" aria-label="Generar clase sobre Derivadas">Generar Clase</button>
-                            </li>
-                            <li>
-                                <span>Estudio de Funciones</span>
-                                <button class="btn-select-topic" data-subject="am1" data-topic="funciones" aria-label="Generar clase sobre Estudio de Funciones">Generar Clase</button>
-                            </li>
-                            <li>
-                                <span>Integrales Indefinidas y Definidas</span>
-                                <button class="btn-select-topic" data-subject="am1" data-topic="integrales" aria-label="Generar clase sobre Integrales">Generar Clase</button>
-                            </li>
-                        </ul>
-                    </div>
-                </article>
-
-                <!-- Materia 2 -->
-                <article class="subject-card">
-                    <header class="subject-header">
-                        <h2>Sistemas y Organizaciones</h2>
-                        <span class="badge">1er Año</span>
-                    </header>
-                    <div class="subject-body">
-                        <p>Introducción a la Teoría General de Sistemas y su aplicación en las organizaciones.</p>
-                        <h3>Temas de la currícula:</h3>
-                        <ul class="topic-list">
-                            <li>
-                                <span>Teoría General de Sistemas (TGS)</span>
-                                <button class="btn-select-topic" data-subject="syo" data-topic="tgs" aria-label="Generar clase sobre TGS">Generar Clase</button>
-                            </li>
-                            <li>
-                                <span>La Organización como Sistema</span>
-                                <button class="btn-select-topic" data-subject="syo" data-topic="organizacion" aria-label="Generar clase sobre La Organización">Generar Clase</button>
-                            </li>
-                            <li>
-                                <span>Modelos de Ciclo de Vida del Software</span>
-                                <button class="btn-select-topic" data-subject="syo" data-topic="ciclovida" aria-label="Generar clase sobre Ciclo de Vida">Generar Clase</button>
-                            </li>
-                            <li>
-                                <span>Metodologías Ágiles vs Tradicionales</span>
-                                <button class="btn-select-topic" data-subject="syo" data-topic="metodologias" aria-label="Generar clase sobre Metodologías">Generar Clase</button>
-                            </li>
-                        </ul>
-                    </div>
-                </article>
-
-                <!-- Materia 3 -->
-                <article class="subject-card">
-                    <header class="subject-header">
-                        <h2>Algoritmos y Estructuras de Datos</h2>
-                        <span class="badge">1er Año</span>
-                    </header>
-                    <div class="subject-body">
-                        <p>Fundamentos de programación, lógica algorítmica y manejo de memoria.</p>
-                        <h3>Temas de la currícula:</h3>
-                        <ul class="topic-list">
-                            <li>
-                                <span>Estructuras de Control (If, For, While)</span>
-                                <button class="btn-select-topic" data-subject="ayed" data-topic="control" aria-label="Generar clase sobre Estructuras de Control">Generar Clase</button>
-                            </li>
-                            <li>
-                                <span>Vectores y Matrices (Arrays)</span>
-                                <button class="btn-select-topic" data-subject="ayed" data-topic="arrays" aria-label="Generar clase sobre Arrays">Generar Clase</button>
-                            </li>
-                            <li>
-                                <span>Punteros y Gestión de Memoria</span>
-                                <button class="btn-select-topic" data-subject="ayed" data-topic="punteros" aria-label="Generar clase sobre Punteros">Generar Clase</button>
-                            </li>
-                            <li>
-                                <span>Listas Enlazadas, Pilas y Colas</span>
-                                <button class="btn-select-topic" data-subject="ayed" data-topic="listas" aria-label="Generar clase sobre Listas Enlazadas">Generar Clase</button>
+                                <button class="btn-select-topic" data-materia="Análisis Matemático I" data-tema="Límites y Continuidad" data-link="">Preparar Clase</button>
                             </li>
                         </ul>
                     </div>
@@ -224,174 +159,90 @@
         </section>
 
         <!-- 
-          FASE 3: VISTA DE GENERADOR DE CONTENIDOS (CORE IA)
-          Estado inicial: Oculto (hidden)
+          FASE 3: VISTA DE CONTENIDOS GENERADOS (CORE IA VISTA DOCENTE)
         -->
         <section id="view-generator" class="spa-view" aria-labelledby="generator-title" hidden>
             
-            <!-- Navegación tipo Breadcrumb -->
-            <nav aria-label="Breadcrumb" class="breadcrumb-nav">
+            <!-- Ruta de navegación simple -->
+            <nav aria-label="Ruta de navegación" class="breadcrumb-nav">
                 <ol>
-                    <li><a href="#dashboard" id="btn-back-dashboard">Dashboard</a></li>
+                    <li><a href="#dashboard" id="btn-back-dashboard">Inicio</a></li>
                     <li id="breadcrumb-subject" aria-current="page">Materia Seleccionada</li>
                     <li id="breadcrumb-topic" aria-current="page">Tema Seleccionado</li>
                 </ol>
             </nav>
 
             <header class="view-header">
-                <h1 id="generator-title">Paquete de Microcontenidos Didácticos</h1>
-                <p>Contenido generado automáticamente por el Motor IA UTNContenidos.</p>
+                <h1 id="generator-title">Tu material de clase está listo</h1>
+                <p>A continuación tenés las guías didácticas e ideas visuales creadas especialmente para tu aula.</p>
                 
                 <div class="action-toolbar">
                     <button id="btn-export-slides" class="btn-primary">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h20"/><path d="M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3"/><path d="m7 21 5-5 5 5"/></svg>
-                        Exportar a Google Slides
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h20"/><path d="M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3"/><path d="m7 21 5-5 5 5"/></svg>
+                        Guardar en Google Slides
                     </button>
                     <button id="btn-export-pdf" class="btn-secondary">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                        Descargar Plan (PDF)
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        Descargar Guía (PDF)
                     </button>
                 </div>
             </header>
 
             <div class="generator-content-grid">
                 
-                <!-- SECCIÓN A: Búsqueda Profesional -->
+                <!-- SECCIÓN A: Ideas de Búsqueda -->
                 <section class="content-section" aria-labelledby="title-section-a">
-                    <h2 id="title-section-a">A. Búsqueda Profesional del Tema (Contexto IA)</h2>
-                    <p class="section-desc">Prompts técnicos utilizados para extraer el estado del arte de bases de datos académicas.</p>
+                    <h2 id="title-section-a">A. Enfoques sugeridos para abordar el tema</h2>
+                    <p class="section-desc">Ideas y orientaciones didácticas de apoyo alineadas con los contenidos universitarios.</p>
                     <div class="code-blocks">
-                        <pre><code><span class="prompt-label">Prompt 1:</span> "Análisis exhaustivo sobre [TEMA] en el contexto de la ingeniería en sistemas, incluyendo bibliografía recomendada por la CONEAU."</code></pre>
-                        <pre><code><span class="prompt-label">Prompt 2:</span> "Casos de estudio recientes y aplicaciones prácticas industriales de [TEMA] para estudiantes universitarios de primer año."</code></pre>
-                        <pre><code><span class="prompt-label">Prompt 3:</span> "Evolución histórica y estado del arte actual de [TEMA], destacando paradigmas modernos y estándares internacionales."</code></pre>
+                        <!-- Se llena dinámicamente -->
                     </div>
                 </section>
 
-                <!-- SECCIÓN B: Plan de Estudio -->
+                <!-- SECCIÓN B: Plan de Trabajo de la Clase -->
                 <section class="content-section" aria-labelledby="title-section-b">
-                    <h2 id="title-section-b">B. Plan de Estudio de la Clase</h2>
+                    <h2 id="title-section-b">B. Organización de la Clase</h2>
                     <div class="plan-details">
-                        <p><strong>Duración estimada:</strong> 2 horas cátedra (90 minutos netos).</p>
+                        <p><strong>Tiempo estimado:</strong> 2 horas cátedra (90 minutos netos).</p>
                         
-                        <h3>Objetivos de Aprendizaje:</h3>
+                        <h3>Lo que tus alumnos van a aprender hoy:</h3>
                         <ul>
-                            <li>Comprender los fundamentos teóricos de [TEMA].</li>
-                            <li>Aplicar los conceptos en la resolución de problemas prácticos de ingeniería.</li>
-                            <li>Desarrollar pensamiento crítico sobre las ventajas y limitaciones del enfoque.</li>
+                            <!-- Se llena dinámicamente -->
                         </ul>
 
-                        <h3>Estructura Pedagógica:</h3>
+                        <h3>Momento a momento en el aula:</h3>
                         <table class="table-plan">
                             <thead>
                                 <tr>
-                                    <th scope="col">Fase</th>
+                                    <th scope="col">Momento</th>
                                     <th scope="col">Duración</th>
-                                    <th scope="col">Actividad</th>
+                                    <th scope="col">¿Qué hacemos en clase?</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td><strong>Introducción</strong></td>
-                                    <td>15 min</td>
-                                    <td>Presentación del tema, motivación y conexión con clases anteriores.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Desarrollo Teórico</strong></td>
-                                    <td>45 min</td>
-                                    <td>Exposición de conceptos clave, teoremas o arquitecturas fundamentales.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Práctica Interactiva</strong></td>
-                                    <td>45 min</td>
-                                    <td>Resolución de ejercicios en pizarra o laboratorio. Trabajo en grupos.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Cierre</strong></td>
-                                    <td>15 min</td>
-                                    <td>Resumen de la jornada, espacio para dudas y asignación de lecturas.</td>
-                                </tr>
+                                <!-- Se llena dinámicamente -->
                             </tbody>
                         </table>
                     </div>
                 </section>
 
-                <!-- SECCIÓN C: Estructura Google Slides -->
+                <!-- SECCIÓN C: Contenido de Diapositivas -->
                 <section class="content-section" aria-labelledby="title-section-c">
-                    <h2 id="title-section-c">C. Estructura para Presentación (Google Slides)</h2>
-                    <p class="section-desc">Contenido optimizado para lectura rápida y retención visual.</p>
+                    <h2 id="title-section-c">C. Estructura de diapositivas sugerida</h2>
+                    <p class="section-desc">Textos pensados para facilitar la lectura y comprensión visual de los alumnos.</p>
                     
                     <div class="slides-grid">
-                        <!-- Slide 1 -->
-                        <article class="slide-card">
-                            <header>Diapositiva 1: Portada</header>
-                            <div class="slide-content">
-                                <h4>Título:</h4>
-                                <p>[Nombre del Tema]</p>
-                                <h4>Subtítulo:</h4>
-                                <p>Fundamentos y Aplicaciones en la Ingeniería</p>
-                            </div>
-                        </article>
-
-                        <!-- Slide 2 -->
-                        <article class="slide-card">
-                            <header>Diapositiva 2: Conceptos Clave</header>
-                            <div class="slide-content">
-                                <ul>
-                                    <li>Definición formal y alcance.</li>
-                                    <li>Propiedades principales.</li>
-                                    <li>Importancia en el ecosistema tecnológico.</li>
-                                </ul>
-                            </div>
-                        </article>
-
-                        <!-- Slide 3 -->
-                        <article class="slide-card">
-                            <header>Diapositiva 3: Esquema Visual</header>
-                            <div class="slide-content">
-                                <p><em>[Espacio reservado para diagrama o mapa conceptual]</em></p>
-                                <p class="slide-note">Nota al orador: Explicar el flujo de información de izquierda a derecha.</p>
-                            </div>
-                        </article>
-
-                        <!-- Slide 4 -->
-                        <article class="slide-card">
-                            <header>Diapositiva 4: Caso Práctico</header>
-                            <div class="slide-content">
-                                <h4>Ejemplo en la Industria:</h4>
-                                <ul>
-                                    <li>Problema inicial.</li>
-                                    <li>Aplicación de [TEMA].</li>
-                                    <li>Resultado obtenido.</li>
-                                </ul>
-                            </div>
-                        </article>
+                        <!-- Se llena dinámicamente -->
                     </div>
                 </section>
 
-                <!-- SECCIÓN D: Prompts de Imágenes -->
+                <!-- SECCIÓN D: Ideas para Ilustraciones o Gráficos -->
                 <section class="content-section" aria-labelledby="title-section-d">
-                    <h2 id="title-section-d">D. Prompts para Generación de Imágenes (Midjourney / Imagen 3)</h2>
-                    <p class="section-desc">Copie estos prompts para generar material visual de apoyo con estilo corporativo y minimalista.</p>
+                    <h2 id="title-section-d">D. Ideas para imágenes de apoyo</h2>
+                    <p class="section-desc">Sugerencias visuales y descripciones útiles para enriquecer tus diapositivas o tu pizarra.</p>
                     
                     <div class="prompt-list">
-                        <div class="prompt-item">
-                            <p><strong>Imagen para Portada:</strong></p>
-                            <blockquote translate="no">
-                                "Minimalist flat vector illustration of [TEMA] concept in computer science, corporate blue and grey color palette, clean white background, educational style, high quality, 8k --ar 16:9"
-                            </blockquote>
-                        </div>
-                        <div class="prompt-item">
-                            <p><strong>Imagen para Esquema:</strong></p>
-                            <blockquote translate="no">
-                                "Infographic style diagram representing the workflow of [TEMA], modern UI/UX style, isometric perspective, clean lines, academic and professional, white background --ar 16:9"
-                            </blockquote>
-                        </div>
-                        <div class="prompt-item">
-                            <p><strong>Imagen para Caso Práctico:</strong></p>
-                            <blockquote translate="no">
-                                "A modern engineering laboratory or software development environment, abstract representation of [TEMA] being applied, soft lighting, professional photography style, depth of field --ar 16:9"
-                            </blockquote>
-                        </div>
+                        <!-- Se llena dinámicamente -->
                     </div>
                 </section>
 
@@ -401,28 +252,49 @@
     </main>
 
     <!-- ==========================================
-         MODALES Y DIÁLOGOS (Nativos HTML5)
+         MODALES DE INTERACCIÓN (ESTILO iOS 26)
          ========================================== -->
     
-    <!-- Modal de Carga (Loader) -->
+    <!-- Ventana de Espera (Carga) -->
     <dialog id="modal-loader" aria-labelledby="loader-title">
         <div class="loader-content">
-            <svg class="spinner" viewBox="0 0 50 50" width="50" height="50">
-                <circle class="path" cx="25" cy="25" r="20" fill="none" stroke="#0055A6" stroke-width="5"></circle>
-            </svg>
-            <h2 id="loader-title">Generando Contenidos...</h2>
-            <p>Consultando la base de datos académica y estructurando la clase. Por favor, espere.</p>
+            <div class="spinner-wrapper">
+                <svg class="spinner" viewBox="0 0 50 50">
+                    <circle class="path" cx="25" cy="25" r="20" fill="none" stroke="#007AFF" stroke-width="4.5"></circle>
+                </svg>
+                <div class="pulse-sphere"></div>
+            </div>
+            <h2 id="loader-title">Preparando materiales...</h2>
+            <p>Buscando el mejor enfoque pedagógico. Por favor, esperá unos segundos.</p>
         </div>
     </dialog>
 
-    <!-- Modal de Éxito (Exportación) -->
+    <!-- Ventana de Éxito -->
     <dialog id="modal-success" aria-labelledby="success-title">
         <div class="dialog-content">
-            <h2 id="success-title">¡Exportación Exitosa!</h2>
-            <p>La presentación se ha guardado correctamente en su Google Drive institucional.</p>
+            <!-- Icono de Check estilo iOS en SVG -->
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" width="60" height="60" style="margin: 0 auto; display: block;">
+                <circle cx="26" cy="26" r="25" fill="#34C759" />
+                <path d="M16 26 L23 33 L36 18" stroke="white" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <h2 id="success-title">¡Todo Listo!</h2>
+            <p>Tu presentación ya se guardó correctamente en tu cuenta institucional.</p>
             <div class="dialog-actions">
-                <button id="btn-close-success" class="btn-primary">Aceptar</button>
-                <a href="#" id="link-open-slides" target="_blank" rel="noopener noreferrer">Abrir Google Slides</a>
+                <a href="#" id="link-open-slides" target="_blank" rel="noopener noreferrer" class="btn-primary">Abrir presentación en Google Slides</a>
+                <button id="btn-close-success" class="btn-secondary">Volver</button>
+            </div>
+        </div>
+    </dialog>
+
+    <!-- Ventana de Contexto Personalizado (Instrucciones) -->
+    <dialog id="modal-contexto" aria-labelledby="contexto-title">
+        <div class="dialog-content">
+            <h2 id="contexto-title">Instrucciones de clase</h2>
+            <p>Instrucciones especiales para la IA (Ej: Enfocar en práctica, nivel inicial)...</p>
+            <textarea id="textarea-contexto" placeholder="Escribí aquí tus indicaciones..."></textarea>
+            <div class="dialog-actions">
+                <button id="btn-contexto-confirm" class="btn-primary">Confirmar y Generar</button>
+                <button id="btn-contexto-cancel" class="btn-secondary">Volver</button>
             </div>
         </div>
     </dialog>
@@ -430,11 +302,11 @@
     <!-- ==========================================
          FOOTER INSTITUCIONAL
          ========================================== -->
-    <footer role="contentinfo" id="main-footer">
+    <footer role="contentinfo" id="main-footer" class="glass-panel">
         <div class="footer-container">
             <div class="footer-column">
                 <h3>Universidad Tecnológica Nacional</h3>
-                <p><strong>Facultad Regional Delta (FRD)</strong></p>
+                <p><strong>Facultad Regional Delta</strong></p>
                 <address>
                     San Martín 1171, B2804 Campana<br>
                     Provincia de Buenos Aires, Argentina<br>
@@ -453,14 +325,19 @@
 
             <div class="footer-column">
                 <h3>Soporte Técnico</h3>
-                <p>¿Problemas con UTNContenidos?</p>
+                <p>¿Tenés alguna consulta sobre la herramienta?</p>
                 <a href="mailto:sistemas@frd.utn.edu.ar">sistemas@frd.utn.edu.ar</a>
             </div>
         </div>
         <div class="footer-bottom">
-            <p>&copy; 2026 UTN Facultad Regional Delta. Todos los derechos reservados. Sistema desarrollado por Ingeniería en Sistemas.</p>
+            <p>&copy; 2026 UTN Facultad Regional Delta. Diseñado especialmente para nuestros equipos docentes.</p>
         </div>
     </footer>
+
+    <!-- ==========================================
+         CONTENEDOR DE NOTIFICACIONES TOAST
+         ========================================== -->
+    <div id="toast-container" aria-live="polite" aria-atomic="false"></div>
 
 </body>
 <script src="script.js"></script>
