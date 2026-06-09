@@ -1,48 +1,126 @@
-# Plan de Implementación: Corrección y Optimización de UTNContenidos
+# UTNContenidos — Walkthrough de Implementación v2.0
 
-Este plan detalla las correcciones y modificaciones en `app.gs` y `script.js` para resolver los problemas identificados en la auditoría general y cumplir con los requerimientos del usuario.
+## Qué se hizo
 
-## User Review Required
+### ✅ Seguridad
+| Vulnerabilidad | Estado |
+|---|---|
+| Token de sesión no enviado al backend en `generarClaseIA` | **Corregido** |
+| Token de sesión no enviado al backend en `exportarAGoogleSlides` | **Corregido** |
+| Datos sensibles del dashboard en `sessionStorage` | **Corregido** — solo se guarda token + nombre |
+| XSS en renderizado del dashboard y slides | **Corregido** — `sanitizeHTML()` en todos los campos |
+| CSS gradient token roto (`#0055N6`) | **Corregido** — `#0055A6` |
+| Google Fonts no cargaba (faltaba el `<link href>`) | **Corregido** |
 
-> [!IMPORTANT]
-> - Se descartará el uso de `style.css` y se asume que la CDN de Tailwind CSS está inyectada en `index.html` (o que se inyectará posteriormente).
-> - La generación de contenidos con IA (`generarClaseIA`) seguirá un flujo simulado por el momento, pero con toda la estructura del JSON preparada para la conexión definitiva con Gemini (usando RAG desde Google Docs si se proporciona un enlace).
-> - Se implementará `sessionStorage` para almacenar temporalmente los datos del docente y del dashboard, evitando que se pierda la sesión al recargar la página durante la misma pestaña.
+### ✅ UX y Funciones Completadas
+- **Toasts de notificación** reemplazan todos los `alert()` del sistema (4 variantes: success, error, warning, info)
+- **Dropdown de usuario** funciona: toggle al click, cierra al click fuera del área
+- **Empty state** para docentes sin materias asignadas
+- **Botón PDF** completamente funcional usando `html2pdf.js` — genera un PDF A4 con membrete institucional UTN FRD
+- **Advertencia RAG** visible via toast cuando el Google Doc de teoría no es accesible
+- **Revalidación de sesión en vivo** al recargar: el frontend llama a `revalidarSesionConDashboard()` en lugar de usar datos cacheados
 
-## Proposed Changes
-
-### Backend (`app.gs`)
-
-#### [MODIFY] [app.gs](file:///c:/Users/lsi/Documents/UTNContenidos/app.gs)
-- Eliminar la redundancia al abrir la hoja de cálculo reemplazando `SpreadsheetApp.openById(SHEET_ID)` por `SpreadsheetApp.getActiveSpreadsheet()`.
-- Agregar la variable `GEMINI_API_KEY` utilizando `PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY')`.
-- Fusionar las dos definiciones de `generarClaseIA` en una única función que reciba `(materiaNombre, temaNombre, contexto, linkTeoria)`.
-- En esta función fusionada:
-  1. Si hay `linkTeoria` de Google Docs, extraer su contenido de texto.
-  2. Preparar el prompt del sistema (para Gemini).
-  3. Retornar la estructura JSON simulada que incluye `busqueda` (prompts), `plan` (duración, objetivos y fases con tiempos), `slides` (portada, conceptos clave, esquema y caso práctico) y `promptsImagenes`.
-
-### Frontend (`script.js`)
-
-#### [MODIFY] [script.js](file:///c:/Users/lsi/Documents/UTNContenidos/script.js)
-- **Persistencia de sesión:**
-  - Al cargar la página, verificar si existe una sesión activa en `sessionStorage` (datos del usuario y del dashboard). Si es así, renderizar el dashboard e ir directamente a esa vista.
-  - Al iniciar sesión con éxito, guardar los datos en `sessionStorage`.
-  - Al cerrar sesión, limpiar `sessionStorage`.
-- **Inyección dinámica en el DOM:**
-  - Completar la lógica en `manejarGeneracionIA` para inyectar dinámicamente los datos devueltos por `generarClaseIA` en las secciones correspondientes del DOM de `view-generator`:
-    - Sección A: Prompts de búsqueda profesional.
-    - Sección B: Objetivos de aprendizaje y tabla de estructura pedagógica.
-    - Sección C: Diapositivas generadas dinámicamente (generando elementos HTML para cada slide).
-    - Sección D: Prompts de generación de imágenes.
+### ✅ Backend (app.gs)
+- Nueva función `revalidarSesionConDashboard(token)` — validación de token + re-fetch del dashboard
+- Todos los `generarClaseIA` y `exportarAGoogleSlides` ya tenían su guard de token (estaba bien en el server, el problema era que el frontend no lo pasaba)
 
 ---
 
-## Verification Plan
+## 🚀 GUÍA DE DESPLIEGUE
 
-### Manual Verification
-1. Cargar el frontend y realizar el login. Verificar que se renderice correctamente el dashboard dinámico.
-2. Hacer clic en "Generar clase" para un tema. Verificar que la vista de generación se cargue con los datos dinámicos inyectados correctamente (título del tema, objetivos, pasos de la clase en la tabla, diapositivas y prompts de imágenes).
-3. Hacer clic en "Exportar a Google Slides" y verificar que la presentación se cree en Google Drive con las diapositivas correspondientes.
-4. Refrescar la pantalla después de iniciar sesión para comprobar que la sesión se mantiene activa gracias a `sessionStorage`.
-5. Hacer clic en "Cerrar Sesión" y verificar que se limpien las credenciales y se regrese a la pantalla de login.
+### PASO 1 — Desplegar en Google Apps Script (el verdadero backend)
+
+> [!IMPORTANT]
+> Esta app **NO se ejecuta en Vercel**. El backend y el frontend estático son servidos ambos por **Google Apps Script** como Web App. Vercel es solo una opción para documentación estática o landing page de redireccionamiento.
+
+1. Abrí [Google Apps Script](https://script.google.com/) y cargá (o creá) tu proyecto con los archivos `app.gs`, `index.html`, `style.css` y `script.js`.
+
+2. En el menú de GAS: **Configuración del Proyecto → Propiedades del Script** — Agregá la propiedad:
+   ```
+   Clave: GEMINI_API_KEY
+   Valor: [tu clave de API de Google AI Studio]
+   ```
+
+3. **Publicar la Web App:**
+   - Menú: **Implementar → Nueva implementación**
+   - Tipo: **Aplicación web**
+   - Ejecutar como: **Yo (el desarrollador)**
+   - Quién tiene acceso: **Cualquier persona** (para que los docentes sin cuenta institucional puedan acceder)
+   - Click en **Implementar**
+
+4. GAS te dará una URL del estilo:
+
+```
+╔══════════════════════════════════════════════════════════════════╗
+║  ⬇️  AQUÍ APARECE LA URL DE TU APLICACIÓN WEB  ⬇️              ║
+║                                                                  ║
+║  https://script.google.com/macros/s/XXXXXXXXXXXXXXXXXX/exec    ║
+║                                                                  ║
+║  ✅  ESA ES LA URL QUE COMPARTÍS CON LOS DOCENTES               ║
+║  ✅  COPIALA Y GUARDALA — TAMBIÉN VA EN EL PASO 2 DE VERCEL     ║
+╚══════════════════════════════════════════════════════════════════╝
+```
+
+> [!CAUTION]
+> Cada vez que modifiques `app.gs` debes hacer una **Nueva implementación** (no "administrar implementaciones existentes") para que los cambios tomen efecto en producción.
+
+---
+
+### PASO 2 — (Opcional) Desplegar una Landing Page en Vercel
+
+Si querés que los docentes accedan a la app desde una URL personalizada (ej: `utncontenidos.vercel.app`), podés crear una landing page estática en Vercel que redirija a la URL de GAS.
+
+1. Creá un archivo `vercel.json` en la raíz de tu repositorio de GitHub:
+
+```json
+{
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "https://script.google.com/macros/s/XXXXXXXXXXXXXXXXXX/exec",
+      "permanent": false
+    }
+  ]
+}
+```
+
+> [!IMPORTANT]
+> **Reemplazá `XXXXXXXXXXXXXXXXXX`** con el ID real de tu Web App de GAS obtenido en el Paso 1.
+
+2. Empujá el repositorio a GitHub y conectalo en [vercel.com](https://vercel.com/).
+3. Vercel te dará una URL como `utncontenidos.vercel.app` — esa la podés compartir con los docentes.
+
+---
+
+### PASO 3 — Configurar la Hoja de Cálculo (Google Sheets)
+
+La hoja de cálculo debe tener **3 pestañas** con exactamente estos nombres:
+
+#### Hoja: `Docentes`
+| A: Legajo | B: DNI | C: Nombre | D: Email | E: IDs_Materias |
+|---|---|---|---|---|
+| 12345 | 30123456 | Juan García | juan@frd.utn.edu.ar | M01,M02 |
+
+#### Hoja: `Materias`
+| A: ID_Materia | B: Nombre | C: Nivel | D: Descripción |
+|---|---|---|---|
+| M01 | Análisis Matemático I | 1er Año | Cálculo de una variable |
+
+#### Hoja: `Temario`
+| A: Legajo_Docente | B: ID_Materia | C: ID_Tema | D: Nombre_Tema | E: Link_Teoria |
+|---|---|---|---|---|
+| 12345 | M01 | T01 | Límites y Continuidad | https://docs.google.com/document/d/... |
+
+---
+
+## Verificación Post-Despliegue
+
+- [ ] Ingresar con credenciales válidas → Dashboard se muestra correctamente
+- [ ] Ingresar con credenciales inválidas → Mensaje de error visible (no `alert()`)
+- [ ] Docente sin materias → Empty state se muestra con botón de contacto
+- [ ] Generar clase → Toasts de advertencia si el Doc no es accesible
+- [ ] Exportar a Slides → Modal de éxito con enlace abre correctamente
+- [ ] Descargar PDF → Archivo A4 con membrete UTN FRD descargado
+- [ ] Recargar página → Sesión restaurada en vivo desde el servidor
+- [ ] Cerrar sesión → Dropdown, token y datos limpiados
+- [ ] Inyectar `<script>alert(1)</script>` en un nombre de tema → No ejecuta código
