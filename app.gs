@@ -361,3 +361,57 @@ function revalidarSesionConDashboard(token) {
     return { success: false, error: "Error al recuperar datos de sesión." };
   }
 }
+
+/**
+ * 8. CONTROLADOR DE PETICIONES HTTP POST (API REST para Vercel)
+ * Recibe y enruta las solicitudes externas desde el frontend.
+ */
+function doPost(e) {
+  try {
+    if (!e || !e.postData || !e.postData.contents) {
+      return crearRespuestaJson({ success: false, error: "Solicitud vacía o inválida." });
+    }
+    
+    const params = JSON.parse(e.postData.contents);
+    const action = params.action;
+    let responseData = {};
+
+    switch (action) {
+      case 'validarDocente':
+        responseData = validarDocente(params.legajo, params.dni);
+        break;
+      case 'generarClaseIA':
+        responseData = generarClaseIA(
+          params.token, 
+          params.materiaNombre, 
+          params.temaNombre, 
+          params.contextoDinamico, 
+          params.linkTeoria
+        );
+        break;
+      case 'exportarAGoogleSlides':
+        responseData = exportarAGoogleSlides(params.token, params.datosClase);
+        break;
+      case 'revalidarSesionConDashboard':
+        responseData = revalidarSesionConDashboard(params.token);
+        break;
+      default:
+        responseData = { success: false, error: "Acción '" + action + "' no permitida o desconocida." };
+    }
+
+    return crearRespuestaJson(responseData);
+
+  } catch (err) {
+    console.error("Error en doPost: " + err.toString());
+    return crearRespuestaJson({ success: false, error: "Excepción en el servidor: " + err.toString() });
+  }
+}
+
+/**
+ * Función auxiliar para retornar respuestas JSON con cabeceras correctas.
+ */
+function crearRespuestaJson(objeto) {
+  return ContentService.createTextOutput(JSON.stringify(objeto))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+

@@ -1,9 +1,45 @@
 /**
  * ============================================================================
  * UTN Contenidos - Asistente de Planificación Didáctica (Frontend)
- * Versión: 2.0 — Segura, robusta y lista para producción (GAS + Vercel-ready)
+ * Versión: 3.0 — Híbrida y optimizada para Vercel (API REST + CORS)
  * ============================================================================
  */
+
+// CONFIGURACIÓN: URL de la Web App de Google Apps Script (Backend)
+// Podés hardcodear la URL aquí o establecerla dinámicamente en la consola con:
+// localStorage.setItem('utn_gas_api_url', 'https://script.google.com/macros/s/.../exec')
+const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxC0NCBWA9TIbKKFq1VVXaarBbMmr3ehahDsByaJ8k3XerwgrKD0pFQd86r9-j9f7xx/exec"; 
+
+/**
+ * Realiza llamadas HTTP POST al backend en Google Apps Script
+ */
+async function callBackend(action, data = {}) {
+    const url = localStorage.getItem('utn_gas_api_url') || GAS_API_URL;
+    
+    if (!url || url.includes('XXXXXXXXXXXXXXXXXXXX')) {
+        const errorMsg = "Falta configurar la URL del Web App de Google Apps Script (GAS_API_URL en script.js).";
+        showNotification('error', errorMsg, 10000);
+        throw new Error(errorMsg);
+    }
+
+    const payload = { action, ...data };
+    
+    const response = await fetch(url, {
+        method: "POST",
+        mode: "cors",
+        headers: {
+            "Content-Type": "text/plain;charset=utf-8" // Evita OPTIONS preflight complejo en Apps Script
+        },
+        body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+        throw new Error(`Error en el servidor backend (${response.status} ${response.statusText})`);
+    }
+
+    const resJson = await response.json();
+    return resJson;
+}
 
 // ---------------------------------------------------------------------------
 // SISTEMA DE NOTIFICACIONES (reemplaza a alert() del sistema)
@@ -112,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- 3. INGRESO DOCENTE (CONEXIÓN BACKEND) ---
-    formLogin.addEventListener('submit', (e) => {
+    formLogin.addEventListener('submit', async (e) => {
         e.preventDefault();
 
         errorLegajo.setAttribute('hidden', '');
@@ -134,41 +170,40 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('loader-title').nextElementSibling.textContent = "Conectando con la base de datos de la Facultad.";
         modalLoader.showModal();
 
-        // LLAMADA AL BACKEND (app.gs)
-        google.script.run
-            .withSuccessHandler((respuesta) => {
-                modalLoader.close();
-                if (respuesta.success) {
-                    // Ingreso exitoso — guardar token y datos mínimos de usuario
-                    sesionToken = respuesta.token;
-                    sessionStorage.setItem('utn_token', respuesta.token);
-                    sessionStorage.setItem('utn_nombre', respuesta.usuario.nombre);
+        try {
+            // LLAMADA AL BACKEND (HTTP POST)
+            const respuesta = await callBackend('validarDocente', { legajo, dni });
+            modalLoader.close();
 
-                    userNameDisplay.textContent = respuesta.usuario.nombre;
-                    mainNav.removeAttribute('hidden');
-                    userMenu.removeAttribute('hidden');
+            if (respuesta.success) {
+                // Ingreso exitoso — guardar token y datos mínimos de usuario
+                sesionToken = respuesta.token;
+                sessionStorage.setItem('utn_token', respuesta.token);
+                sessionStorage.setItem('utn_nombre', respuesta.usuario.nombre);
 
-                    // Renderizar el dashboard
-                    renderizarDashboard(respuesta.dashboard);
-                    navigateTo('view-dashboard');
+                userNameDisplay.textContent = respuesta.usuario.nombre;
+                mainNav.removeAttribute('hidden');
+                userMenu.removeAttribute('hidden');
 
-                    // Avisar si hay advertencia (ej: materias vacías)
-                    if (respuesta.warning) showNotification('warning', respuesta.warning);
-                } else {
-                    // Credenciales no válidas
-                    errorDni.removeAttribute('hidden');
-                    errorDni.textContent = respuesta.error;
-                    inputLegajo.style.borderColor = 'var(--error)';
-                    inputDni.style.borderColor = 'var(--error)';
-                }
-            })
-            .withFailureHandler((error) => {
-                modalLoader.close();
+                // Renderizar el dashboard
+                renderizarDashboard(respuesta.dashboard);
+                navigateTo('view-dashboard');
+
+                // Avisar si hay advertencia (ej: materias vacías)
+                if (respuesta.warning) showNotification('warning', respuesta.warning);
+            } else {
+                // Credenciales no válidas
                 errorDni.removeAttribute('hidden');
-                errorDni.textContent = "No pudimos conectar con la Facultad. Por favor, intentá de nuevo.";
-                console.error('Login failure:', error);
-            })
-            .validarDocente(legajo, dni);
+                errorDni.textContent = respuesta.error;
+                inputLegajo.style.borderColor = 'var(--error)';
+                inputDni.style.borderColor = 'var(--error)';
+            }
+        } catch (error) {
+            modalLoader.close();
+            errorDni.removeAttribute('hidden');
+            errorDni.textContent = "No pudimos conectar con la Facultad. Por favor, intentá de nuevo.";
+            console.error('Login failure:', error);
+        }
     });
 
     btnLogout.addEventListener('click', () => {
@@ -207,7 +242,6 @@ document.addEventListener('DOMContentLoaded', () => {
         userDropdown.addEventListener('click', (e) => e.stopPropagation());
     }
 
-
     // --- 4. RENDERIZADO DINÁMICO DEL DASHBOARD (iOS WIDGET STYLE) ---
     function renderizarDashboard(materias) {
         dashboardGrid.innerHTML = '';
@@ -226,7 +260,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         materias.forEach(materia => {
-            // Usamos sanitizeHTML para proteger contra XSS en datos de la BD
             let temasHTML = materia.temas.map(tema => `
                 <li>
                     <span>${sanitizeHTML(tema.nombreTema)}</span>
@@ -293,127 +326,131 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- 6. ASISTENTE INTELIGENTE: CREACIÓN DE CONTENIDO ---
-    function ejecutarGeneracionIA(materiaNombre, temaNombre, contextoDinamico, linkTeoria) {
+    async function ejecutarGeneracionIA(materiaNombre, temaNombre, contextoDinamico, linkTeoria) {
         // Loader muy cálido y no técnico
         document.getElementById('loader-title').textContent = "Preparando tus materiales...";
         document.getElementById('loader-title').nextElementSibling.textContent = "Armando el plan de clase y estructurando tus diapositivas sugeridas.";
         modalLoader.showModal();
 
-        // LLAMADA AL BACKEND (app.gs) — pasamos el token de sesión
-        google.script.run
-            .withSuccessHandler((respuesta) => {
-                modalLoader.close();
+        try {
+            // LLAMADA AL BACKEND (HTTP POST) — pasamos el token de sesión
+            const respuesta = await callBackend('generarClaseIA', {
+                token: sesionToken,
+                materiaNombre,
+                temaNombre,
+                contextoDinamico,
+                linkTeoria
+            });
+            
+            modalLoader.close();
 
-                if (respuesta && respuesta.success) {
-                    claseGeneradaActual = respuesta;
+            if (respuesta && respuesta.success) {
+                claseGeneradaActual = respuesta;
 
-                    // Mostrar advertencia del RAG si existe
-                    if (respuesta.warning) showNotification('warning', respuesta.warning, 8000);
+                // Mostrar advertencia del RAG si existe
+                if (respuesta.warning) showNotification('warning', respuesta.warning, 8000);
 
-                    // Actualizar rutas superiores (breadcrumbs) — XSS safe via textContent
-                    breadcrumbSubject.textContent = materiaNombre;
-                    breadcrumbTopic.textContent = temaNombre;
+                // Actualizar rutas superiores (breadcrumbs)
+                breadcrumbSubject.textContent = materiaNombre;
+                breadcrumbTopic.textContent = temaNombre;
 
-                    // A. Enfoques sugeridos
-                    const codeBlocksContainer = document.querySelector('#view-generator .code-blocks');
-                    if (codeBlocksContainer && respuesta.busqueda) {
-                        codeBlocksContainer.innerHTML = respuesta.busqueda.map((idea, index) => `
-                            <pre><code><span class="prompt-label">Idea de enfoque ${index + 1}:</span>&quot;${sanitizeHTML(idea)}&quot;</code></pre>
+                // A. Enfoques sugeridos
+                const codeBlocksContainer = document.querySelector('#view-generator .code-blocks');
+                if (codeBlocksContainer && respuesta.busqueda) {
+                    codeBlocksContainer.innerHTML = respuesta.busqueda.map((idea, index) => `
+                        <pre><code><span class="prompt-label">Idea de enfoque ${index + 1}:</span>&quot;${sanitizeHTML(idea)}&quot;</code></pre>
+                    `).join('');
+                }
+
+                // B. Plan de Trabajo (Duración y Objetivos)
+                const planDetails = document.querySelector('#view-generator .plan-details');
+                if (planDetails && respuesta.plan) {
+                    const durationEl = planDetails.querySelector('p');
+                    if (durationEl) {
+                        durationEl.innerHTML = `<strong>Tiempo de clase estimado:</strong> ${sanitizeHTML(respuesta.plan.duracion)}`;
+                    }
+
+                    const objetivosList = planDetails.querySelector('ul');
+                    if (objetivosList && respuesta.plan.objetivos) {
+                        objetivosList.innerHTML = respuesta.plan.objetivos.map(obj => `<li>${sanitizeHTML(obj)}</li>`).join('');
+                    }
+
+                    const tableBody = planDetails.querySelector('.table-plan tbody');
+                    if (tableBody && respuesta.plan.estructura) {
+                        tableBody.innerHTML = respuesta.plan.estructura.map(item => `
+                            <tr>
+                                <td><strong>${sanitizeHTML(item.fase)}</strong></td>
+                                <td>${sanitizeHTML(item.duracion)}</td>
+                                <td>${sanitizeHTML(item.actividad)}</td>
+                            </tr>
                         `).join('');
                     }
-
-                    // B. Plan de Trabajo (Duración y Objetivos)
-                    const planDetails = document.querySelector('#view-generator .plan-details');
-                    if (planDetails && respuesta.plan) {
-                        const durationEl = planDetails.querySelector('p');
-                        if (durationEl) {
-                            durationEl.innerHTML = `<strong>Tiempo de clase estimado:</strong> ${sanitizeHTML(respuesta.plan.duracion)}`;
-                        }
-
-                        const objetivosList = planDetails.querySelector('ul');
-                        if (objetivosList && respuesta.plan.objetivos) {
-                            objetivosList.innerHTML = respuesta.plan.objetivos.map(obj => `<li>${sanitizeHTML(obj)}</li>`).join('');
-                        }
-
-                        const tableBody = planDetails.querySelector('.table-plan tbody');
-                        if (tableBody && respuesta.plan.estructura) {
-                            tableBody.innerHTML = respuesta.plan.estructura.map(item => `
-                                <tr>
-                                    <td><strong>${sanitizeHTML(item.fase)}</strong></td>
-                                    <td>${sanitizeHTML(item.duracion)}</td>
-                                    <td>${sanitizeHTML(item.actividad)}</td>
-                                </tr>
-                            `).join('');
-                        }
-                    }
-
-                    // C. Estructura de Diapositivas Sugerida
-                    const slidesGrid = document.querySelector('#view-generator .slides-grid');
-                    if (slidesGrid && respuesta.slides) {
-                        slidesGrid.innerHTML = respuesta.slides.map((slide, index) => {
-                            let contentHTML = '';
-                            if (slide.tipo === 'portada') {
-                                contentHTML = `
-                                    <h4>Título de portada:</h4>
-                                    <p><strong>${sanitizeHTML(slide.titulo)}</strong></p>
-                                    <h4>Detalle complementario:</h4>
-                                    <p>${sanitizeHTML(slide.subtitulo || '')}</p>
-                                `;
-                            } else if (slide.tipo === 'esquema') {
-                                contentHTML = `
-                                    <p><em>${sanitizeHTML(slide.contenido)}</em></p>
-                                    <p class="slide-note"><strong>Recomendación al hablar:</strong> Explicar el gráfico paso a paso en el pizarrón o pantalla.</p>
-                                `;
-                            } else {
-                                const lineas = (slide.contenido || '').split('\n').filter(l => l.trim());
-                                contentHTML = `
-                                    <ul>
-                                        ${lineas.map(line => `<li>${sanitizeHTML(line)}</li>`).join('')}
-                                    </ul>
-                                `;
-                            }
-
-                            return `
-                                <article class="slide-card">
-                                    <header>Diapositiva ${index + 1}: ${sanitizeHTML(slide.titulo)}</header>
-                                    <div class="slide-content">
-                                        ${contentHTML}
-                                    </div>
-                                </article>
-                            `;
-                        }).join('');
-                    }
-
-                    // D. Ideas para imágenes de apoyo
-                    const promptList = document.querySelector('#view-generator .prompt-list');
-                    if (promptList && respuesta.promptsImagenes) {
-                        const labels = ["Para la Portada", "Para el Esquema explicativo", "Para el Ejemplo práctico", "Apoyo General"];
-                        promptList.innerHTML = respuesta.promptsImagenes.map((prompt, index) => {
-                            const label = labels[index] || `Ilustración sugerida ${index + 1}`;
-                            return `
-                                <div>
-                                    <p><strong>${sanitizeHTML(label)}:</strong></p>
-                                    <blockquote>
-                                        &quot;${sanitizeHTML(prompt)}&quot;
-                                    </blockquote>
-                                </div>
-                            `;
-                        }).join('');
-                    }
-
-                    navigateTo('view-generator');
-                } else {
-                    const errMsg = (respuesta && respuesta.error) ? respuesta.error : "Tuvimos un inconveniente al armar tu clase. Por favor, reintentá.";
-                    showNotification('error', errMsg);
                 }
-            })
-            .withFailureHandler((error) => {
-                modalLoader.close();
-                showNotification('error', "Error de conexión al generar la clase. Revisá tu red e intentá de nuevo.");
-                console.error('generarClaseIA failure:', error);
-            })
-            // CRÍTICO: se pasa el sesionToken para que el servidor valide la sesión
-            .generarClaseIA(sesionToken, materiaNombre, temaNombre, contextoDinamico, linkTeoria);
+
+                // C. Estructura de Diapositivas Sugerida
+                const slidesGrid = document.querySelector('#view-generator .slides-grid');
+                if (slidesGrid && respuesta.slides) {
+                    slidesGrid.innerHTML = respuesta.slides.map((slide, index) => {
+                        let contentHTML = '';
+                        if (slide.tipo === 'portada') {
+                            contentHTML = `
+                                <h4>Título de portada:</h4>
+                                <p><strong>${sanitizeHTML(slide.titulo)}</strong></p>
+                                <h4>Detalle complementario:</h4>
+                                <p>${sanitizeHTML(slide.subtitulo || '')}</p>
+                            `;
+                        } else if (slide.tipo === 'esquema') {
+                            contentHTML = `
+                                <p><em>${sanitizeHTML(slide.contenido)}</em></p>
+                                <p class="slide-note"><strong>Recomendación al hablar:</strong> Explicar el gráfico paso a paso en el pizarrón o pantalla.</p>
+                            `;
+                        } else {
+                            const lineas = (slide.contenido || '').split('\n').filter(l => l.trim());
+                            contentHTML = `
+                                <ul>
+                                    ${lineas.map(line => `<li>${sanitizeHTML(line)}</li>`).join('')}
+                                </ul>
+                            `;
+                        }
+
+                        return `
+                            <article class="slide-card">
+                                <header>Diapositiva ${index + 1}: ${sanitizeHTML(slide.titulo)}</header>
+                                <div class="slide-content">
+                                    ${contentHTML}
+                                </div>
+                            </article>
+                        `;
+                    }).join('');
+                }
+
+                // D. Ideas para imágenes de apoyo
+                const promptList = document.querySelector('#view-generator .prompt-list');
+                if (promptList && respuesta.promptsImagenes) {
+                    const labels = ["Para la Portada", "Para el Esquema explicativo", "Para el Ejemplo práctico", "Apoyo General"];
+                    promptList.innerHTML = respuesta.promptsImagenes.map((prompt, index) => {
+                        const label = labels[index] || `Ilustración sugerida ${index + 1}`;
+                        return `
+                            <div>
+                                <p><strong>${sanitizeHTML(label)}:</strong></p>
+                                <blockquote>
+                                    &quot;${sanitizeHTML(prompt)}&quot;
+                                </blockquote>
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                navigateTo('view-generator');
+            } else {
+                const errMsg = (respuesta && respuesta.error) ? respuesta.error : "Tuvimos un inconveniente al armar tu clase. Por favor, reintentá.";
+                showNotification('error', errMsg);
+            }
+        } catch (error) {
+            modalLoader.close();
+            showNotification('error', "Error de conexión al generar la clase. Revisá tu red e intentá de nuevo.");
+            console.error('generarClaseIA failure:', error);
+        }
     }
 
     btnBackDashboard.addEventListener('click', (e) => {
@@ -422,31 +459,32 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- 7. EXPORTACIÓN A GOOGLE SLIDES (DRIVE INSTITUCIONAL) ---
-    btnExportSlides.addEventListener('click', () => {
+    btnExportSlides.addEventListener('click', async () => {
         if (!claseGeneratedCheck()) return;
 
         document.getElementById('loader-title').textContent = "Guardando presentación...";
         document.getElementById('loader-title').nextElementSibling.textContent = "Creando tus diapositivas en Google Drive institucional. Por favor, esperá.";
         modalLoader.showModal();
 
-        // LLAMADA AL BACKEND (app.gs) — token requerido para autorización
-        google.script.run
-            .withSuccessHandler((respuesta) => {
-                modalLoader.close();
-                if (respuesta.success) {
-                    linkOpenSlides.href = respuesta.url;
-                    modalSuccess.showModal();
-                } else {
-                    showNotification('error', "No pudimos guardar las diapositivas: " + (respuesta.error || 'Error desconocido.'));
-                }
-            })
-            .withFailureHandler((error) => {
-                modalLoader.close();
-                showNotification('error', "Error de conexión al guardar. Por favor, intentá de nuevo.");
-                console.error('exportarAGoogleSlides failure:', error);
-            })
-            // CRÍTICO: se pasa el sesionToken para que el servidor valide la sesión
-            .exportarAGoogleSlides(sesionToken, claseGeneradaActual);
+        try {
+            // LLAMADA AL BACKEND (HTTP POST) — token requerido para autorización
+            const respuesta = await callBackend('exportarAGoogleSlides', {
+                token: sesionToken,
+                datosClase: claseGeneradaActual
+            });
+
+            modalLoader.close();
+            if (respuesta.success) {
+                linkOpenSlides.href = respuesta.url;
+                modalSuccess.showModal();
+            } else {
+                showNotification('error', "No pudimos guardar las diapositivas: " + (respuesta.error || 'Error desconocido.'));
+            }
+        } catch (error) {
+            modalLoader.close();
+            showNotification('error', "Error de conexión al guardar. Por favor, intentá de nuevo.");
+            console.error('exportarAGoogleSlides failure:', error);
+        }
     });
 
     // --- 7b. EXPORTACIÓN A PDF (CLIENTE, sin costo) ---
@@ -459,7 +497,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const tema = breadcrumbTopic.textContent || 'Clase';
             const materia = breadcrumbSubject.textContent || 'Materia';
 
-            // Construir un HTML temporal limpio y bien estructurado para el PDF
             const pdfContent = document.createElement('div');
             pdfContent.style.fontFamily = 'Arial, sans-serif';
             pdfContent.style.color = '#1a1a2e';
@@ -556,9 +593,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- 8. REINICIO DE SESIÓN ACTIVA ---
-    // Sólo recuperamos el token y el nombre del docente (datos mínimos, sin dashboard cacheado)
     const tokenGuardado = sessionStorage.getItem('utn_token');
     const nombreGuardado = sessionStorage.getItem('utn_nombre');
+    
     if (tokenGuardado && nombreGuardado) {
         sesionToken = tokenGuardado;
         userNameDisplay.textContent = nombreGuardado;
@@ -566,8 +603,8 @@ document.addEventListener('DOMContentLoaded', () => {
         userMenu.removeAttribute('hidden');
 
         // Re-obtenemos el dashboard en vivo desde el servidor usando el token
-        google.script.run
-            .withSuccessHandler((respuesta) => {
+        callBackend('revalidarSesionConDashboard', { token: tokenGuardado })
+            .then((respuesta) => {
                 if (respuesta && respuesta.success) {
                     renderizarDashboard(respuesta.dashboard);
                     navigateTo('view-dashboard');
@@ -582,220 +619,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     navigateTo('view-login');
                 }
             })
-            .withFailureHandler(() => {
+            .catch(() => {
                 // Error de red — navegamos al login como fallback seguro
                 sessionStorage.removeItem('utn_token');
                 sessionStorage.removeItem('utn_nombre');
                 sesionToken = null;
                 navigateTo('view-login');
-            })
-            .revalidarSesionConDashboard(tokenGuardado);
+            });
     }
-
-});/**
- * ============================================================================
- * UTNContenidos - Motor de Orquestación Frontend (Vanilla JS)
- * Facultad Regional Delta - Universidad Tecnológica Nacional
- * ============================================================================
- */
-
-document.addEventListener('DOMContentLoaded', () => {
-    
-    // --- 1. REFERENCIAS AL DOM ---
-    
-    // Vistas (SPA)
-    const viewLogin = document.getElementById('view-login');
-    const viewDashboard = document.getElementById('view-dashboard');
-    const viewGenerator = document.getElementById('view-generator');
-    
-    // Elementos del Header
-    const mainNav = document.getElementById('main-nav');
-    const userMenu = document.getElementById('user-menu');
-    const userNameDisplay = document.getElementById('user-name-display');
-    const btnLogout = document.getElementById('btn-logout');
-    
-    // Formulario de Login
-    const formLogin = document.getElementById('form-login');
-    const inputLegajo = document.getElementById('input-legajo');
-    const inputDni = document.getElementById('input-dni');
-    const errorLegajo = document.getElementById('error-legajo');
-    const errorDni = document.getElementById('error-dni');
-    
-    // Elementos del Dashboard y Generador
-    const btnsSelectTopic = document.querySelectorAll('.btn-select-topic');
-    const btnBackDashboard = document.getElementById('btn-back-dashboard');
-    const breadcrumbSubject = document.getElementById('breadcrumb-subject');
-    const breadcrumbTopic = document.getElementById('breadcrumb-topic');
-    
-    // Modales y Acciones
-    const modalLoader = document.getElementById('modal-loader');
-    const modalSuccess = document.getElementById('modal-success');
-    const btnExportSlides = document.getElementById('btn-export-slides');
-    const btnCloseSuccess = document.getElementById('btn-close-success');
-
-    // --- 2. CONTROLADOR DE VISTAS (ROUTER SPA) ---
-    
-    const navigateTo = (viewId) => {
-        // Ocultar todas las vistas
-        [viewLogin, viewDashboard, viewGenerator].forEach(view => {
-            view.setAttribute('hidden', '');
-            view.classList.remove('spa-view'); // Reinicia animación
-        });
-        
-        // Mostrar la vista solicitada
-        const targetView = document.getElementById(viewId);
-        targetView.removeAttribute('hidden');
-        
-        // Forzar reflow para reiniciar la animación CSS
-        void targetView.offsetWidth; 
-        targetView.classList.add('spa-view');
-        
-        // Scrollear arriba
-        window.scrollTo(0, 0);
-    };
-
-    // --- 3. LÓGICA DE AUTENTICACIÓN ---
-    
-    formLogin.addEventListener('submit', (e) => {
-        e.preventDefault(); // Evita recarga de página
-        
-        // Resetear errores
-        errorLegajo.setAttribute('hidden', '');
-        errorDni.setAttribute('hidden', '');
-        inputLegajo.style.borderColor = '';
-        inputDni.style.borderColor = '';
-
-        const legajo = inputLegajo.value.trim();
-        const dni = inputDni.value.trim();
-        
-        let hasError = false;
-
-        if (!legajo) {
-            errorLegajo.removeAttribute('hidden');
-            errorLegajo.textContent = "El legajo es obligatorio.";
-            inputLegajo.style.borderColor = 'var(--error)';
-            hasError = true;
-        }
-        
-        if (!dni) {
-            errorDni.removeAttribute('hidden');
-            errorDni.textContent = "El DNI es obligatorio.";
-            inputDni.style.borderColor = 'var(--error)';
-            hasError = true;
-        }
-
-        if (hasError) return;
-
-        // Validación Backdoor solicitada ("root" / "root")
-        if (legajo === 'root' && dni === 'root') {
-            // Login Exitoso
-            userNameDisplay.textContent = "Prof. Root (Admin)";
-            
-            // Mostrar elementos del header
-            mainNav.removeAttribute('hidden');
-            userMenu.removeAttribute('hidden');
-            
-            // Navegar al Dashboard
-            navigateTo('view-dashboard');
-        } else {
-            // Simulación de error de credenciales
-            errorDni.removeAttribute('hidden');
-            errorDni.textContent = "Credenciales inválidas. Verifique en Sysacad.";
-            inputLegajo.style.borderColor = 'var(--error)';
-            inputDni.style.borderColor = 'var(--error)';
-        }
-    });
-
-    btnLogout.addEventListener('click', () => {
-        // Limpiar formulario
-        formLogin.reset();
-        
-        // Ocultar elementos del header
-        mainNav.setAttribute('hidden', '');
-        userMenu.setAttribute('hidden', '');
-        
-        // Volver al login
-        navigateTo('view-login');
-    });
-
-    // --- 4. LÓGICA DEL DASHBOARD Y GENERACIÓN IA ---
-    
-    btnsSelectTopic.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            // Extraer datos del DOM para los breadcrumbs
-            const topicName = e.target.previousElementSibling.textContent;
-            const subjectCard = e.target.closest('.subject-card');
-            const subjectName = subjectCard.querySelector('h2').textContent;
-            
-            // Mostrar Modal de Carga (Simulando llamada a la API de Gemini)
-            modalLoader.showModal();
-            
-            // Simular tiempo de procesamiento de IA (2.5 segundos)
-            setTimeout(() => {
-                // Actualizar Breadcrumbs
-                breadcrumbSubject.textContent = subjectName;
-                breadcrumbTopic.textContent = topicName;
-                
-                // Cerrar loader y navegar a la vista de resultados
-                modalLoader.close();
-                navigateTo('view-generator');
-            }, 2500);
-        });
-    });
-
-    btnBackDashboard.addEventListener('click', (e) => {
-        e.preventDefault();
-        navigateTo('view-dashboard');
-    });
-
-    // --- 5. LÓGICA DE EXPORTACIÓN (GOOGLE SLIDES) ---
-    
-    btnExportSlides.addEventListener('click', () => {
-        // Reutilizamos el loader cambiando el texto temporalmente
-        const loaderTitle = document.getElementById('loader-title');
-        const originalTitle = loaderTitle.textContent;
-        const loaderDesc = loaderTitle.nextElementSibling;
-        const originalDesc = loaderDesc.textContent;
-
-        loaderTitle.textContent = "Exportando a Google Slides...";
-        loaderDesc.textContent = "Conectando con Google Drive institucional. Por favor, espere.";
-        
-        modalLoader.showModal();
-
-        // Simular tiempo de creación de Slides vía Apps Script (2 segundos)
-        setTimeout(() => {
-            modalLoader.close();
-            
-            // Restaurar textos originales del loader
-            loaderTitle.textContent = originalTitle;
-            loaderDesc.textContent = originalDesc;
-            
-            // Mostrar modal de éxito
-            modalSuccess.showModal();
-        }, 2000);
-    });
-
-    btnCloseSuccess.addEventListener('click', () => {
-        modalSuccess.close();
-    });
-
-    // Cerrar modales al hacer clic fuera de ellos (UX)
-    [modalLoader, modalSuccess].forEach(modal => {
-        modal.addEventListener('click', (e) => {
-            const dialogDimensions = modal.getBoundingClientRect();
-            if (
-                e.clientX < dialogDimensions.left ||
-                e.clientX > dialogDimensions.right ||
-                e.clientY < dialogDimensions.top ||
-                e.clientY > dialogDimensions.bottom
-            ) {
-                // Solo permitimos cerrar el de éxito haciendo clic afuera. 
-                // El loader no debe cerrarse para no romper el flujo.
-                if (modal.id === 'modal-success') {
-                    modal.close();
-                }
-            }
-        });
-    });
 
 });
