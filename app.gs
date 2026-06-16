@@ -129,20 +129,20 @@ function obtenerMateriasYTemas(materiasIds, ss, legajo) {
 }
 
 /**
- * 5. EL NÚCLEO IA: GENERACIÓN DE CONTENIDO REAL (RAG + GEMINI)
- * Extrae texto del Google Doc si existe y llama a la API de Gemini para estructurar el JSON.
+ * 5. RETROALIMENTACIÓN DE CONTEXTO (RAG BÁSICO)
+ * Extrae texto del Google Doc si existe y lo devuelve limpio al frontend.
  */
-function generarClaseIA(token, materiaNombre, temaNombre, contextoDinamico, linkTeoria) {
-  // 1. VALIDACIÓN DE SEGURIDAD EN EL SERVIDOR
+function obtenerContextoTema(token, linkTeoria) {
+  // VALIDACIÓN DE SEGURIDAD EN EL SERVIDOR
   const legajo = validarSesion(token);
   if (!legajo) {
     return { success: false, error: "Sesión inválida o expirada. Por favor, vuelva a ingresar." };
   }
 
-  let textoOficial = "No se proporcionó bibliografía específica. Usa teoría universitaria estándar.";
+  let textoOficial = "No se proporcionó bibliografía específica. Usa teoría estándar de nivel universitario.";
   let advertenciaRAG = null;
   
-  // 2. EXTRAER LA TEORÍA (RAG básico)
+  // EXTRAER LA TEORÍA (RAG básico)
   if (linkTeoria && linkTeoria.includes('docs.google.com')) {
     const docId = extraerIdDoc(linkTeoria);
     if (docId) {
@@ -157,115 +157,23 @@ function generarClaseIA(token, materiaNombre, temaNombre, contextoDinamico, link
       } catch (error) {
         console.error("Error al leer el apunte: " + error);
         textoOficial = "ADVERTENCIA: No se pudo leer el apunte oficial por falta de permisos de acceso. Usa teoría estándar de nivel universitario para esta materia.";
-        advertenciaRAG = "No pudimos acceder a tu Google Doc de teoría (revisá que esté compartido). Generamos la clase con contenido general de ingeniería.";
+        advertenciaRAG = "No pudimos acceder a tu Google Doc de teoría (revisá que esté compartido). Se generará la clase con contenido general de ingeniería.";
       }
     }
   }
 
-  // 3. EL PROMPT ESTRUCTURADO PARA GEMINI
-  const promptSistema = `
-    Actúa como un profesor titular de la UTN Facultad Regional Delta. 
-    Tu objetivo es estructurar una clase sobre el tema "${temaNombre}" para la materia "${materiaNombre}".
-    
-    REGLA DE ORO DE CONTENIDO: 
-    Si el siguiente texto oficial de la cátedra no tiene advertencias de falta de permisos, basate principalmente en él. Si tiene una advertencia, usá teoría universitaria estándar.
-    
-    --- INICIO DEL TEXTO OFICIAL DE LA CÁTEDRA ---
-    ${textoOficial}
-    --- FIN DEL TEXTO OFICIAL ---
-    
-    Indicaciones adicionales del profesor para orientar la clase: ${contextoDinamico || 'Ninguna'}
-    
-    Devuelve OBLIGATORIAMENTE un objeto en formato JSON puro (sin delimitadores de código markdown como \`\`\`json) que respete estrictamente esta estructura:
-    {
-      "busqueda": [
-        "Sugerencia de enfoque 1",
-        "Sugerencia de enfoque 2",
-        "Sugerencia de enfoque 3"
-      ],
-      "plan": {
-        "duracion": "tiempo estimado total (ej: 2 horas cátedra)",
-        "objetivos": [
-          "Objetivo conceptual de aprendizaje",
-          "Objetivo procedimental o práctico"
-        ],
-        "estructura": [
-          { "fase": "ej: Introducción", "duracion": "ej: 15 min", "actividad": "detalle didáctico de lo que se hace" }
-        ]
-      },
-      "slides": [
-        { "titulo": "${temaNombre}", "subtitulo": "${materiaNombre} - UTN FRD", "tipo": "portada" },
-        { "titulo": "título de slide", "contenido": "Punto 1\\nPunto 2\\nPunto 3", "tipo": "texto/esquema/practico" }
-      ],
-      "promptsImagenes": [
-        "Prompt en inglés para imagen de portada",
-        "Prompt en inglés para diagrama o gráfico de apoyo",
-        "Prompt en inglés para caso práctico"
-      ]
-    }
-  `;
-
-  // 4. LLAMADA REAL A LA API DE GEMINI 1.5 FLASH
-  if (!GEMINI_API_KEY) {
-    return { success: false, error: "La clave API de Gemini no está configurada en Script Properties." };
-  }
-
-  const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + GEMINI_API_KEY;
-  const payload = {
-    "contents": [{
-      "parts": [{
-        "text": promptSistema
-      }]
-    }],
-    "generationConfig": {
-      "responseMimeType": "application/json"
-    }
+  return {
+    success: true,
+    textoOficial: textoOficial,
+    warning: advertenciaRAG
   };
-
-  const options = {
-    "method": "post",
-    "contentType": "application/json",
-    "payload": JSON.stringify(payload),
-    "muteHttpExceptions": true
-  };
-
-  try {
-    const response = UrlFetchApp.fetch(url, options);
-    const responseCode = response.getResponseCode();
-    const responseText = response.getContentText();
-
-    if (responseCode !== 200) {
-      console.error("Gemini API Error (" + responseCode + "): " + responseText);
-      return { success: false, error: "El servicio de IA (Gemini) devolvió un error. Código: " + responseCode };
-    }
-
-    const jsonResponse = JSON.parse(responseText);
-    if (!jsonResponse.candidates || jsonResponse.candidates.length === 0) {
-      return { success: false, error: "La IA no devolvió una respuesta válida. Reintente." };
-    }
-
-    const textResult = jsonResponse.candidates[0].content.parts[0].text;
-    const claseGenerada = JSON.parse(textResult);
-
-    // Adjuntar banderas de éxito y advertencias
-    claseGenerada.success = true;
-    if (advertenciaRAG) {
-      claseGenerada.warning = advertenciaRAG;
-    }
-
-    return claseGenerada;
-
-  } catch (error) {
-    console.error("Excepción en la generación IA: " + error.toString());
-    return { success: false, error: "Excepción de red o de parseo de IA. Detalle: " + error.toString() };
-  }
 }
 
 /**
- * 6. EXPORTACIÓN A GOOGLE SLIDES (DRIVE INSTITUCIONAL)
- * Crea una presentación real en el Drive del profesor.
+ * 6. EXPORTACIÓN A GOOGLE SLIDES & HISTORIAL
+ * Crea una presentación real en el Drive del profesor y guarda el registro en Google Sheets.
  */
-function exportarAGoogleSlides(token, datosClase) {
+function exportarAGoogleSlides(token, materiaId, materiaNombre, temaNombre, datosClase) {
   // VALIDACIÓN DE SEGURIDAD EN EL SERVIDOR
   const legajo = validarSesion(token);
   if (!legajo) {
@@ -305,10 +213,37 @@ function exportarAGoogleSlides(token, datosClase) {
         slideShapes[0].getText().getTextStyle().setForegroundColor('#0055A6');
       }
     }
+
+    const urlPresentacion = presentacion.getUrl();
+
+    // 5. REGISTRAR EN EL HISTORIAL (Hoja: Historial_Presentaciones)
+    try {
+      const ss = SpreadsheetApp.getActiveSpreadsheet();
+      let sheetHistorial = ss.getSheetByName('Historial_Presentaciones');
+      if (!sheetHistorial) {
+        sheetHistorial = ss.insertSheet('Historial_Presentaciones');
+        sheetHistorial.appendRow(['ID_Historial', 'Legajo_Docente', 'ID_Materia', 'Nombre_Tema', 'URL_Slides', 'Fecha_Creacion']);
+      }
+      
+      const idHistorial = Utilities.getUuid();
+      const fechaCreacion = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd HH:mm:ss");
+      
+      sheetHistorial.appendRow([
+        idHistorial,
+        String(legajo),
+        String(materiaId || ''),
+        String(temaNombre || ''),
+        urlPresentacion,
+        fechaCreacion
+      ]);
+    } catch (errHistorial) {
+      console.error("Error al registrar en Historial_Presentaciones: " + errHistorial.toString());
+      // No bloqueamos la ejecución si falla el registro en la base de datos
+    }
     
     return {
       success: true,
-      url: presentacion.getUrl()
+      url: urlPresentacion
     };
     
   } catch (error) {
@@ -330,7 +265,52 @@ function extraerIdDoc(url) {
 }
 
 /**
- * 7. REVALIDACIÓN DE SESIÓN CON DASHBOARD
+ * 7. OBTENER HISTORIAL DE PRESENTACIONES DEL DOCENTE
+ * Devuelve un array con las clases y slides generadas por el profesor logueado.
+ */
+function obtenerHistorialDocente(token) {
+  const legajo = validarSesion(token);
+  if (!legajo) {
+    return { success: false, error: "Sesión inválida o expirada. Por favor, vuelva a ingresar." };
+  }
+
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheetHistorial = ss.getSheetByName('Historial_Presentaciones');
+    if (!sheetHistorial) {
+      return { success: true, historial: [] };
+    }
+
+    const values = sheetHistorial.getDataRange().getValues();
+    let historial = [];
+
+    // Columna A: ID_Historial (0), B: Legajo_Docente (1), C: ID_Materia (2), D: Nombre_Tema (3), E: URL_Slides (4), F: Fecha_Creacion (5)
+    for (let i = 1; i < values.length; i++) {
+      if (String(values[i][1]).trim() === String(legajo).trim()) {
+        historial.push({
+          idHistorial: values[i][0],
+          legajoDocente: values[i][1],
+          materiaId: values[i][2],
+          temaNombre: values[i][3],
+          urlSlides: values[i][4],
+          fechaCreacion: values[i][5]
+        });
+      }
+    }
+
+    // Ordenar por fecha decreciente
+    historial.sort((a, b) => new Date(b.fechaCreacion) - new Date(a.fechaCreacion));
+
+    return { success: true, historial: historial };
+
+  } catch (error) {
+    console.error("Error en obtenerHistorialDocente: " + error.toString());
+    return { success: false, error: "Error al recuperar historial: " + error.toString() };
+  }
+}
+
+/**
+ * 8. REVALIDACIÓN DE SESIÓN CON DASHBOARD
  * Llamada por el frontend al recargar la página cuando existe un token en sessionStorage.
  * Retorna { success: true, dashboard } si el token es válido, o { success: false } si expiró.
  */
@@ -363,8 +343,8 @@ function revalidarSesionConDashboard(token) {
 }
 
 /**
- * 8. CONTROLADOR DE PETICIONES HTTP POST (API REST para Vercel)
- * Recibe y enruta las solicitudes externas desde el frontend.
+ * 9. CONTROLADOR DE PETICIONES HTTP POST (API REST)
+ * Enruta las solicitudes externas desde el frontend en Vercel.
  */
 function doPost(e) {
   try {
@@ -380,17 +360,20 @@ function doPost(e) {
       case 'validarDocente':
         responseData = validarDocente(params.legajo, params.dni);
         break;
-      case 'generarClaseIA':
-        responseData = generarClaseIA(
-          params.token, 
-          params.materiaNombre, 
-          params.temaNombre, 
-          params.contextoDinamico, 
-          params.linkTeoria
-        );
+      case 'obtenerContextoTema':
+        responseData = obtenerContextoTema(params.token, params.linkTeoria);
         break;
       case 'exportarAGoogleSlides':
-        responseData = exportarAGoogleSlides(params.token, params.datosClase);
+        responseData = exportarAGoogleSlides(
+          params.token, 
+          params.materiaId, 
+          params.materiaNombre, 
+          params.temaNombre, 
+          params.datosClase
+        );
+        break;
+      case 'obtenerHistorialDocente':
+        responseData = obtenerHistorialDocente(params.token);
         break;
       case 'revalidarSesionConDashboard':
         responseData = revalidarSesionConDashboard(params.token);
