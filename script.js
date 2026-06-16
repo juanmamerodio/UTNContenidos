@@ -100,8 +100,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const viewLogin = document.getElementById('view-login');
     const viewDashboard = document.getElementById('view-dashboard');
     const viewGenerator = document.getElementById('view-generator');
+    const viewHistorial = document.getElementById('view-historial');
 
     const mainNav = document.getElementById('main-nav');
+    const navLinks = mainNav.querySelectorAll('a');
     const userMenu = document.getElementById('user-menu');
     const userNameDisplay = document.getElementById('user-name-display');
     const btnLogout = document.getElementById('btn-logout');
@@ -113,6 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const errorDni = document.getElementById('error-dni');
 
     const dashboardGrid = document.querySelector('.dashboard-grid');
+    const historialGrid = document.getElementById('historial-grid');
     const breadcrumbSubject = document.getElementById('breadcrumb-subject');
     const breadcrumbTopic = document.getElementById('breadcrumb-topic');
     const btnBackDashboard = document.getElementById('btn-back-dashboard');
@@ -136,10 +139,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 2. CONTROLADOR DE VISTAS (SPA ROUTER) ---
     const navigateTo = (viewId) => {
-        [viewLogin, viewDashboard, viewGenerator].forEach(view => {
+        [viewLogin, viewDashboard, viewGenerator, viewHistorial].forEach(view => {
             view.setAttribute('hidden', '');
             view.classList.remove('spa-view');
         });
+        
+        // Update nav links active state
+        navLinks.forEach(link => {
+            if (link.getAttribute('href') === `#${viewId.replace('view-', '')}`) {
+                link.classList.add('active');
+            } else {
+                link.classList.remove('active');
+            }
+        });
+
         const targetView = document.getElementById(viewId);
         targetView.removeAttribute('hidden');
         void targetView.offsetWidth; // Force reflow
@@ -242,6 +255,76 @@ document.addEventListener('DOMContentLoaded', () => {
         userDropdown.addEventListener('click', (e) => e.stopPropagation());
     }
 
+    // --- NAVEGACIÓN PRINCIPAL ---
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const targetId = link.getAttribute('href').replace('#', 'view-');
+            
+            if (targetId === 'view-historial') {
+                cargarHistorial();
+            } else if (targetId === 'view-dashboard') {
+                navigateTo('view-dashboard');
+            }
+        });
+    });
+
+    async function cargarHistorial() {
+        navigateTo('view-historial');
+        historialGrid.innerHTML = `
+            <div class="empty-state" role="status">
+                <div class="spinner-wrapper" style="margin: 0 auto 20px;">
+                    <svg class="spinner" viewBox="0 0 50 50" style="width:40px;height:40px;">
+                        <circle class="path" cx="25" cy="25" r="20" fill="none" stroke="#007AFF" stroke-width="4.5"></circle>
+                    </svg>
+                </div>
+                <p>Cargando historial...</p>
+            </div>
+        `;
+
+        try {
+            const respuesta = await callBackend('obtenerHistorialDocente', { token: sesionToken });
+            if (respuesta && respuesta.success) {
+                renderizarHistorial(respuesta.historial);
+            } else {
+                showNotification('error', "No se pudo cargar el historial.");
+                historialGrid.innerHTML = `<p class="error-message">Error al cargar el historial.</p>`;
+            }
+        } catch (error) {
+            console.error(error);
+            showNotification('error', "Error de conexión al cargar el historial.");
+            historialGrid.innerHTML = `<p class="error-message">Error de conexión.</p>`;
+        }
+    }
+
+    function renderizarHistorial(historial) {
+        if (!historial || historial.length === 0) {
+            historialGrid.innerHTML = `
+                <div class="empty-state" role="status">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    <h2>No hay presentaciones generadas</h2>
+                    <p>Todavía no generaste ninguna presentación. Creá tu primera clase desde "Mis Materias".</p>
+                </div>
+            `;
+            return;
+        }
+
+        historialGrid.innerHTML = historial.map(item => `
+            <article class="subject-card">
+                <div class="subject-header">
+                    <h2>${sanitizeHTML(item.temaNombre)}</h2>
+                </div>
+                <div class="subject-body">
+                    <p>Materia ID: ${sanitizeHTML(item.materiaId || 'N/A')}</p>
+                    <p>Fecha: ${sanitizeHTML(item.fechaCreacion)}</p>
+                    <div style="margin-top: 15px;">
+                        <a href="${item.urlSlides}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="display:inline-block; text-align:center; padding: 10px 15px; border-radius: 8px; text-decoration:none;">Ver Slides</a>
+                    </div>
+                </div>
+            </article>
+        `).join('');
+    }
+
     // --- 4. RENDERIZADO DINÁMICO DEL DASHBOARD (iOS WIDGET STYLE) ---
     function renderizarDashboard(materias) {
         dashboardGrid.innerHTML = '';
@@ -333,14 +416,40 @@ document.addEventListener('DOMContentLoaded', () => {
         modalLoader.showModal();
 
         try {
-            // LLAMADA AL BACKEND (HTTP POST) — pasamos el token de sesión
-            const respuesta = await callBackend('generarClaseIA', {
+            // 1. OBTENER CONTEXTO (RAG) DESDE EL BACKEND (Google Apps Script)
+            const respuestaContexto = await callBackend('obtenerContextoTema', {
                 token: sesionToken,
-                materiaNombre,
-                temaNombre,
-                contextoDinamico,
                 linkTeoria
             });
+            
+            if (!respuestaContexto || !respuestaContexto.success) {
+                throw new Error(respuestaContexto?.error || "Error al obtener la teoría oficial de la materia.");
+            }
+
+            // 2. GENERAR CLASE IA (Vía Serverless Vercel)
+            const apiGeminiUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+                                 ? '/api/gemini' 
+                                 : '/api/gemini'; // Asumimos despliegue en Vercel
+                                 
+            const responseGemini = await fetch(apiGeminiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    materia: materiaNombre,
+                    tema: temaNombre,
+                    textoOficial: respuestaContexto.textoOficial,
+                    contextoDinamico
+                })
+            });
+
+            if (!responseGemini.ok) {
+                const errorData = await responseGemini.json().catch(() => ({}));
+                throw new Error(errorData.error || `Error en el servidor de IA (HTTP ${responseGemini.status})`);
+            }
+
+            const respuesta = await responseGemini.json();
             
             modalLoader.close();
 
@@ -348,7 +457,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 claseGeneradaActual = respuesta;
 
                 // Mostrar advertencia del RAG si existe
-                if (respuesta.warning) showNotification('warning', respuesta.warning, 8000);
+                if (respuestaContexto.warning) showNotification('warning', respuestaContexto.warning, 8000);
 
                 // Actualizar rutas superiores (breadcrumbs)
                 breadcrumbSubject.textContent = materiaNombre;
@@ -448,7 +557,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             modalLoader.close();
-            showNotification('error', "Error de conexión al generar la clase. Revisá tu red e intentá de nuevo.");
+            showNotification('error', error.message || "Error de conexión al generar la clase. Revisá tu red e intentá de nuevo.");
             console.error('generarClaseIA failure:', error);
         }
     }
@@ -470,6 +579,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // LLAMADA AL BACKEND (HTTP POST) — token requerido para autorización
             const respuesta = await callBackend('exportarAGoogleSlides', {
                 token: sesionToken,
+                materiaId: breadcrumbSubject.textContent, // usamos el nombre como ID simplificado
+                materiaNombre: breadcrumbSubject.textContent,
+                temaNombre: breadcrumbTopic.textContent,
                 datosClase: claseGeneradaActual
             });
 
