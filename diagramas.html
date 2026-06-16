@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="es-AR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTNContenidos | Engineering Manifesto & Architecture</title>
+    <meta name="description" content="Documentación técnica oficial, arquitectura de software y diagramas de sistema para UTNContenidos.">
+    <meta name="author" content="Escuadrón de Excelencia UTNContenidos">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: JetBrains Mono para código/diagramas, Inter para lectura, Space Grotesk para títulos -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Mermaid.js para Diagramas (Versión 10+) -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Space Grotesk', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            base: '#0A0A0B',
+                            surface: '#121214',
+                            border: '#27272A',
+                            primary: '#0055A6',   // Azul UTN
+                            accent: '#00A4E4',    // Celeste UTN
+                            glow: '#3B82F6',
+                            danger: '#EF4444',
+                            success: '#10B981',
+                            warning: '#F59E0B'
+                        }
+                    },
+                    backgroundImage: {
+                        'grid-pattern': 'linear-gradient(to right, #27272a 1px, transparent 1px), linear-gradient(to bottom, #27272a 1px, transparent 1px)',
+                        'radial-glow': 'radial-gradient(circle at center, rgba(0, 164, 228, 0.15) 0%, transparent 70%)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Extreme Motion Graphics & Custom Aesthetics -->
+    <style>
+        :root {
+            --grid-size: 40px;
+        }
+
+        body {
+            background-color: theme('colors.brand.base');
+            color: #E4E4E7;
+            overflow-x: hidden;
+        }
+
+        /* Ocultar barra de scroll pero mantener función */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: theme('colors.brand.base'); }
+        ::-webkit-scrollbar-thumb { background: theme('colors.brand.border'); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: theme('colors.brand.primary'); }
+
+        /* Estilos de Texto Gradiente Premium */
+        .text-gradient {
+            background: linear-gradient(135deg, #60A5FA 0%, #3B82F6 50%, #0055A6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .text-gradient-accent {
+            background: linear-gradient(135deg, #34D399 0%, #10B981 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Glassmorphism Extremo para Tarjetas */
+        .glass-card {
+            background: rgba(18, 18, 20, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+            border-radius: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Borde animado (Tracing Border Effect) */
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: 24px;
+            padding: 2px;
+            background: linear-gradient(45deg, transparent, theme('colors.brand.accent'), transparent);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        .glass-card:hover::before {
+            opacity: 1;
+            animation: border-rotate 4s linear infinite;
+        }
+
+        @keyframes border-rotate {
+            0% { background: linear-gradient(0deg, transparent, theme('colors.brand.accent'), transparent); }
+            25% { background: linear-gradient(90deg, transparent, theme('colors.brand.accent'), transparent); }
+            50% { background: linear-gradient(180deg, transparent, theme('colors.brand.accent'), transparent); }
+            75% { background: linear-gradient(270deg, transparent, theme('colors.brand.accent'), transparent); }
+            100% { background: linear-gradient(360deg, transparent, theme('colors.brand.accent'), transparent); }
+        }
+
+        /* Fondo Animado del Sistema (Grid Parallax) */
+        .system-grid {
+            position: fixed;
+            top: -50%; left: -50%; right: -50%; bottom: -50%;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: var(--grid-size) var(--grid-size);
+            transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px);
+            animation: grid-move 20s linear infinite;
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        @keyframes grid-move {
+            0% { transform: perspective(500px) rotateX(60deg) translateY(0) translateZ(-200px); }
+            100% { transform: perspective(500px) rotateX(60deg) translateY(var(--grid-size)) translateZ(-200px); }
+        }
+
+        /* Orbes Volumétricos de Iluminación */
+        .volumetric-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.4;
+            z-index: -1;
+            pointer-events: none;
+            mix-blend-mode: screen;
+            animation: float-extreme 15s ease-in-out infinite alternate;
+        }
+        .orb-blue { top: 10%; left: 10%; width: 50vw; height: 50vw; background: theme('colors.brand.primary'); }
+        .orb-cyan { bottom: 10%; right: 10%; width: 40vw; height: 40vw; background: theme('colors.brand.accent'); animation-delay: -5s; }
+
+        @keyframes float-extreme {
+            0% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(5%, 10%) scale(1.1); }
+            66% { transform: translate(-5%, 5%) scale(0.9); }
+            100% { transform: translate(0, -10%) scale(1); }
+        }
+
+        /* Animaciones de Entrada por Scroll (Reveal) */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px) scale(0.95);
+            transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        /* Estilos personalizados para los contenedores de Mermaid */
+        .mermaid {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+            overflow-x: auto;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        /* Ajuste de tipografía dentro de Mermaid para mantener estética */
+        .mermaid * {
+            font-family: 'JetBrains Mono', monospace !important;
+        }
+
+        /* Estructura de código */
+        pre {
+            background: #000 !important;
+            border: 1px solid theme('colors.brand.border');
+            border-radius: 12px;
+            padding: 1rem;
+            overflow-x: auto;
+        }
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: #A1A1AA;
+        }
+
+        /* Navigation Pills */
+        .nav-pill {
+            position: relative;
+            padding: 0.5rem 1rem;
+            color: #A1A1AA;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        .nav-pill:hover, .nav-pill.active {
+            color: #fff;
+        }
+        .nav-pill::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 2px;
+            background: theme('colors.brand.glow');
+            transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .nav-pill:hover::after, .nav-pill.active::after {
+            width: 80%;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Background Elements -->
+    <div class="system-grid"></div>
+    <div class="volumetric-orb orb-blue"></div>
+    <div class="volumetric-orb orb-cyan"></div>
+
+    <!-- Navegación Flotante Superior -->
+    <nav class="fixed top-0 w-full z-50 bg-brand-base/80 backdrop-blur-xl border-b border-white/5 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-brand-primary to-brand-accent flex items-center justify-center shadow-lg shadow-brand-glow/20">
+                    <i data-lucide="cpu" class="w-5 h-5 text-white"></i>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-display font-bold text-lg leading-tight tracking-tight text-white">UTN<span class="text-brand-accent">Contenidos</span></span>
+                    <span class="text-[10px] text-brand-accent uppercase tracking-widest font-mono">Engineering Manifesto</span>
+                </div>
+            </div>
+            
+            <div class="hidden lg:flex items-center space-x-2">
+                <a href="#arquitectura" class="nav-pill">Arquitectura</a>
+                <a href="#diagramas" class="nav-pill">UML & Mermaid</a>
+                <a href="#imprevistos" class="nav-pill">Post-Mortem</a>
+                <a href="#datos" class="nav-pill">Diccionario de Datos</a>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <div class="hidden md:flex items-center gap-2 text-xs font-mono text-zinc-400 bg-zinc-900 px-3 py-1.5 rounded-full border border-zinc-800">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    v3.0.0-Serverless
+                </div>
+                <a href="https://github.com/juanmamerodio/utncontenidos" target="_blank" class="p-2 text-zinc-400 hover:text-white transition-colors bg-white/5 rounded-lg hover:bg-white/10">
+                    <i data-lucide="github" class="w-5 h-5"></i>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN HERO SECTION -->
+    <header class="relative pt-40 pb-32 overflow-hidden flex flex-col items-center justify-center min-h-[90vh]">
+        <div class="max-w-5xl mx-auto px-6 relative z-10 text-center">
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-primary/10 border border-brand-primary/20 text-brand-accent font-mono text-xs mb-8 reveal">
+                <i data-lucide="terminal" class="w-4 h-4"></i>
+                Documentación Técnica Confidencial | Acceso: Ingenieros & CTO
+            </div>
+            
+            <h1 class="font-display text-5xl md:text-7xl lg:text-8xl font-extrabold tracking-tighter mb-8 reveal" style="transition-delay: 0.1s;">
+                Ingeniería <br />
+                <span class="text-gradient">Desacoplada.</span>
+            </h1>
+            
+            <p class="mt-4 max-w-3xl mx-auto text-lg md:text-xl text-zinc-400 leading-relaxed font-light reveal" style="transition-delay: 0.2s;">
+                Análisis profundo de la evolución arquitectónica de UTNContenidos. Desde un monolito en Google Apps Script atado a severas limitaciones de <code class="text-brand-accent bg-brand-accent/10 px-1 rounded">timeout</code>, hacia un ecosistema Serverless JAMstack distribuido, impulsado por IA y listo para escalar a bases de datos relacionales.
+            </p>
+            
+            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mt-12 reveal" style="transition-delay: 0.3s;">
+                <a href="#diagramas" class="px-8 py-4 bg-white text-black hover:bg-zinc-200 rounded-full font-bold text-lg transition-all flex items-center gap-2 group">
+                    <i data-lucide="git-branch" class="w-5 h-5 group-hover:rotate-90 transition-transform"></i>
+                    Explorar Diagramas
+                </a>
+                <a href="#imprevistos" class="px-8 py-4 bg-transparent text-white border border-white/20 hover:border-white/50 hover:bg-white/5 rounded-full font-bold text-lg transition-all flex items-center gap-2">
+                    <i data-lucide="shield-alert" class="w-5 h-5"></i>
+                    Ver Post-Mortem
+                </a>
+            </div>
+        </div>
+
+        <!-- Scroll Indicator -->
+        <div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-zinc-500 animate-bounce reveal" style="transition-delay: 0.8s;">
+            <span class="text-xs font-mono uppercase tracking-widest">Scroll to Compile</span>
+            <i data-lucide="mouse" class="w-5 h-5"></i>
+        </div>
+    </header>
+
+    <!-- SECTION 1: RESUMEN EJECUTIVO & ARQUITECTURA -->
+    <section id="arquitectura" class="py-24 relative border-t border-white/5 bg-brand-base z-10">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex flex-col md:flex-row gap-16 items-start">
+                
+                <div class="md:w-1/3 sticky top-32 reveal">
+                    <h2 class="text-brand-accent font-mono text-sm tracking-widest uppercase mb-4">01 // System Architecture</h2>
+                    <h3 class="font-display text-4xl font-bold text-white mb-6">El Paradigma JAMstack</h3>
+                    <p class="text-zinc-400 leading-relaxed mb-6">
+                        UTNContenidos abandona la idea de un servidor centralizado. La lógica computacional pesada (IA, parseo de RAG) se mueve al Edge (Vercel), la interfaz de usuario se despacha estáticamente, y los servicios de Google actúan puramente como microservicios de I/O de documentos y almacenamiento temporal.
+                    </p>
+                    <div class="p-6 bg-zinc-900/50 border border-zinc-800 rounded-xl">
+                        <h4 class="text-white font-bold mb-2 flex items-center gap-2">
+                            <i data-lucide="zap" class="w-4 h-4 text-yellow-500"></i> Serverless Edge Functions
+                        </h4>
+                        <p class="text-sm text-zinc-500">
+                            Las funciones en Vercel resuelven el cuello de botella de los 6 minutos de Google Apps Script. El Frontend se comunica con <code>/api/gemini</code>, procesa la LLM, y devuelve JSON estructurado al cliente en menos de 4 segundos.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="md:w-2/3 reveal" style="transition-delay: 0.2s;">
+                    <!-- Mermaid Architecture Diagram -->
+                    <div class="glass-card p-2">
+                        <div class="bg-zinc-900/80 rounded-t-xl px-4 py-3 border-b border-white/5 flex items-center gap-2">
+                            <div class="flex gap-1.5">
+                                <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                                <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                                <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                            </div>
+                            <span class="text-xs font-mono text-zinc-500 ml-2">C4_Container_Architecture.mermaid</span>
+                        </div>
+                        <div class="mermaid">
+                            %%{init: {'theme': 'dark', 'themeVariables': { 'primaryColor': '#0055A6', 'primaryTextColor': '#fff', 'primaryBorderColor': '#00A4E4', 'lineColor': '#A1A1AA', 'tertiaryColor': '#121214'}}}%%
+                            flowchart TD
+                                classDef client fill:#18181b,stroke:#52525b,stroke-width:2px,color:#fff
+                                classDef vercel fill:#000000,stroke:#ffffff,stroke-width:2px,color:#fff
+                                classDef gas fill:#0f3460,stroke:#3b82f6,stroke-width:2px,color:#fff
+                                classDef google fill:#ffffff,stroke:#ea4335,stroke-width:2px,color:#000
+                                classDef ai fill:#001f3f,stroke:#00A4E4,stroke-width:2px,color:#fff
+
+                                Docente((Docente UTN)) -->|Accede mediante| SPA
+                                
+                                subgraph Frontend
+                                    SPA[Single Page App<br/>HTML/CSS/JS]:::client
+                                end
+
+                                subgraph Vercel Edge Network
+                                    API[Serverless Function<br/>/api/gemini]:::vercel
+                                end
+
+                                subgraph Google Workspace
+                                    GAS[Google Apps Script<br/>Microservicio WebApp]:::gas
+                                    Sheets[(Google Sheets<br/>Docentes/Historial)]:::google
+                                    Slides([Google Slides API]):::google
+                                    Docs([Google Docs API<br/>Teoría RAG]):::google
+                                end
+
+                                subgraph Inteligencia Artificial
+                                    Gemini[Gemini 1.5 Pro<br/>LLM JSON API]:::ai
+                                end
+
+                                SPA -->|1. Validar Token / Obtener RAG| GAS
+                                GAS <-->|Lee/Escribe| Sheets
+                                GAS <-->|Lee Teoría| Docs
+                                
+                                SPA -->|2. Enviar RAG + Prompt| API
+                                API <-->|3. Petición Estructurada| Gemini
+                                
+                                SPA -->|4. Enviar JSON Digerido| GAS
+                                GAS -->|5. Compila Presentación| Slides
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 2: SUITE DE DIAGRAMAS MERMAID -->
+    <section id="diagramas" class="py-24 relative bg-zinc-950 z-10 border-t border-white/5">
+        <div class="max-w-7xl mx-auto px-6">
+            
+            <div class="text-center mb-20 reveal">
+                <h2 class="text-brand-accent font-mono text-sm tracking-widest uppercase mb-4">02 // UML & System Modeling</h2>
+                <h3 class="font-display text-4xl md:text-5xl font-bold text-white mb-6">Ingeniería Visual del Sistema</h3>
+                <p class="text-zinc-400 max-w-2xl mx-auto">
+                    Mapeo profundo de la lógica de negocio, flujo de datos y modelo relacional actual (y futuro). Utilizando sintaxis declarativa para representar la complejidad computacional.
+                </p>
+            </div>
+
+            <div class="space-y-16">
+                
+                <!-- Diagrama 1: DER (Diagrama Entidad-Relación) -->
+                <div class="glass-card reveal">
+                    <div class="p-8 border-b border-white/5 bg-white/5">
+                        <div class="flex items-center gap-3 mb-2">
+                            <i data-lucide="database" class="w-6 h-6 text-emerald-400"></i>
+                            <h4 class="font-display text-2xl font-bold text-white">Modelo Conceptual (DER)</h4>
+                        </div>
+                        <p class="text-zinc-400 text-sm">Diagrama Entidad-Relación (Chen-style adaptado a Crow's Foot) que modela el dominio del problema educativo en la UTN.</p>
+                    </div>
+                    <div class="p-6">
+                        <div class="mermaid">
+                            %%{init: {'theme': 'dark', 'themeVariables': { 'lineColor': '#A1A1AA'}}}%%
+                            erDiagram
+                                DOCENTE {
+                                    int legajo PK
+                                    string dni
+                                    string nombre
+                                    string email
+                                }
+                                MATERIA {
+                                    int id_materia PK
+                                    string nombre
+                                    string nivel
+                                }
+                                TEMA {
+                                    int id_tema PK
+                                    string nombre_tema
+                                    string link_teoria
+                                }
+                                HISTORIAL {
+                                    uuid id_historial PK
+                                    datetime fecha_creacion
+                                    url url_slides
+                                }
+
+                                DOCENTE ||--|{ MATERIA : "dicta (N:M real)"
+                                MATERIA ||--|{ TEMA : "contiene"
+                                DOCENTE ||--o{ TEMA : "habilita acceso a"
+                                DOCENTE ||--o{ HISTORIAL : "genera"
+                                MATERIA ||--o{ HISTORIAL : "pertenece a"
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Diagrama 2: DLR (Diagrama Lógico Relacional) -->
+                <div class="glass-card reveal">
+                    <div class="p-8 border-b border-white/5 bg-white/5">
+                        <div class="flex items-center gap-3 mb-2">
+                            <i data-lucide="table-properties" class="w-6 h-6 text-brand-accent"></i>
+                            <h4 class="font-display text-2xl font-bold text-white">Modelo Lógico Relacional (DLR)</h4>
+                        </div>
+                        <p class="text-zinc-400 text-sm">Estructura normalizada en 3FN proyectada para la migración a PostgreSQL (Supabase). Resuelve la relación Muchos-a-Muchos entre Profesores y Materias.</p>
+                    </div>
+                    <div class="p-6">
+                        <div class="mermaid">
+                            %%{init: {'theme': 'dark'}}%%
+                            classDiagram
+                                class profesores {
+                                    +int legajo [PK]
+                                    +varchar dni [UNIQUE]
+                                    +varchar nombre
+                                    +varchar email
+                                }
+                                class materias {
+                                    +int id_materia [PK]
+                                    +varchar nombre
+                                    +varchar nivel
+                                    +text descripcion
+                                }
+                                class profesor_materia {
+                                    +int legajo_profesor [PK, FK]
+                                    +int id_materia [PK, FK]
+                                    +date fecha_asignacion
+                                }
+                                class temas {
+                                    +int id_tema [PK]
+                                    +int id_materia [FK]
+                                    +varchar nombre_tema
+                                    +varchar link_teoria_gdoc
+                                }
+                                class historial_presentaciones {
+                                    +uuid id_historial [PK]
+                                    +int legajo_profesor [FK]
+                                    +int id_materia [FK]
+                                    +varchar nombre_tema
+                                    +varchar url_slides
+                                    +timestamp created_at
+                                }
+
+                                profesores "1" -- "*" profesor_materia : "FK_legajo"
+                                materias "1" -- "*" profesor_materia : "FK_materia"
+                                materias "1" -- "*" temas : "FK_materia_tema"
+                                profesores "1" -- "*" historial_presentaciones : "FK_prof_hist"
+                                materias "1" -- "*" historial_presentaciones : "FK_mat_hist"
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Diagrama 3: Casos de Uso (UML) -->
+                <div class="glass-card reveal">
+                    <div class="p-8 border-b border-white/5 bg-white/5">
+                        <div class="flex items-center gap-3 mb-2">
+                            <i data-lucide="users" class="w-6 h-6 text-purple-400"></i>
+                            <h4 class="font-display text-2xl font-bold text-white">Diagrama de Casos de Uso</h4>
+                        </div>
+                        <p class="text-zinc-400 text-sm">Interacciones principales entre los Actores y los límites del sistema.</p>
+                    </div>
+                    <div class="p-6">
+                        <div class="mermaid">
+                            %%{init: {'theme': 'dark'}}%%
+                            flowchart LR
+                                classDef actor fill:transparent,stroke:#fff,stroke-width:2px,color:#fff,shape:circle
+                                classDef usecase fill:#18181b,stroke:#a855f7,stroke-width:2px,color:#fff,shape:pill
+                                classDef sys fill:transparent,stroke:#3f3f46,stroke-width:2px,stroke-dasharray: 5 5
+
+                                Docente((Docente\nActor)):::actor
+                                IA((Gemini\nActor Externo)):::actor
+                                GAS((Workspace\nActor Externo)):::actor
+
+                                subgraph Sistema UTNContenidos
+                                    CU1([Iniciar Sesión]):::usecase
+                                    CU2([Visualizar Materias]):::usecase
+                                    CU3([Ingresar Contexto Extra]):::usecase
+                                    CU4([Generar Material Didáctico]):::usecase
+                                    CU5([Exportar a Google Slides]):::usecase
+                                    CU6([Consultar Historial]):::usecase
+                                    
+                                    SubRAG([Extraer Teoría RAG]):::usecase
+                                end
+
+                                Docente --> CU1
+                                Docente --> CU2
+                                Docente --> CU3
+                                Docente --> CU4
+                                Docente --> CU5
+                                Docente --> CU6
+
+                                CU4 -. "<< extends >>" .-> CU3
+                                CU4 -. "<< includes >>" .-> SubRAG
+
+                                CU1 -->|Valida| GAS
+                                SubRAG -->|Lee GDocs| GAS
+                                CU4 -->|Procesa Prompt| IA
+                                CU5 -->|Crea Slides| GAS
+                                CU6 -->|Lee Links| GAS
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Diagrama 4: Diagrama de Transición de Estados (DTE) -->
+                <div class="glass-card reveal">
+                    <div class="p-8 border-b border-white/5 bg-white/5">
+                        <div class="flex items-center gap-3 mb-2">
+                            <i data-lucide="git-commit" class="w-6 h-6 text-yellow-400"></i>
+                            <h4 class="font-display text-2xl font-bold text-white">Transición de Estados (DTE)</h4>
+                        </div>
+                        <p class="text-zinc-400 text-sm">Ciclo de vida del objeto "Clase" durante el proceso de generación.</p>
+                    </div>
+                    <div class="p-6">
+                        <div class="mermaid">
+                            %%{init: {'theme': 'dark'}}%%
+                            stateDiagram-v2
+                                [*] --> TemaSeleccionado
+                                
+                                TemaSeleccionado --> IngresandoContexto : Modal Abierto
+                                IngresandoContexto --> SolicitandoRAG : Confirmar
+                                TemaSeleccionado --> SolicitandoRAG : Confirmar Directo
+                                
+                                SolicitandoRAG --> GenerandoJSON : RAG Exitoso
+                                SolicitandoRAG --> ErrorEstado : Fallo de Red
+                                
+                                GenerandoJSON --> ClaseGenerada : Parseo Exitoso
+                                GenerandoJSON --> ErrorEstado : Timeout / Bad JSON
+                                
+                                ClaseGenerada --> ExportandoSlides : Clic "Guardar"
+                                ClaseGenerada --> GenerandoPDF : Clic "PDF"
+                                
+                                GenerandoPDF --> ClaseGenerada : PDF Descargado
+                                
+                                ExportandoSlides --> GuardandoEnHistorial : Slides Creados
+                                GuardandoEnHistorial --> Exito : DB Actualizada
+                                ExportandoSlides --> ErrorEstado : API Limit
+                                
+                                Exito --> [*]
+                                ErrorEstado --> TemaSeleccionado : Reintentar
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Diagrama 5: Diagrama de Flujo de Datos Nivel 1 (DFD) -->
+                <div class="glass-card reveal">
+                    <div class="p-8 border-b border-white/5 bg-white/5">
+                        <div class="flex items-center gap-3 mb-2">
+                            <i data-lucide="arrow-right-left" class="w-6 h-6 text-pink-400"></i>
+                            <h4 class="font-display text-2xl font-bold text-white">Diagrama de Flujo de Datos (DFD Nivel 1)</h4>
+                        </div>
+                        <p class="text-zinc-400 text-sm">Flujo de información entre procesos internos y almacenes de datos.</p>
+                    </div>
+                    <div class="p-6">
+                        <div class="mermaid">
+                            %%{init: {'theme': 'dark'}}%%
+                            flowchart TD
+                                classDef entity fill:#18181b,stroke:#ec4899,stroke-width:2px,color:#fff
+                                classDef process fill:#000000,stroke:#3b82f6,stroke-width:2px,color:#fff,shape:circle
+                                classDef datastore fill:transparent,stroke:#10b981,stroke-width:2px,color:#10b981
+
+                                EntDocente[Docente]:::entity
+                                EntGemini[API Gemini]:::entity
+                                
+                                DS1[(D1: DB Docentes)]:::datastore
+                                DS2[(D2: DB Temario)]:::datastore
+                                DS3[(D3: DB Historial)]:::datastore
+                                DS4[(D4: GDocs Teoría)]:::datastore
+
+                                P1((1.0\nValidar\nAcceso)):::process
+                                P2((2.0\nArmar\nDashboard)):::process
+                                P3((3.0\nObtener\nContexto)):::process
+                                P4((4.0\nEstructurar\nIA)):::process
+                                P5((5.0\nCrear\nSlides)):::process
+
+                                EntDocente -->|Credenciales| P1
+                                P1 <-->|Consulta DNI| DS1
+                                P1 -->|Token| EntDocente
+                                
+                                EntDocente -->|Token| P2
+                                P2 <-->|Lee Materias| DS1
+                                P2 <-->|Lee Temas| DS2
+                                P2 -->|Lista de Clases| EntDocente
+
+                                EntDocente -->|Selección Tema| P3
+                                P3 <-->|Extrae Texto| DS4
+                                P3 -->|Texto RAG| P4
+                                
+                                P4 <-->|Prompt + RAG| EntGemini
+                                P4 -->|JSON Clase| EntDocente
+                                
+                                EntDocente -->|Comando Guardar| P5
+                                P5 -->|Link Generado| DS3
+                                P5 -->|Link Final| EntDocente
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Diagrama 6: Diagrama de Secuencia (Generación Completa) -->
+                <div class="glass-card reveal">
+                    <div class="p-8 border-b border-white/5 bg-white/5">
+                        <div class="flex items-center gap-3 mb-2">
+                            <i data-lucide="list-ordered" class="w-6 h-6 text-orange-400"></i>
+                            <h4 class="font-display text-2xl font-bold text-white">Diagrama de Secuencia (Motor Core)</h4>
+                        </div>
+                        <p class="text-zinc-400 text-sm">Llamadas síncronas y asíncronas en el proceso crítico de negocio.</p>
+                    </div>
+                    <div class="p-6">
+                        <div class="mermaid">
+                            %%{init: {'theme': 'dark'}}%%
+                            sequenceDiagram
+                                actor D as Docente
+                                participant F as Frontend (SPA)
+                                participant G as GAS (Backend)
+                                participant V as Vercel (API)
+                                participant AI as Gemini LLM
+
+                                D->>F: Clic "Preparar Clase" (Tema X)
+                                F->>F: Muestra UI Loader
+                                F->>G: POST /exec {action: 'obtenerContextoTema', token, link}
+                                
+                                activate G
+                                G->>G: Valida Token Cache
+                                G->>G: Abre DocumentApp (RAG)
+                                G-->>F: JSON {success: true, textoOficial}
+                                deactivate G
+
+                                F->>V: POST /api/gemini {materia, tema, textoOficial}
+                                activate V
+                                V->>AI: POST /generateContent (JSON Schema Enforced)
+                                activate AI
+                                AI-->>V: Respuesta LLM en Application/JSON
+                                deactivate AI
+                                V-->>F: JSON Estructurado (Slides, Plan, Prompts)
+                                deactivate V
+
+                                F->>F: Renderiza DOM Dinámico (Cierra Loader)
+                                D->>F: Clic "Guardar en Slides"
+                                
+                                F->>G: POST /exec {action: 'exportarAGoogleSlides', JSON}
+                                activate G
+                                G->>G: SlidesApp.create() e iteración
+                                G->>G: AppendRow en DB Historial
+                                G-->>F: JSON {success: true, url}
+                                deactivate G
+                                
+                                F->>D: Muestra Modal Éxito con Link a G-Drive
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Diagrama 7: Diagrama de Gantt (Implementación) -->
+                <div class="glass-card reveal">
+                    <div class="p-8 border-b border-white/5 bg-white/5">
+                        <div class="flex items-center gap-3 mb-2">
+                            <i data-lucide="calendar-clock" class="w-6 h-6 text-blue-400"></i>
+                            <h4 class="font-display text-2xl font-bold text-white">Roadmap de Implementación (Gantt)</h4>
+                        </div>
+                        <p class="text-zinc-400 text-sm">Fases de desarrollo e hitos arquitectónicos.</p>
+                    </div>
+                    <div class="p-6">
+                        <div class="mermaid">
+                            %%{init: {'theme': 'dark'}}%%
+                            gantt
+                                title Hoja de Ruta UTNContenidos
+                                dateFormat  YYYY-MM-DD
+                                section Fase 1: MVP
+                                Diseño UI Frontend           :done,    des1, 2026-05-01, 7d
+                                Script Backend GAS (Monolito):done,    des2, 2026-05-08, 10d
+                                Pruebas Docentes Alpha       :done,    des3, 2026-05-18, 5d
+                                
+                                section Fase 2: Desacople
+                                Refactor SPA Serverless      :active,  des4, 2026-06-01, 7d
+                                Migración API a Vercel       :active,  des5, 2026-06-05, 5d
+                                Estructura DB Historial      :active,  des6, 2026-06-10, 3d
+                                
+                                section Fase 3: Supabase (Futuro)
+                                Setup PostgreSQL Supabase    :         des7, 2026-07-01, 7d
+                                Migración Auth RLS           :         des8, 2026-07-08, 10d
+                                Sunset de Google Sheets DB   :         des9, 2026-07-18, 2d
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 3: POST-MORTEM & IMPREVISTOS -->
+    <section id="imprevistos" class="py-24 relative bg-brand-surface z-10 border-t border-white/5">
+        <div class="max-w-4xl mx-auto px-6">
+            <div class="text-center mb-16 reveal">
+                <h2 class="text-brand-danger font-mono text-sm tracking-widest uppercase mb-4">03 // Post-Mortem Log</h2>
+                <h3 class="font-display text-4xl font-bold text-white mb-6">Bitácora de Imprevistos y Pivotes</h3>
+                <p class="text-zinc-400">Documentación de fallas críticas en entornos de producción y las soluciones de ingeniería aplicadas para remediarlas.</p>
+            </div>
+
+            <div class="relative border-l-2 border-brand-border ml-4 md:ml-0 md:pl-0">
+                
+                <!-- Log 1 -->
+                <div class="relative pl-8 md:pl-0 mb-12 group reveal">
+                    <div class="md:hidden absolute w-4 h-4 rounded-full bg-brand-danger -left-[9px] top-1 border-4 border-brand-surface"></div>
+                    <div class="glass-card p-8 md:w-[calc(50%-2rem)] md:ml-auto relative">
+                        <div class="hidden md:block absolute w-4 h-4 rounded-full bg-brand-danger -left-[2.5rem] top-8 border-4 border-brand-surface"></div>
+                        <h4 class="text-xl font-bold text-white mb-2 font-display">ERR-001: Limitación Computacional GAS</h4>
+                        <p class="text-brand-danger font-mono text-xs mb-4">FATAL EXCEPTION: Executed timeout limit exceeded (6.0 min)</p>
+                        <p class="text-zinc-400 text-sm mb-4 leading-relaxed">
+                            <strong>Problema:</strong> En la Fase 1, Google Apps Script manejaba la petición a Gemini LLM de forma sincrónica. En temas complejos, la inferencia de la IA + la creación del PPT en Drive superaba el límite inquebrantable de 6 minutos de Google, rompiendo la aplicación.
+                        </p>
+                        <p class="text-emerald-400 text-sm bg-emerald-400/10 p-3 rounded-lg border border-emerald-400/20">
+                            <strong>Resolución:</strong> Arquitectura JAMstack. Se delegó el *fetching* asíncrono de la IA al cliente web interactuando con un Edge Function en Vercel. GAS ahora solo ejecuta operaciones locales instantáneas (lectura de celdas y creación rápida de slides).
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Log 2 -->
+                <div class="relative pl-8 md:pl-0 mb-12 group reveal">
+                    <div class="md:hidden absolute w-4 h-4 rounded-full bg-brand-warning -left-[9px] top-1 border-4 border-brand-surface"></div>
+                    <div class="glass-card p-8 md:w-[calc(50%-2rem)] relative">
+                        <div class="hidden md:block absolute w-4 h-4 rounded-full bg-brand-warning -right-[2.5rem] top-8 border-4 border-brand-surface"></div>
+                        <h4 class="text-xl font-bold text-white mb-2 font-display">ERR-002: Inyección Markdown LLM</h4>
+                        <p class="text-brand-warning font-mono text-xs mb-4">SyntaxError: Unexpected token '`', "```json..." is not valid JSON</p>
+                        <p class="text-zinc-400 text-sm mb-4 leading-relaxed">
+                            <strong>Problema:</strong> Al solicitar respuestas estructuradas, el modelo de IA envolvía el código en etiquetas markdown. El bloque <code>try/catch</code> colapsaba al intentar parsear el objeto directamente al frontend.
+                        </p>
+                        <p class="text-emerald-400 text-sm bg-emerald-400/10 p-3 rounded-lg border border-emerald-400/20">
+                            <strong>Resolución:</strong> Tipado estricto en API. Se modificó el payload de la petición HTTP agregando la directiva de configuración de generación nativa: <code>generationConfig: { responseMimeType: "application/json" }</code>, obligando al modelo a omitir tokens de formato de texto.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Log 3 -->
+                <div class="relative pl-8 md:pl-0 group reveal">
+                    <div class="md:hidden absolute w-4 h-4 rounded-full bg-brand-glow -left-[9px] top-1 border-4 border-brand-surface"></div>
+                    <div class="glass-card p-8 md:w-[calc(50%-2rem)] md:ml-auto relative">
+                        <div class="hidden md:block absolute w-4 h-4 rounded-full bg-brand-glow -left-[2.5rem] top-8 border-4 border-brand-surface"></div>
+                        <h4 class="text-xl font-bold text-white mb-2 font-display">BUG-003: Interfaz Fantasma (Fallo Relacional)</h4>
+                        <p class="text-brand-glow font-mono text-xs mb-4">UI RENDER: Materia object mapped with topics.length === 0</p>
+                        <p class="text-zinc-400 text-sm mb-4 leading-relaxed">
+                            <strong>Problema:</strong> El frontend dibujaba la tarjeta de la materia, pero no los temas ni el botón "Preparar Clase". El cruce de tablas en Google Sheets requería coincidencia tricondicional estricta (Legajo + ID_Materia + Tema). Al faltar el mapeo en la DB, el array se purgada silenciosamente.
+                        </p>
+                        <p class="text-emerald-400 text-sm bg-emerald-400/10 p-3 rounded-lg border border-emerald-400/20">
+                            <strong>Resolución:</strong> Rediseño del script Backend para proveer un atributo <code>warning</code> en el JSON y rediseño de la UI para mostrar <i>"Empty States"</i> claros avisando al docente de la falta de configuración de datos maestros.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 4: DATA DICTIONARY -->
+    <section id="datos" class="py-24 relative bg-brand-base z-10 border-t border-white/5">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16 reveal">
+                <h2 class="text-emerald-400 font-mono text-sm tracking-widest uppercase mb-4">04 // Data Dictionary</h2>
+                <h3 class="font-display text-4xl font-bold text-white mb-6">Estructura de Base de Datos</h3>
+                <p class="text-zinc-400 max-w-2xl mx-auto">Esquema físico actual de las entidades implementadas en la solución temporal de almacenamiento (Google Sheets DB).</p>
+            </div>
+
+            <!-- Table 1: Docentes -->
+            <div class="glass-card mb-8 overflow-hidden reveal">
+                <div class="bg-zinc-900 px-6 py-4 border-b border-white/5 flex items-center gap-3">
+                    <i data-lucide="user-square" class="text-emerald-400 w-5 h-5"></i>
+                    <h4 class="font-bold text-white font-mono">Tabla: Docentes</h4>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-zinc-400">
+                        <thead class="bg-black/50 text-zinc-300 font-mono text-xs uppercase">
+                            <tr>
+                                <th class="px-6 py-3 border-b border-white/5">Columna</th>
+                                <th class="px-6 py-3 border-b border-white/5">Tipo de Dato</th>
+                                <th class="px-6 py-3 border-b border-white/5">Clave</th>
+                                <th class="px-6 py-3 border-b border-white/5">Descripción</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-white/5 font-mono text-[13px]">
+                            <tr class="hover:bg-white/5 transition-colors">
+                                <td class="px-6 py-4 text-emerald-400">A - Legajo</td>
+                                <td class="px-6 py-4">Integer</td>
+                                <td class="px-6 py-4 text-yellow-500 font-bold">PK</td>
+                                <td class="px-6 py-4">Identificador único del profesor en UTN.</td>
+                            </tr>
+                            <tr class="hover:bg-white/5 transition-colors">
+                                <td class="px-6 py-4 text-emerald-400">B - DNI</td>
+                                <td class="px-6 py-4">String</td>
+                                <td class="px-6 py-4 text-zinc-500">UNIQUE</td>
+                                <td class="px-6 py-4">Credencial de acceso sin formato.</td>
+                            </tr>
+                            <tr class="hover:bg-white/5 transition-colors">
+                                <td class="px-6 py-4 text-emerald-400">C - Nombre</td>
+                                <td class="px-6 py-4">String</td>
+                                <td class="px-6 py-4">-</td>
+                                <td class="px-6 py-4">Nombre completo a mostrar en UI.</td>
+                            </tr>
+                            <tr class="hover:bg-white/5 transition-colors">
+                                <td class="px-6 py-4 text-emerald-400">E - ID_Materias</td>
+                                <td class="px-6 py-4">String (CSV)</td>
+                                <td class="px-6 py-4 text-blue-400 font-bold">FK_Array</td>
+                                <td class="px-6 py-4">Lista separada por comas de IDs referenciando a tabla Materias.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Table 2: Historial -->
+            <div class="glass-card overflow-hidden reveal">
+                <div class="bg-zinc-900 px-6 py-4 border-b border-white/5 flex items-center gap-3">
+                    <i data-lucide="history" class="text-brand-accent w-5 h-5"></i>
+                    <h4 class="font-bold text-white font-mono">Tabla: Historial_Presentaciones (Transaccional)</h4>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-zinc-400">
+                        <thead class="bg-black/50 text-zinc-300 font-mono text-xs uppercase">
+                            <tr>
+                                <th class="px-6 py-3 border-b border-white/5">Columna</th>
+                                <th class="px-6 py-3 border-b border-white/5">Tipo de Dato</th>
+                                <th class="px-6 py-3 border-b border-white/5">Clave</th>
+                                <th class="px-6 py-3 border-b border-white/5">Descripción</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-white/5 font-mono text-[13px]">
+                            <tr class="hover:bg-white/5 transition-colors">
+                                <td class="px-6 py-4 text-brand-accent">A - ID_Historial</td>
+                                <td class="px-6 py-4">UUID</td>
+                                <td class="px-6 py-4 text-yellow-500 font-bold">PK</td>
+                                <td class="px-6 py-4">Generado mediante Utilities.getUuid() en GAS.</td>
+                            </tr>
+                            <tr class="hover:bg-white/5 transition-colors">
+                                <td class="px-6 py-4 text-brand-accent">B - Legajo_Docente</td>
+                                <td class="px-6 py-4">Integer</td>
+                                <td class="px-6 py-4 text-blue-400 font-bold">FK</td>
+                                <td class="px-6 py-4">Relación al propietario de la diapositiva.</td>
+                            </tr>
+                            <tr class="hover:bg-white/5 transition-colors">
+                                <td class="px-6 py-4 text-brand-accent">E - URL_Slides</td>
+                                <td class="px-6 py-4">URL</td>
+                                <td class="px-6 py-4">-</td>
+                                <td class="px-6 py-4">Enlace directo a Google Drive (devuelto por SlidesApp).</td>
+                            </tr>
+                            <tr class="hover:bg-white/5 transition-colors">
+                                <td class="px-6 py-4 text-brand-accent">F - Fecha_Creacion</td>
+                                <td class="px-6 py-4">DateTime</td>
+                                <td class="px-6 py-4">-</td>
+                                <td class="px-6 py-4">Timestamp para ordenado (DESC) en el dashboard de historial.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- FOOTER / FIRMA -->
+    <footer class="bg-black py-12 border-t border-white/5 relative z-10">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="flex items-center gap-4">
+                <i data-lucide="shield-check" class="w-8 h-8 text-zinc-600"></i>
+                <div class="text-zinc-500 font-mono text-xs">
+                    <p>UTNContenidos // Documentation Generated by System Architecture Team.</p>
+                    <p>&copy; 2026 Universidad Tecnológica Nacional - FRD.</p>
+                </div>
+            </div>
+            <div class="text-brand-accent font-mono text-xs border border-brand-accent/20 bg-brand-accent/5 px-4 py-2 rounded-lg">
+                Status: ARCHITECTURE APPROVED
+            </div>
+        </div>
+    </footer>
+
+    <!-- INTERACTIVITY SCRIPT -->
+    <script>
+        // Inicializar Iconos Lucide
+        lucide.createIcons();
+
+        // Inicializar Mermaid JS
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'dark',
+            securityLevel: 'loose',
+            fontFamily: 'JetBrains Mono, monospace'
+        });
+
+        // Lógica de animaciones de entrada (Scroll Reveal Engine)
+        function reveal() {
+            var reveals = document.querySelectorAll(".reveal");
+            for (var i = 0; i < reveals.length; i++) {
+                var windowHeight = window.innerHeight;
+                var elementTop = reveals[i].getBoundingClientRect().top;
+                var elementVisible = 100;
+                
+                if (elementTop < windowHeight - elementVisible) {
+                    reveals[i].classList.add("active");
+                }
+            }
+        }
+        window.addEventListener("scroll", reveal);
+        // Trigger reveal on load
+        setTimeout(reveal, 100);
+
+        // Highlight active nav pill
+        const sections = document.querySelectorAll("section");
+        const navLi = document.querySelectorAll(".nav-pill");
+        
+        window.addEventListener("scroll", () => {
+            let current = "";
+            sections.forEach((section) => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (pageYOffset >= sectionTop - 200) {
+                    current = section.getAttribute("id");
+                }
+            });
+
+            navLi.forEach((a) => {
+                a.classList.remove("active");
+                if (a.getAttribute("href").includes(current) && current !== "") {
+                    a.classList.add("active");
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
