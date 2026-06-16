@@ -28,9 +28,9 @@ export default async function handler(req, res) {
 
     const geminiApiKey = process.env.GEMINI_API_KEY;
     if (!geminiApiKey) {
-      return res.status(500).json({ 
-        success: false, 
-        error: 'La variable de entorno GEMINI_API_KEY no está configurada en Vercel.' 
+      return res.status(500).json({
+        success: false,
+        error: 'La variable de entorno GEMINI_API_KEY no está configurada en Vercel.'
       });
     }
 
@@ -77,7 +77,7 @@ export default async function handler(req, res) {
       }
     `;
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${geminiApiKey}`;
     const payload = {
       contents: [{
         parts: [{
@@ -99,17 +99,17 @@ export default async function handler(req, res) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      return res.status(response.status).json({ 
-        success: false, 
-        error: `La API de Gemini devolvió un error: ${response.status} - ${errorText}` 
+      return res.status(response.status).json({
+        success: false,
+        error: `La API de Gemini devolvió un error: ${response.status} - ${errorText}`
       });
     }
 
     const jsonResponse = await response.json();
     if (!jsonResponse.candidates || jsonResponse.candidates.length === 0) {
-      return res.status(500).json({ 
-        success: false, 
-        error: 'La API de Gemini no retornó ninguna respuesta válida.' 
+      return res.status(500).json({
+        success: false,
+        error: 'La API de Gemini no retornó ninguna respuesta válida.'
       });
     }
 
@@ -118,14 +118,14 @@ export default async function handler(req, res) {
 
     // Adjuntar la bandera de éxito
     claseGenerada.success = true;
-    
+
     return res.status(200).json(claseGenerada);
 
   } catch (error) {
     console.error('Error en api/gemini:', error);
-    return res.status(500).json({ 
-      success: false, 
-      error: `Error interno en el servidor serverless: ${error.message}` 
+    return res.status(500).json({
+      success: false,
+      error: `Error interno en el servidor serverless: ${error.message}`
     });
   }
 }
