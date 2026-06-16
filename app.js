@@ -9,6 +9,19 @@
 const GEMINI_API_KEY = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY') || '';
 
 /**
+ * Función auxiliar para normalizar IDs (remueve espacios y .0 al final habituales en sheets)
+ */
+function normalizarId(val) {
+  if (val === undefined || val === null) return "";
+  let str = String(val).trim();
+  if (str.endsWith('.0')) {
+    str = str.substring(0, str.length - 2);
+  }
+  return str;
+}
+
+
+/**
  * 1. FUNCIÓN DE INICIO (Sirve la SPA)
  * Convierte tu index.html en una Web App.
  */
@@ -36,10 +49,10 @@ function validarDocente(legajo, dni) {
     for (let i = 1; i < dataDocentes.length; i++) {
       let row = dataDocentes[i];
       // Convertimos a string para evitar errores de tipo
-      if (String(row[0]).trim() === String(legajo).trim() && String(row[1]).trim() === String(dni).trim()) {
+      if (normalizarId(row[0]) === normalizarId(legajo) && normalizarId(row[1]) === normalizarId(dni)) {
         
         // Login exitoso, ahora buscamos sus materias y temas
-        let materiasIds = row[4] ? String(row[4]).split(',').map(id => id.trim()) : [];
+        let materiasIds = row[4] ? String(row[4]).split(',').map(id => normalizarId(id)) : [];
         let dashboardData = obtenerMateriasYTemas(materiasIds, ss, legajo);
         
         // GENERACIÓN DE TOKEN DE SESIÓN EFÍMERO
@@ -99,7 +112,7 @@ function obtenerMateriasYTemas(materiasIds, ss, legajo) {
   // Filtrar Materias
   for (let i = 1; i < sheetMaterias.length; i++) {
     let idMateria = sheetMaterias[i][0];
-    if (materiasIds.includes(String(idMateria).trim())) {
+    if (materiasIds.includes(normalizarId(idMateria))) {
       let materiaObj = {
         id: idMateria,
         nombre: sheetMaterias[i][1],
@@ -111,9 +124,9 @@ function obtenerMateriasYTemas(materiasIds, ss, legajo) {
       // Buscar temas de esta materia asignados a este docente
       for (let j = 1; j < sheetTemario.length; j++) {
         // A: Legajo_Docente (0), B: ID_Materia (1), C: ID_Tema (2), D: Nombre_Tema (3), E: Link_Teoria (4)
-        let rowLegajo = String(sheetTemario[j][0]).trim();
-        let rowMateria = String(sheetTemario[j][1]).trim();
-        if (rowLegajo === String(legajo).trim() && rowMateria === String(idMateria).trim()) {
+        let rowLegajo = normalizarId(sheetTemario[j][0]);
+        let rowMateria = normalizarId(sheetTemario[j][1]);
+        if (rowLegajo === normalizarId(legajo) && rowMateria === normalizarId(idMateria)) {
           materiaObj.temas.push({
             idTema: sheetTemario[j][2],
             nombreTema: sheetTemario[j][3],
@@ -286,7 +299,7 @@ function obtenerHistorialDocente(token) {
 
     // Columna A: ID_Historial (0), B: Legajo_Docente (1), C: ID_Materia (2), D: Nombre_Tema (3), E: URL_Slides (4), F: Fecha_Creacion (5)
     for (let i = 1; i < values.length; i++) {
-      if (String(values[i][1]).trim() === String(legajo).trim()) {
+      if (normalizarId(values[i][1]) === normalizarId(legajo)) {
         historial.push({
           idHistorial: values[i][0],
           legajoDocente: values[i][1],
@@ -329,8 +342,8 @@ function revalidarSesionConDashboard(token) {
 
     const dataDocentes = sheetDocentes.getDataRange().getValues();
     for (let i = 1; i < dataDocentes.length; i++) {
-      if (String(dataDocentes[i][0]).trim() === String(legajo).trim()) {
-        let materiasIds = dataDocentes[i][4] ? String(dataDocentes[i][4]).split(',').map(id => id.trim()) : [];
+      if (normalizarId(dataDocentes[i][0]) === normalizarId(legajo)) {
+        let materiasIds = dataDocentes[i][4] ? String(dataDocentes[i][4]).split(',').map(id => normalizarId(id)) : [];
         let dashboardData = obtenerMateriasYTemas(materiasIds, ss, legajo);
         return { success: true, dashboard: dashboardData };
       }
@@ -378,6 +391,9 @@ function doPost(e) {
       case 'revalidarSesionConDashboard':
         responseData = revalidarSesionConDashboard(params.token);
         break;
+      case 'debugSheetData':
+        responseData = debugSheetData();
+        break;
       default:
         responseData = { success: false, error: "Acción '" + action + "' no permitida o desconocida." };
     }
@@ -387,6 +403,30 @@ function doPost(e) {
   } catch (err) {
     console.error("Error en doPost: " + err.toString());
     return crearRespuestaJson({ success: false, error: "Excepción en el servidor: " + err.toString() });
+  }
+}
+
+/**
+ * Función de diagnóstico para inspeccionar los encabezados y datos muestra de la planilla
+ */
+function debugSheetData() {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let result = {};
+    const sheets = ss.getSheets();
+    for (let i = 0; i < sheets.length; i++) {
+      let sheet = sheets[i];
+      let name = sheet.getName();
+      let data = sheet.getDataRange().getValues();
+      result[name] = {
+        rowsCount: data.length,
+        headers: data[0] || [],
+        sample: data.slice(1, 4) // primer de 3 filas de muestra
+      };
+    }
+    return { success: true, sheets: result };
+  } catch (error) {
+    return { success: false, error: error.toString() };
   }
 }
 
