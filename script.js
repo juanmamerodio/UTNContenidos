@@ -8,14 +8,14 @@
 // CONFIGURACIÓN: URL de la Web App de Google Apps Script (Backend)
 // Podés hardcodear la URL aquí o establecerla dinámicamente en la consola con:
 // localStorage.setItem('utn_gas_api_url', 'https://script.google.com/macros/s/.../exec')
-const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxC0NCBWA9TIbKKFq1VVXaarBbMmr3ehahDsByaJ8k3XerwgrKD0pFQd86r9-j9f7xx/exec"; 
+const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzNrlB9LVPhTYgCwCsOABM0TMA8W3NhKDeKJEN05z56PmU2SDBqufhMe_75smxtnV4/exec";
 
 /**
  * Realiza llamadas HTTP POST al backend en Google Apps Script
  */
 async function callBackend(action, data = {}) {
     const url = localStorage.getItem('utn_gas_api_url') || GAS_API_URL;
-    
+
     if (!url || url.includes('XXXXXXXXXXXXXXXXXXXX')) {
         const errorMsg = "Falta configurar la URL del Web App de Google Apps Script (GAS_API_URL en script.js).";
         showNotification('error', errorMsg, 10000);
@@ -23,7 +23,7 @@ async function callBackend(action, data = {}) {
     }
 
     const payload = { action, ...data };
-    
+
     const response = await fetch(url, {
         method: "POST",
         mode: "cors",
@@ -55,9 +55,9 @@ function showNotification(type, message, duration = 5000) {
 
     const icons = {
         success: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
-        error:   '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+        error: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
         warning: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
-        info:    '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
+        info: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
     };
 
     toast.innerHTML = `
@@ -143,7 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
             view.setAttribute('hidden', '');
             view.classList.remove('spa-view');
         });
-        
+
         // Update nav links active state
         navLinks.forEach(link => {
             if (link.getAttribute('href') === `#${viewId.replace('view-', '')}`) {
@@ -260,7 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             const targetId = link.getAttribute('href').replace('#', 'view-');
-            
+
             if (targetId === 'view-historial') {
                 cargarHistorial();
             } else if (targetId === 'view-dashboard') {
@@ -421,16 +421,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 token: sesionToken,
                 linkTeoria
             });
-            
+
             if (!respuestaContexto || !respuestaContexto.success) {
                 throw new Error(respuestaContexto?.error || "Error al obtener la teoría oficial de la materia.");
             }
 
             // 2. GENERAR CLASE IA (Vía Serverless Vercel)
-            const apiGeminiUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-                                 ? '/api/gemini' 
-                                 : '/api/gemini'; // Asumimos despliegue en Vercel
-                                 
+            const apiGeminiUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                ? '/api/gemini'
+                : '/api/gemini'; // Asumimos despliegue en Vercel
+
             const responseGemini = await fetch(apiGeminiUrl, {
                 method: 'POST',
                 headers: {
@@ -450,7 +450,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const respuesta = await responseGemini.json();
-            
+
             modalLoader.close();
 
             if (respuesta && respuesta.success) {
@@ -661,11 +661,11 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
 
             const opt = {
-                margin:       [10, 10, 10, 10],
-                filename:     `UTN_Clase_${tema.replace(/\s+/g, '_')}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                margin: [10, 10, 10, 10],
+                filename: `UTN_Clase_${tema.replace(/\s+/g, '_')}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
             if (typeof html2pdf === 'undefined') {
@@ -707,7 +707,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 8. REINICIO DE SESIÓN ACTIVA ---
     const tokenGuardado = sessionStorage.getItem('utn_token');
     const nombreGuardado = sessionStorage.getItem('utn_nombre');
-    
+
     if (tokenGuardado && nombreGuardado) {
         sesionToken = tokenGuardado;
         userNameDisplay.textContent = nombreGuardado;
