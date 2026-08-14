@@ -8,7 +8,7 @@
 // CONFIGURACIÓN: URL de la Web App de Google Apps Script (Backend)
 // Podés hardcodear la URL aquí o establecerla dinámicamente en la consola con:
 // localStorage.setItem('utn_gas_api_url', 'https://script.google.com/macros/s/.../exec')
-const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzOcXtkI-mdjs4WrEhg0-jCdWwnesx6gz-K3Aj82XRF2C6AboA9u812fR4K0NDthmhM/exec";
+const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzNR6B8mwbfZFiN1-r1Adfk5Dg79zWlJ7CMCbx_kD0R0q8xL4E2Z0IluO6rJmAWYLw/exec"
 
 /**
  * Realiza llamadas HTTP POST al backend en Google Apps Script
@@ -131,6 +131,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const textareaContexto = document.getElementById('textarea-contexto');
     const btnContextoConfirm = document.getElementById('btn-contexto-confirm');
     const btnContextoCancel = document.getElementById('btn-contexto-cancel');
+
+    // Referencias para el Modal de Reclamar Materias
+    const modalReclamar = document.getElementById('modal-reclamar');
+    const btnOpenClaimModal = document.getElementById('btn-open-claim-modal');
+    const catalogContainer = document.getElementById('catalog-container');
+    const btnReclamarConfirm = document.getElementById('btn-reclamar-confirm');
+    const btnReclamarCancel = document.getElementById('btn-reclamar-cancel');
 
     // VARIABLES GLOBALES
     let claseGeneradaActual = null;
@@ -408,6 +415,101 @@ document.addEventListener('DOMContentLoaded', () => {
         temaSeleccionadoActual = null;
     });
 
+    // --- 5b. MODAL DE RECLAMAR MATERIAS (OFERTA ACADÉMICA) ---
+    if (btnOpenClaimModal && modalReclamar) {
+        btnOpenClaimModal.addEventListener('click', async () => {
+            document.getElementById('loader-title').textContent = "Cargando plan de estudios...";
+            document.getElementById('loader-title').nextElementSibling.textContent = "Obteniendo las materias ordenadas por año.";
+            modalLoader.showModal();
+
+            try {
+                const res = await callBackend('obtenerOfertaAcademica', { token: sesionToken });
+                modalLoader.close();
+
+                if (res.success && res.catalogo) {
+                    renderizarCatalogoMaterias(res.catalogo);
+                    modalReclamar.showModal();
+                } else {
+                    showNotification('error', res.error || "No se pudo recuperar la oferta académica.");
+                }
+            } catch (err) {
+                modalLoader.close();
+                showNotification('error', "Error de conexión al cargar las materias.");
+                console.error(err);
+            }
+        });
+    }
+
+    function renderizarCatalogoMaterias(catalogo) {
+        catalogContainer.innerHTML = '';
+        const niveles = Object.keys(catalogo);
+
+        if (niveles.length === 0) {
+            catalogContainer.innerHTML = '<p>No hay materias disponibles en el plan de estudio.</p>';
+            return;
+        }
+
+        niveles.forEach(nivel => {
+            const materias = catalogo[nivel];
+            let listHTML = materias.map(m => `
+                <label style="display: flex; align-items: flex-start; gap: 12px; padding: 10px; border-radius: 8px; border: 1px solid var(--border-glass-dark); margin-bottom: 8px; cursor: pointer; background: rgba(255,255,255,0.6);">
+                    <input type="checkbox" class="chk-claim-materia" value="${sanitizeHTML(m.id)}" ${m.asignada ? 'checked' : ''} style="width: 20px; height: 20px; margin-top: 2px;">
+                    <div>
+                        <strong style="display: block; font-size: 1rem; color: var(--text-primary);">${sanitizeHTML(m.nombre)} (${sanitizeHTML(m.id)})</strong>
+                        <span style="font-size: 0.85rem; color: var(--text-secondary);">${sanitizeHTML(m.descripcion || '')}</span>
+                    </div>
+                </label>
+            `).join('');
+
+            const sectionHTML = `
+                <div style="margin-bottom: 20px;">
+                    <h3 style="font-size: 1.1rem; color: var(--ios-blue); margin-bottom: 10px; border-bottom: 2px solid var(--ios-blue); padding-bottom: 4px;">${sanitizeHTML(nivel)}</h3>
+                    ${listHTML}
+                </div>
+            `;
+            catalogContainer.insertAdjacentHTML('beforeend', sectionHTML);
+        });
+    }
+
+    if (btnReclamarConfirm) {
+        btnReclamarConfirm.addEventListener('click', async () => {
+            const checkedBoxes = catalogContainer.querySelectorAll('.chk-claim-materia:checked');
+            const selectedIds = Array.from(checkedBoxes).map(cb => cb.value);
+
+            modalReclamar.close();
+            document.getElementById('loader-title').textContent = "Guardando tus materias...";
+            document.getElementById('loader-title').nextElementSibling.textContent = "Actualizando tu perfil docente en el sistema.";
+            modalLoader.showModal();
+
+            try {
+                const res = await callBackend('reclamarMaterias', {
+                    token: sesionToken,
+                    materiasIdsSeleccionadas: selectedIds
+                });
+                modalLoader.close();
+
+                if (res.success) {
+                    showNotification('success', res.mensaje || "¡Materias actualizadas!");
+                    if (res.dashboard) {
+                        renderizarDashboard(res.dashboard);
+                    }
+                } else {
+                    showNotification('error', res.error || "No se pudo actualizar las materias.");
+                }
+            } catch (err) {
+                modalLoader.close();
+                showNotification('error', "Error de conexión al guardar materias.");
+                console.error(err);
+            }
+        });
+    }
+
+    if (btnReclamarCancel) {
+        btnReclamarCancel.addEventListener('click', () => {
+            modalReclamar.close();
+        });
+    }
+
     // --- 6. ASISTENTE INTELIGENTE: CREACIÓN DE CONTENIDO ---
     async function ejecutarGeneracionIA(materiaNombre, temaNombre, contextoDinamico, linkTeoria) {
         // Loader muy cálido y no técnico
@@ -496,38 +598,49 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
 
-                // C. Estructura de Diapositivas Sugerida
+                // C. Estructura de Diapositivas Sugerida (Diseño Universitario de Alto Impacto)
                 const slidesGrid = document.querySelector('#view-generator .slides-grid');
                 if (slidesGrid && respuesta.slides) {
                     slidesGrid.innerHTML = respuesta.slides.map((slide, index) => {
                         let contentHTML = '';
+                        let categoriaBadge = slide.categoria ? `<span class="badge" style="background: rgba(0, 85, 166, 0.1); color: var(--ios-blue); font-size: 0.75rem; text-transform: uppercase; margin-bottom: 8px; display: inline-block;">${sanitizeHTML(slide.categoria)}</span>` : '';
+                        
                         if (slide.tipo === 'portada') {
                             contentHTML = `
-                                <h4>Título de portada:</h4>
-                                <p><strong>${sanitizeHTML(slide.titulo)}</strong></p>
-                                <h4>Detalle complementario:</h4>
-                                <p>${sanitizeHTML(slide.subtitulo || '')}</p>
-                            `;
-                        } else if (slide.tipo === 'esquema') {
-                            contentHTML = `
-                                <p><em>${sanitizeHTML(slide.contenido)}</em></p>
-                                <p class="slide-note"><strong>Recomendación al hablar:</strong> Explicar el gráfico paso a paso en el pizarrón o pantalla.</p>
+                                <h4>Portada Institucional UTN</h4>
+                                <p style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-top: 5px;">${sanitizeHTML(slide.titulo)}</p>
+                                <p style="color: var(--text-secondary);">${sanitizeHTML(slide.subtitulo || '')}</p>
                             `;
                         } else {
                             const lineas = (slide.contenido || '').split('\n').filter(l => l.trim());
                             contentHTML = `
-                                <ul>
-                                    ${lineas.map(line => `<li>${sanitizeHTML(line)}</li>`).join('')}
+                                <ul style="padding-left: 18px; margin: 10px 0; color: var(--text-primary);">
+                                    ${lineas.map(line => `<li style="margin-bottom: 6px; line-height: 1.4;">${sanitizeHTML(line.replace(/^[•\-\*]\s*/, ''))}</li>`).join('')}
                                 </ul>
                             `;
                         }
 
+                        let notasHTML = slide.notasOrador ? `
+                            <div style="margin-top: 14px; padding: 10px 12px; background: rgba(0, 122, 255, 0.05); border-left: 3px solid var(--ios-blue); border-radius: 6px;">
+                                <strong style="font-size: 0.8rem; color: var(--ios-blue); display: block; margin-bottom: 3px;">🎙️ GUÍA DOCENTE (NOTAS DE AULA):</strong>
+                                <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0; font-style: italic;">${sanitizeHTML(slide.notasOrador)}</p>
+                            </div>
+                        ` : '';
+
                         return `
-                            <article class="slide-card">
-                                <header>Diapositiva ${index + 1}: ${sanitizeHTML(slide.titulo)}</header>
-                                <div class="slide-content">
-                                    ${contentHTML}
+                            <article class="slide-card" style="display: flex; flex-direction: column; justify-content: space-between; border-radius: 12px; transition: transform 0.2s ease, box-shadow 0.2s ease;">
+                                <div>
+                                    <header style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                                        <div>
+                                            ${categoriaBadge}
+                                            <h3 style="font-size: 1.05rem; font-weight: 600; color: var(--text-primary); margin: 0;">Diap. ${index + 1}: ${sanitizeHTML(slide.titulo)}</h3>
+                                        </div>
+                                    </header>
+                                    <div class="slide-content">
+                                        ${contentHTML}
+                                    </div>
                                 </div>
+                                ${notasHTML}
                             </article>
                         `;
                     }).join('');
@@ -616,12 +729,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let slidesHTML = '';
             if (clase.slides) {
-                slidesHTML = clase.slides.map((s, i) => `
-                    <div style="margin-bottom:12px; padding:10px; border-left:4px solid #0055A6;">
-                        <strong>Diap. ${i + 1}: ${sanitizeHTML(s.titulo)}</strong>
-                        <p style="margin:4px 0 0;font-size:13px;">${sanitizeHTML(s.subtitulo || s.contenido || '')}</p>
-                    </div>
-                `).join('');
+                slidesHTML = clase.slides.map((s, i) => {
+                    let notasPDF = s.notasOrador ? `<p style="margin:6px 0 0;font-size:12px;color:#0055A6;font-style:italic;"><strong>Guía docente:</strong> ${sanitizeHTML(s.notasOrador)}</p>` : '';
+                    let categoriaPDF = s.categoria ? `<span style="font-size:11px;color:#666;text-transform:uppercase;">[${sanitizeHTML(s.categoria)}]</span> ` : '';
+                    return `
+                        <div style="margin-bottom:16px; padding:12px; border-left:4px solid #0055A6; background:#f8fafc;">
+                            <strong style="color:#1e293b;font-size:14px;">Diap. ${i + 1}: ${categoriaPDF}${sanitizeHTML(s.titulo)}</strong>
+                            <p style="margin:6px 0 0;font-size:13px;color:#334155;white-space:pre-line;">${sanitizeHTML(s.subtitulo || s.contenido || '')}</p>
+                            ${notasPDF}
+                        </div>
+                    `;
+                }).join('');
             }
 
             let estructuraHTML = '';
