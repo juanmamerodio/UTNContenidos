@@ -8,7 +8,7 @@
 // CONFIGURACIÓN: URL de la Web App de Google Apps Script (Backend)
 // Podés hardcodear la URL aquí o establecerla dinámicamente en la consola con:
 // localStorage.setItem('utn_gas_api_url', 'https://script.google.com/macros/s/.../exec')
-const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzNR6B8mwbfZFiN1-r1Adfk5Dg79zWlJ7CMCbx_kD0R0q8xL4E2Z0IluO6rJmAWYLw/exec"
+const GAS_API_URL = "https://script.google.com/macros/s/AKfycbymSwBNaV2wQgII5Ol8Hp579FghfntkZ6YpVTGjdecVo5nfuaeZQVJ3a2uy3OUGKK5r/exec"
 
 /**
  * Realiza llamadas HTTP POST al backend en Google Apps Script
@@ -350,7 +350,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         materias.forEach(materia => {
-            let temasHTML = materia.temas.map(tema => `
+            let temas = (materia.temas && materia.temas.length > 0) ? materia.temas : [
+                { nombreTema: 'Contenido General / Introducción', linkTeoria: '' }
+            ];
+
+            let temasHTML = temas.map(tema => `
                 <li>
                     <span>${sanitizeHTML(tema.nombreTema)}</span>
                     <button class="btn-select-topic" 
@@ -365,11 +369,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const cardHTML = `
                 <article class="subject-card">
                     <div class="subject-header">
-                        <span class="badge">${sanitizeHTML(materia.nivel)}</span>
+                        <span class="badge">${sanitizeHTML(materia.nivel || 'UTN')}</span>
                         <h2>${sanitizeHTML(materia.nombre)}</h2>
                     </div>
                     <div class="subject-body">
-                        <p>${sanitizeHTML(materia.descripcion)}</p>
+                        <p>${sanitizeHTML(materia.descripcion || '')}</p>
                         <h3>Temas del programa:</h3>
                         <ul class="topic-list">${temasHTML}</ul>
                     </div>
@@ -528,30 +532,42 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(respuestaContexto?.error || "Error al obtener la teoría oficial de la materia.");
             }
 
-            // 2. GENERAR CLASE IA (Vía Serverless Vercel)
-            const apiGeminiUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-                ? '/api/gemini'
-                : '/api/gemini'; // Asumimos despliegue en Vercel
+            // 2. GENERAR CLASE IA (Estrategia Híbrida: Vercel Serverless con fallback automático a GAS)
+            let respuesta = null;
 
-            const responseGemini = await fetch(apiGeminiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
+            try {
+                const responseGemini = await fetch('/api/gemini', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        materia: materiaNombre,
+                        tema: temaNombre,
+                        textoOficial: respuestaContexto.textoOficial,
+                        contextoDinamico
+                    })
+                });
+
+                if (responseGemini.ok) {
+                    respuesta = await responseGemini.json();
+                } else {
+                    console.warn(`/api/gemini respondió HTTP ${responseGemini.status}. Activando fallback a Google Apps Script...`);
+                }
+            } catch (errLocal) {
+                console.warn("Fallo de conexión a /api/gemini local. Activando fallback a Google Apps Script...", errLocal);
+            }
+
+            // Si Vercel no respondió (ej: Live Server local o 405), ejecutamos vía backend GAS
+            if (!respuesta || !respuesta.success) {
+                respuesta = await callBackend('generarClaseIA', {
+                    token: sesionToken,
                     materia: materiaNombre,
                     tema: temaNombre,
                     textoOficial: respuestaContexto.textoOficial,
                     contextoDinamico
-                })
-            });
-
-            if (!responseGemini.ok) {
-                const errorData = await responseGemini.json().catch(() => ({}));
-                throw new Error(errorData.error || `Error en el servidor de IA (HTTP ${responseGemini.status})`);
+                });
             }
-
-            const respuesta = await responseGemini.json();
 
             modalLoader.close();
 
@@ -604,7 +620,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     slidesGrid.innerHTML = respuesta.slides.map((slide, index) => {
                         let contentHTML = '';
                         let categoriaBadge = slide.categoria ? `<span class="badge" style="background: rgba(0, 85, 166, 0.1); color: var(--ios-blue); font-size: 0.75rem; text-transform: uppercase; margin-bottom: 8px; display: inline-block;">${sanitizeHTML(slide.categoria)}</span>` : '';
-                        
+
                         if (slide.tipo === 'portada') {
                             contentHTML = `
                                 <h4>Portada Institucional UTN</h4>
