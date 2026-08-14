@@ -22,6 +22,14 @@ function normalizarId(val) {
 
 
 /**
+ * 0. WARMUP TRIGGER (Mantiene la instancia de GAS caliente y elimina Cold Starts)
+ * Configurar en el editor de GAS: Triggers > Add Trigger > mantenerCaliente > Time-driven > Every 4 minutes
+ */
+function mantenerCaliente() {
+  console.log('[Warmup] ' + new Date().toISOString());
+}
+
+/**
  * 1. FUNCIÓN DE INICIO (Sirve la SPA)
  * Convierte tu index.html en una Web App.
  */
@@ -33,34 +41,48 @@ function doGet(e) {
 }
 
 /**
- * 2. VALIDACIÓN DE LOGIN Y CARGA DE DASHBOARD
- * Genera un token efímero guardado en caché para validar las llamadas cliente-servidor.
+ * 2. VALIDACIÓN DE LOGIN Y CARGA DE DASHBOARD (OPTIMIZADO CON CACHESERVICE & DLR 3NF)
+ * Genera un token efímero guardado en caché y acelera la carga evitando re-lecturas redundantes.
  */
 function validarDocente(legajo, dni) {
   try {
+    const cache = CacheService.getScriptCache();
+    const cleanLegajo = normalizarId(legajo);
+    const dashboardCacheKey = 'dashboard_' + cleanLegajo;
+    const cachedDashboard = cache.get(dashboardCacheKey);
+
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const sheetDocentes = ss.getSheetByName('Docentes');
     if (!sheetDocentes) {
       return { success: false, error: "Error de configuración: No se encontró la hoja 'Docentes'." };
     }
     const dataDocentes = sheetDocentes.getDataRange().getValues();
-    
+
     // Ignoramos la cabecera (fila 0)
     for (let i = 1; i < dataDocentes.length; i++) {
       let row = dataDocentes[i];
-      // Convertimos a string para evitar errores de tipo
-      if (normalizarId(row[0]) === normalizarId(legajo) && normalizarId(row[1]) === normalizarId(dni)) {
-        
-        // Login exitoso, ahora buscamos sus materias y temas
-        let materiasIds = row[4] ? String(row[4]).split(',').map(id => normalizarId(id)) : [];
-        let dashboardData = obtenerMateriasYTemas(materiasIds, ss, legajo);
-        
-        // GENERACIÓN DE TOKEN DE SESIÓN EFÍMERO
+      if (normalizarId(row[0]) === cleanLegajo && normalizarId(row[1]) === normalizarId(dni)) {
+
+        // Si tenemos el dashboard en caché lo usamos, sino se consulta al modelo relacional
+        let dashboardData;
+        if (cachedDashboard) {
+          try {
+            dashboardData = JSON.parse(cachedDashboard);
+          } catch (e) {
+            dashboardData = null;
+          }
+        }
+
+        if (!dashboardData) {
+          dashboardData = obtenerMateriasYTemasRelacional(ss, cleanLegajo);
+          // Cachear por 1 hora (3600 seg)
+          cache.put(dashboardCacheKey, JSON.stringify(dashboardData), 3600);
+        }
+
+        // GENERACIÓN DE TOKEN DE SESIÓN EFÍMERO (UUID v4)
         const token = Utilities.getUuid();
-        const cache = CacheService.getScriptCache();
-        // Guardamos el token asociando el legajo. Expira en 2 horas (7200 segundos).
-        cache.put('token_' + token, String(legajo), 7200);
-        
+        cache.put('token_' + token, String(cleanLegajo), 7200);
+
         return {
           success: true,
           token: token,
@@ -72,7 +94,7 @@ function validarDocente(legajo, dni) {
         };
       }
     }
-    
+
     return { success: false, error: "Credenciales inválidas. Verifique en Sysacad." };
   } catch (error) {
     return { success: false, error: "Error en el servidor al validar credenciales: " + error.toString() };
@@ -95,58 +117,143 @@ function validarSesion(token) {
 }
 
 /**
- * 4. ORQUESTADOR DE DATOS RELACIONALES
- * Cruza las hojas 'Materias' y 'Temario' según el profesor.
+ * 4. ORQUESTADOR DE DATOS RELACIONALES (MODELO DLR / 3NF)
+ * Realiza joins indexados en memoria con complejidad O(1) hash lookups.
+ * Soporta la nueva tabla 'Asignaciones_Docente' y 'Temas', con fallback automático
+ * si la planilla aún está migrando desde el esquema anterior ('Temario' / Columna CSV).
  */
-function obtenerMateriasYTemas(materiasIds, ss, legajo) {
+function obtenerMateriasYTemasRelacional(ss, legajo, materiasIdsFiltro) {
+  const cleanLegajo = normalizarId(legajo);
   const sheetMateriasObj = ss.getSheetByName('Materias');
-  const sheetTemarioObj = ss.getSheetByName('Temario');
-  
-  if (!sheetMateriasObj || !sheetTemarioObj) return [];
-  
+  if (!sheetMateriasObj) return [];
+
   const sheetMaterias = sheetMateriasObj.getDataRange().getValues();
-  const sheetTemario = sheetTemarioObj.getDataRange().getValues();
-  
-  let resultado = [];
-  
-  // Filtrar Materias
+  let materiasMap = {}; // ID -> Objeto Materia
+
   for (let i = 1; i < sheetMaterias.length; i++) {
-    let idMateria = sheetMaterias[i][0];
-    if (materiasIds.includes(normalizarId(idMateria))) {
-      let materiaObj = {
-        id: idMateria,
-        nombre: sheetMaterias[i][1],
-        nivel: sheetMaterias[i][2],
-        descripcion: sheetMaterias[i][3],
-        temas: []
-      };
-      
-      // Buscar temas de esta materia asignados a este docente
-      for (let j = 1; j < sheetTemario.length; j++) {
-        // A: Legajo_Docente (0), B: ID_Materia (1), C: ID_Tema (2), D: Nombre_Tema (3), E: Link_Teoria (4)
-        let rowLegajo = normalizarId(sheetTemario[j][0]);
-        let rowMateria = normalizarId(sheetTemario[j][1]);
-        if (rowLegajo === normalizarId(legajo) && rowMateria === normalizarId(idMateria)) {
-          materiaObj.temas.push({
-            idTema: sheetTemario[j][2],
-            nombreTema: sheetTemario[j][3],
-            contexto: '',
-            linkTeoria: sheetTemario[j][4] || ''
-          });
+    let idMateria = normalizarId(sheetMaterias[i][0]);
+    if (!idMateria) continue;
+
+    // A: ID_Materia, B: Nombre o Codigo_Plan, C: Nivel o Nombre...
+    // Soporte para esquema DLR (A: ID, B: Plan, C: Nombre, D: Nivel, E: Depto, F: Desc, G: Activa)
+    // y esquema clásico (A: ID, B: Nombre, C: Nivel, D: Descripcion)
+    let esDLR = sheetMaterias[0].length >= 6 && sheetMaterias[0][1].toString().toLowerCase().includes('plan');
+    
+    let nombre = esDLR ? sheetMaterias[i][2] : sheetMaterias[i][1];
+    let nivel = esDLR ? (sheetMaterias[i][3] || 'General') : (sheetMaterias[i][2] || 'General');
+    let descripcion = esDLR ? (sheetMaterias[i][5] || '') : (sheetMaterias[i][3] || '');
+    let activa = esDLR ? (sheetMaterias[i][6] !== false && sheetMaterias[i][6] !== 'FALSE') : true;
+
+    if (!activa) continue;
+
+    materiasMap[idMateria] = {
+      id: idMateria,
+      nombre: nombre,
+      nivel: nivel,
+      descripcion: descripcion,
+      temas: []
+    };
+  }
+
+  // 1. OBTENER IDs DE MATERIAS ASIGNADAS AL DOCENTE
+  let materiasAsignadasSet = new Set();
+
+  if (materiasIdsFiltro && Array.isArray(materiasIdsFiltro)) {
+    materiasIdsFiltro.forEach(id => materiasAsignadasSet.add(normalizarId(id)));
+  } else {
+    // Buscar en hoja Asignaciones_Docente (DLR)
+    const sheetAsignaciones = ss.getSheetByName('Asignaciones_Docente');
+    if (sheetAsignaciones) {
+      const dataAsign = sheetAsignaciones.getDataRange().getValues();
+      for (let i = 1; i < dataAsign.length; i++) {
+        let legDoc = normalizarId(dataAsign[i][1]); // Col B: Legajo_Docente
+        let matId = normalizarId(dataAsign[i][2]);  // Col C: ID_Materia
+        if (legDoc === cleanLegajo && matId) {
+          materiasAsignadasSet.add(matId);
         }
       }
-      resultado.push(materiaObj);
+    }
+
+    // Fallback: Si no hay tabla de asignaciones o no encontró filas, buscar en Docentes col E (CSV antiguo)
+    if (materiasAsignadasSet.size === 0) {
+      const sheetDocentes = ss.getSheetByName('Docentes');
+      if (sheetDocentes) {
+        const dataDoc = sheetDocentes.getDataRange().getValues();
+        for (let i = 1; i < dataDoc.length; i++) {
+          if (normalizarId(dataDoc[i][0]) === cleanLegajo) {
+            let csv = dataDoc[i][4] ? String(dataDoc[i][4]).split(',') : [];
+            csv.forEach(id => { if (id.trim()) materiasAsignadasSet.add(normalizarId(id)); });
+            break;
+          }
+        }
+      }
     }
   }
+
+  // 2. OBTENER TEMAS DE CÁTEDRA (HOJA 'Temas' DLR o FALLBACK 'Temario')
+  const sheetTemasDLR = ss.getSheetByName('Temas');
+  const sheetTemarioOld = ss.getSheetByName('Temario');
+
+  if (sheetTemasDLR) {
+    // Modelo DLR: A: ID_Tema, B: ID_Materia, C: Orden, D: Nombre_Tema, E: Descripcion, F: Link_Teoria, G: Activo
+    const dataTemas = sheetTemasDLR.getDataRange().getValues();
+    for (let i = 1; i < dataTemas.length; i++) {
+      let idMateria = normalizarId(dataTemas[i][1]);
+      let activo = dataTemas[i][6] !== false && dataTemas[i][6] !== 'FALSE';
+
+      if (activo && materiasAsignadasSet.has(idMateria) && materiasMap[idMateria]) {
+        materiasMap[idMateria].temas.push({
+          idTema: dataTemas[i][0],
+          orden: dataTemas[i][2] || 0,
+          nombreTema: dataTemas[i][3],
+          descripcion: dataTemas[i][4] || '',
+          contexto: '',
+          linkTeoria: dataTemas[i][5] || ''
+        });
+      }
+    }
+  } else if (sheetTemarioOld) {
+    // Fallback esquema anterior
+    const dataTemario = sheetTemarioOld.getDataRange().getValues();
+    for (let j = 1; j < dataTemario.length; j++) {
+      let rowLegajo = normalizarId(dataTemario[j][0]);
+      let rowMateria = normalizarId(dataTemario[j][1]);
+      if (rowLegajo === cleanLegajo && materiasAsignadasSet.has(rowMateria) && materiasMap[rowMateria]) {
+        materiasMap[rowMateria].temas.push({
+          idTema: dataTemario[j][2],
+          nombreTema: dataTemario[j][3],
+          contexto: '',
+          linkTeoria: dataTemario[j][4] || ''
+        });
+      }
+    }
+  }
+
+  // 3. RETORNAR SÓLO LAS MATERIAS ASIGNADAS AL DOCENTE CON SUS TEMAS
+  let resultado = [];
+  materiasAsignadasSet.forEach(idMat => {
+    if (materiasMap[idMat]) {
+      // Ordenar temas por orden si existe
+      if (materiasMap[idMat].temas.length > 0 && materiasMap[idMat].temas[0].orden !== undefined) {
+        materiasMap[idMat].temas.sort((a, b) => (Number(a.orden) || 0) - (Number(b.orden) || 0));
+      }
+      resultado.push(materiasMap[idMat]);
+    }
+  });
+
   return resultado;
 }
 
+// Alias de retrocompatibilidad
+function obtenerMateriasYTemas(materiasIds, ss, legajo) {
+  return obtenerMateriasYTemasRelacional(ss, legajo, materiasIds);
+}
+
 /**
- * 5. RETROALIMENTACIÓN DE CONTEXTO (RAG BÁSICO)
- * Extrae texto del Google Doc si existe y lo devuelve limpio al frontend.
+ * 5. RETROALIMENTACIÓN DE CONTEXTO (RAG CON CACHÉ)
+ * Extrae texto del Google Doc usando CacheService para responder en ~100ms en hits.
  */
 function obtenerContextoTema(token, linkTeoria) {
-  // VALIDACIÓN DE SEGURIDAD EN EL SERVIDOR
   const legajo = validarSesion(token);
   if (!legajo) {
     return { success: false, error: "Sesión inválida o expirada. Por favor, vuelva a ingresar." };
@@ -154,23 +261,32 @@ function obtenerContextoTema(token, linkTeoria) {
 
   let textoOficial = "No se proporcionó bibliografía específica. Usa teoría estándar de nivel universitario.";
   let advertenciaRAG = null;
-  
-  // EXTRAER LA TEORÍA (RAG básico)
+
   if (linkTeoria && linkTeoria.includes('docs.google.com')) {
     const docId = extraerIdDoc(linkTeoria);
     if (docId) {
-      try {
-        const doc = DocumentApp.openById(docId);
-        textoOficial = doc.getBody().getText();
-        
-        // Acotar texto para optimizar la ventana de contexto y el tiempo
-        if (textoOficial.length > 50000) {
-           textoOficial = textoOficial.substring(0, 50000); 
+      const cache = CacheService.getScriptCache();
+      const ragKey = 'rag_doc_' + docId;
+      const cachedText = cache.get(ragKey);
+
+      if (cachedText) {
+        textoOficial = cachedText;
+      } else {
+        try {
+          const doc = DocumentApp.openById(docId);
+          let texto = doc.getBody().getText();
+
+          if (texto.length > 50000) {
+            texto = texto.substring(0, 50000);
+          }
+          textoOficial = texto;
+          // Guardar en caché por 6 horas (21600 segundos)
+          cache.put(ragKey, textoOficial, 21600);
+        } catch (error) {
+          console.error("Error al leer el apunte: " + error);
+          textoOficial = "ADVERTENCIA: No se pudo leer el apunte oficial por falta de permisos de acceso. Usa teoría estándar de nivel universitario para esta materia.";
+          advertenciaRAG = "No pudimos acceder a tu Google Doc de teoría (revisá que esté compartido). Se generará la clase con contenido general de ingeniería.";
         }
-      } catch (error) {
-        console.error("Error al leer el apunte: " + error);
-        textoOficial = "ADVERTENCIA: No se pudo leer el apunte oficial por falta de permisos de acceso. Usa teoría estándar de nivel universitario para esta materia.";
-        advertenciaRAG = "No pudimos acceder a tu Google Doc de teoría (revisá que esté compartido). Se generará la clase con contenido general de ingeniería.";
       }
     }
   }
@@ -183,8 +299,8 @@ function obtenerContextoTema(token, linkTeoria) {
 }
 
 /**
- * 6. EXPORTACIÓN A GOOGLE SLIDES & HISTORIAL
- * Crea una presentación real en el Drive del profesor y guarda el registro en Google Sheets.
+ * 6. EXPORTACIÓN A GOOGLE SLIDES & HISTORIAL (DISEÑO INSTITUCIONAL UTN & NOTAS DE ORADOR)
+ * Crea una presentación profesional en el Drive del profesor con diseño de cátedra y notas pedagógicas.
  */
 function exportarAGoogleSlides(token, materiaId, materiaNombre, temaNombre, datosClase) {
   // VALIDACIÓN DE SEGURIDAD EN EL SERVIDOR
@@ -199,66 +315,109 @@ function exportarAGoogleSlides(token, materiaId, materiaNombre, temaNombre, dato
     }
 
     // 1. Crear la presentación en blanco
-    const presentacion = SlidesApp.create(`UTN_Clase_${datosClase.slides[0].titulo}`);
-    
-    // 2. Obtener la primera diapositiva (portada por defecto)
+    const tituloPresentacion = `UTN FRD - ${temaNombre || datosClase.slides[0].titulo}`;
+    const presentacion = SlidesApp.create(tituloPresentacion);
+
+    // 2. Llenar la Portada (Slide 0)
     const slides = presentacion.getSlides();
     const portada = slides[0];
-    
-    // 3. Llenar la portada
-    let shapes = portada.getShapes();
-    if (shapes.length >= 2) {
-      shapes[0].getText().setText(datosClase.slides[0].titulo || "Tema de Clase");
-      shapes[1].getText().setText((datosClase.slides[0].subtitulo || "UTN FRD") + "\nFacultad Regional Delta");
+    portada.getBackground().setSolidFill('#0A2540'); // Azul espacial profundo UTN
+
+    let shapesPortada = portada.getShapes();
+    if (shapesPortada.length >= 2) {
+      // Título principal blanco
+      let shapeTitulo = shapesPortada[0];
+      shapeTitulo.getText().setText(datosClase.slides[0].titulo || temaNombre);
+      shapeTitulo.getText().getTextStyle()
+        .setForegroundColor('#FFFFFF')
+        .setFontSize(36)
+        .setBold(true);
+
+      // Subtítulo institucional celeste/plata
+      let shapeSub = shapesPortada[1];
+      shapeSub.getText().setText(`${materiaNombre || 'Cátedra UTN'} | Facultad Regional Delta\nUniversidad Tecnológica Nacional`);
+      shapeSub.getText().getTextStyle()
+        .setForegroundColor('#94A3B8')
+        .setFontSize(18);
     }
-    
-    // 4. Generar el resto de las diapositivas
+
+    // Notas de orador de la portada
+    if (datosClase.slides[0].notasOrador) {
+      try {
+        portada.getNotesPage().getSpeakerNotesShape().getText().setText("🎙️ GUÍA DOCENTE:\n" + datosClase.slides[0].notasOrador);
+      } catch (e) {
+        console.warn("No se pudo agregar nota de orador a portada: " + e);
+      }
+    }
+
+    // 3. Generar el resto de las Diapositivas Didácticas
     for (let i = 1; i < datosClase.slides.length; i++) {
       let slideData = datosClase.slides[i];
       let nuevaSlide = presentacion.appendSlide(SlidesApp.PredefinedLayout.TITLE_AND_BODY);
-      
+      nuevaSlide.getBackground().setSolidFill('#F8FAFC'); // Fondo off-white limpio para proyector
+
       let slideShapes = nuevaSlide.getShapes();
       if (slideShapes.length >= 2) {
-        slideShapes[0].getText().setText(slideData.titulo || "Diapositiva");
-        slideShapes[1].getText().setText(slideData.contenido || "");
-        
-        // Estilo UTN básico al título (Azul UTN #0055A6)
-        slideShapes[0].getText().getTextStyle().setForegroundColor('#0055A6');
+        // Título con Azul UTN (#0055A6)
+        let tituloShape = slideShapes[0];
+        let categoriaTxt = slideData.categoria ? `[${slideData.categoria.toUpperCase()}] ` : '';
+        tituloShape.getText().setText(categoriaTxt + (slideData.titulo || "Tema"));
+        tituloShape.getText().getTextStyle()
+          .setForegroundColor('#0055A6')
+          .setFontSize(26)
+          .setBold(true);
+
+        // Cuerpo de contenido
+        let cuerpoShape = slideShapes[1];
+        let textoContenido = slideData.contenido || '';
+        cuerpoShape.getText().setText(textoContenido);
+        cuerpoShape.getText().getTextStyle()
+          .setForegroundColor('#1E293B')
+          .setFontSize(18);
+      }
+
+      // Notas de orador (machete pedagógico del profesor)
+      if (slideData.notasOrador) {
+        try {
+          nuevaSlide.getNotesPage().getSpeakerNotesShape().getText().setText("🎙️ GUÍA DE AULA (CÁTEDRA UTN FRD):\n" + slideData.notasOrador);
+        } catch (eNotes) {
+          console.warn("Error al agregar nota de orador en slide " + i + ": " + eNotes);
+        }
       }
     }
 
     const urlPresentacion = presentacion.getUrl();
 
-    // 5. REGISTRAR EN EL HISTORIAL (Hoja: Historial_Presentaciones)
+    // 4. REGISTRAR EN EL HISTORIAL (Hoja: Historial_Presentaciones)
     try {
       const ss = SpreadsheetApp.getActiveSpreadsheet();
       let sheetHistorial = ss.getSheetByName('Historial_Presentaciones');
       if (!sheetHistorial) {
         sheetHistorial = ss.insertSheet('Historial_Presentaciones');
-        sheetHistorial.appendRow(['ID_Historial', 'Legajo_Docente', 'ID_Materia', 'Nombre_Tema', 'URL_Slides', 'Fecha_Creacion']);
+        sheetHistorial.appendRow(['ID_Historial', 'Legajo_Docente', 'Id_Materia', 'Nombre_Tema', 'URL_Slides', 'estado_generacion', 'Fecha_Creacion']);
       }
-      
+
       const idHistorial = Utilities.getUuid();
       const fechaCreacion = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd HH:mm:ss");
-      
+
       sheetHistorial.appendRow([
         idHistorial,
         String(legajo),
-        String(materiaId || ''),
+        String(materiaNombre || materiaId || ''),
         String(temaNombre || ''),
         urlPresentacion,
+        'EXITOSO',
         fechaCreacion
       ]);
     } catch (errHistorial) {
       console.error("Error al registrar en Historial_Presentaciones: " + errHistorial.toString());
-      // No bloqueamos la ejecución si falla el registro en la base de datos
     }
-    
+
     return {
       success: true,
       url: urlPresentacion
     };
-    
+
   } catch (error) {
     console.error("Error al exportar a Google Slides: " + error.toString());
     return { success: false, error: error.toString() };
@@ -364,7 +523,7 @@ function doPost(e) {
     if (!e || !e.postData || !e.postData.contents) {
       return crearRespuestaJson({ success: false, error: "Solicitud vacía o inválida." });
     }
-    
+
     const params = JSON.parse(e.postData.contents);
     const action = params.action;
     let responseData = {};
@@ -378,10 +537,10 @@ function doPost(e) {
         break;
       case 'exportarAGoogleSlides':
         responseData = exportarAGoogleSlides(
-          params.token, 
-          params.materiaId, 
-          params.materiaNombre, 
-          params.temaNombre, 
+          params.token,
+          params.materiaId,
+          params.materiaNombre,
+          params.temaNombre,
           params.datosClase
         );
         break;
@@ -390,6 +549,12 @@ function doPost(e) {
         break;
       case 'revalidarSesionConDashboard':
         responseData = revalidarSesionConDashboard(params.token);
+        break;
+      case 'obtenerOfertaAcademica':
+        responseData = obtenerOfertaAcademica(params.token);
+        break;
+      case 'reclamarMaterias':
+        responseData = reclamarMaterias(params.token, params.materiasIdsSeleccionadas);
         break;
       case 'debugSheetData':
         responseData = debugSheetData();
@@ -403,6 +568,160 @@ function doPost(e) {
   } catch (err) {
     console.error("Error en doPost: " + err.toString());
     return crearRespuestaJson({ success: false, error: "Excepción en el servidor: " + err.toString() });
+  }
+}
+
+/**
+ * 10. OBTENER OFERTA ACADÉMICA COMPLETA AGRUPADA POR AÑO/NIVEL (DLR 3NF)
+ */
+function obtenerOfertaAcademica(token) {
+  const legajo = validarSesion(token);
+  if (!legajo) return { success: false, error: "Sesión expirada o inválida." };
+
+  try {
+    const cleanLegajo = normalizarId(legajo);
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheetMateriasObj = ss.getSheetByName('Materias');
+
+    if (!sheetMateriasObj) {
+      return { success: false, error: "Error de configuración: No se encontró la hoja Materias." };
+    }
+
+    const sheetMaterias = sheetMateriasObj.getDataRange().getValues();
+    const esDLR = sheetMaterias[0].length >= 6 && sheetMaterias[0][1].toString().toLowerCase().includes('plan');
+
+    // 1. Obtener materias asignadas actualmente al docente (desde Asignaciones_Docente o Docentes CSV)
+    let materiasAsignadasSet = new Set();
+    const sheetAsignaciones = ss.getSheetByName('Asignaciones_Docente');
+    if (sheetAsignaciones) {
+      const dataAsign = sheetAsignaciones.getDataRange().getValues();
+      for (let i = 1; i < dataAsign.length; i++) {
+        if (normalizarId(dataAsign[i][1]) === cleanLegajo) {
+          materiasAsignadasSet.add(normalizarId(dataAsign[i][2]));
+        }
+      }
+    }
+
+    if (materiasAsignadasSet.size === 0) {
+      const sheetDocentes = ss.getSheetByName('Docentes');
+      if (sheetDocentes) {
+        const dataDoc = sheetDocentes.getDataRange().getValues();
+        for (let i = 1; i < dataDoc.length; i++) {
+          if (normalizarId(dataDoc[i][0]) === cleanLegajo) {
+            let csv = dataDoc[i][4] ? String(dataDoc[i][4]).split(',') : [];
+            csv.forEach(id => { if (id.trim()) materiasAsignadasSet.add(normalizarId(id)); });
+            break;
+          }
+        }
+      }
+    }
+
+    // 2. Construir catálogo agrupado
+    let catalogo = {};
+    for (let i = 1; i < sheetMaterias.length; i++) {
+      let idMateria = normalizarId(sheetMaterias[i][0]);
+      if (!idMateria) continue;
+
+      let nombre = esDLR ? sheetMaterias[i][2] : sheetMaterias[i][1];
+      let nivel = esDLR ? (sheetMaterias[i][3] || 'Otros') : (sheetMaterias[i][2] || 'Otros');
+      let descripcion = esDLR ? (sheetMaterias[i][5] || '') : (sheetMaterias[i][3] || '');
+      let activa = esDLR ? (sheetMaterias[i][6] !== false && sheetMaterias[i][6] !== 'FALSE') : true;
+
+      if (!activa) continue;
+
+      if (!catalogo[nivel]) catalogo[nivel] = [];
+
+      catalogo[nivel].push({
+        id: idMateria,
+        nombre: nombre,
+        descripcion: descripcion,
+        asignada: materiasAsignadasSet.has(idMateria)
+      });
+    }
+
+    return { success: true, catalogo: catalogo };
+  } catch (error) {
+    return { success: false, error: "Error al obtener la oferta académica: " + error.toString() };
+  }
+}
+
+/**
+ * 11. REGISTRAR RECLAMO DE MATERIAS Y REFRESCAR DASHBOARD (TRANSACCIONAL DLR)
+ * Inserta/actualiza registros en la tabla relacional 'Asignaciones_Docente'
+ * e invalida la caché del docente.
+ */
+function reclamarMaterias(token, materiasIdsSeleccionadas) {
+  const legajo = validarSesion(token);
+  if (!legajo) return { success: false, error: "Sesión expirada o inválida." };
+
+  try {
+    const cleanLegajo = normalizarId(legajo);
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const idsSeleccionados = (materiasIdsSeleccionadas || []).map(id => normalizarId(id)).filter(Boolean);
+
+    // 1. PERSISTIR EN TABLA RELACIONAL 'Asignaciones_Docente' (DLR)
+    let sheetAsignaciones = ss.getSheetByName('Asignaciones_Docente');
+    if (!sheetAsignaciones) {
+      sheetAsignaciones = ss.insertSheet('Asignaciones_Docente');
+      sheetAsignaciones.appendRow(['ID_Asignacion', 'Legajo_Docente', 'ID_Materia', 'Rol_Cargo', 'Comision', 'Ciclo_Lectivo', 'Fecha_Asignacion']);
+    }
+
+    const dataAsign = sheetAsignaciones.getDataRange().getValues();
+    let filasAEliminar = [];
+
+    // Detectar asignaciones previas del docente para eliminarlas
+    for (let i = dataAsign.length - 1; i >= 1; i--) {
+      if (normalizarId(dataAsign[i][1]) === cleanLegajo) {
+        filasAEliminar.push(i + 1);
+      }
+    }
+
+    // Borrar de abajo hacia arriba para no alterar índices
+    filasAEliminar.forEach(fila => sheetAsignaciones.deleteRow(fila));
+
+    // Insertar nuevas asignaciones
+    const fechaActual = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd HH:mm:ss");
+    const cicloActual = String(new Date().getFullYear());
+
+    idsSeleccionados.forEach(idMateria => {
+      sheetAsignaciones.appendRow([
+        Utilities.getUuid(),
+        cleanLegajo,
+        idMateria,
+        'Docente',
+        '',
+        cicloActual,
+        fechaActual
+      ]);
+    });
+
+    // 2. SINCRONIZAR FALLBACK EN HOJA 'Docentes' (Para no romper si alguien consulta CSV)
+    const sheetDocentes = ss.getSheetByName('Docentes');
+    if (sheetDocentes) {
+      const dataDocentes = sheetDocentes.getDataRange().getValues();
+      for (let i = 1; i < dataDocentes.length; i++) {
+        if (normalizarId(dataDocentes[i][0]) === cleanLegajo) {
+          sheetDocentes.getRange(i + 1, 5).setValue(idsSeleccionados.join(','));
+          break;
+        }
+      }
+    }
+
+    // 3. INVALIDAR CACHÉ Y OBTENER DASHBOARD FRESCO
+    const cache = CacheService.getScriptCache();
+    cache.remove('dashboard_' + cleanLegajo);
+
+    let nuevoDashboard = obtenerMateriasYTemasRelacional(ss, cleanLegajo, idsSeleccionados);
+    cache.put('dashboard_' + cleanLegajo, JSON.stringify(nuevoDashboard), 3600);
+
+    return {
+      success: true,
+      mensaje: "¡Materias asignadas a tu perfil con éxito!",
+      dashboard: nuevoDashboard
+    };
+  } catch (err) {
+    console.error("Error en reclamarMaterias: " + err.toString());
+    return { success: false, error: "Error al guardar el reclamo de materias: " + err.toString() };
   }
 }
 
@@ -438,4 +757,3 @@ function crearRespuestaJson(objeto) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
- 
