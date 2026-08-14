@@ -190,41 +190,51 @@ function obtenerMateriasYTemasRelacional(ss, legajo, materiasIdsFiltro) {
     }
   }
 
-  // 2. OBTENER TEMAS DE CÁTEDRA (HOJA 'Temas' DLR o FALLBACK 'Temario')
-  const sheetTemasDLR = ss.getSheetByName('Temas');
-  const sheetTemarioOld = ss.getSheetByName('Temario');
+  // 2. OBTENER TEMAS DE CÁTEDRA (HOJA 'Temas' O 'Temario' CON DETECCIÓN DINÁMICA)
+  const sheetTemasObj = ss.getSheetByName('Temas') || ss.getSheetByName('Temario') || ss.getSheetByName('temario');
 
-  if (sheetTemasDLR) {
-    // Modelo DLR: A: ID_Tema, B: ID_Materia, C: Orden, D: Nombre_Tema, E: Descripcion, F: Link_Teoria, G: Activo
-    const dataTemas = sheetTemasDLR.getDataRange().getValues();
+  if (sheetTemasObj) {
+    const dataTemas = sheetTemasObj.getDataRange().getValues();
+    const headers = (dataTemas[0] || []).map(h => String(h).toLowerCase().trim());
+    
+    // Detectar si la hoja tiene estructura DLR (id_tema, id_materia, orden_unidad, nombre_tema, descripcion, url, activo)
+    // o estructura clásica de 5 columnas (legajo, id_materia, id_tema, nombre_tema, link)
+    const esDLRTemas = headers.includes('orden_unidad') || (dataTemas[0].length >= 6 && headers[1] === 'id_materia');
+
     for (let i = 1; i < dataTemas.length; i++) {
-      let idMateria = normalizarId(dataTemas[i][1]);
-      let activo = dataTemas[i][6] !== false && dataTemas[i][6] !== 'FALSE';
+      let row = dataTemas[i];
+      if (!row || row.length === 0) continue;
 
-      if (activo && materiasAsignadasSet.has(idMateria) && materiasMap[idMateria]) {
-        materiasMap[idMateria].temas.push({
-          idTema: dataTemas[i][0],
-          orden: dataTemas[i][2] || 0,
-          nombreTema: dataTemas[i][3],
-          descripcion: dataTemas[i][4] || '',
-          contexto: '',
-          linkTeoria: dataTemas[i][5] || ''
-        });
-      }
-    }
-  } else if (sheetTemarioOld) {
-    // Fallback esquema anterior
-    const dataTemario = sheetTemarioOld.getDataRange().getValues();
-    for (let j = 1; j < dataTemario.length; j++) {
-      let rowLegajo = normalizarId(dataTemario[j][0]);
-      let rowMateria = normalizarId(dataTemario[j][1]);
-      if (rowLegajo === cleanLegajo && materiasAsignadasSet.has(rowMateria) && materiasMap[rowMateria]) {
-        materiasMap[rowMateria].temas.push({
-          idTema: dataTemario[j][2],
-          nombreTema: dataTemario[j][3],
-          contexto: '',
-          linkTeoria: dataTemario[j][4] || ''
-        });
+      if (esDLRTemas) {
+        // Estructura DLR: Col A: ID_Tema (0), Col B: ID_Materia (1), Col C: Orden (2), Col D: Nombre_Tema (3), Col E: Desc (4), Col F: URL (5), Col G: Activo (6)
+        let idMateria = normalizarId(row[1]);
+        let activo = row[6] !== false && row[6] !== 'FALSE' && String(row[6]).toLowerCase() !== 'inactivo';
+
+        if (activo && materiasAsignadasSet.has(idMateria) && materiasMap[idMateria]) {
+          materiasMap[idMateria].temas.push({
+            idTema: normalizarId(row[0]) || ('TEMA_' + i),
+            orden: row[2] || i,
+            nombreTema: String(row[3] || 'Tema de Clase').trim(),
+            descripcion: String(row[4] || '').trim(),
+            contexto: '',
+            linkTeoria: String(row[5] || '').trim()
+          });
+        }
+      } else {
+        // Estructura Clásica: Col A: Legajo (0), Col B: ID_Materia (1), Col C: ID_Tema (2), Col D: Nombre_Tema (3), Col E: Link (4)
+        let rowLegajo = normalizarId(row[0]);
+        let rowMateria = normalizarId(row[1]);
+        
+        // Acepta si coincide el legajo o si la fila no tiene legajo especificado (tema global de materia)
+        if ((rowLegajo === cleanLegajo || !rowLegajo) && materiasAsignadasSet.has(rowMateria) && materiasMap[rowMateria]) {
+          materiasMap[rowMateria].temas.push({
+            idTema: normalizarId(row[2]) || ('TEMA_' + i),
+            orden: i,
+            nombreTema: String(row[3] || 'Tema de Clase').trim(),
+            contexto: '',
+            linkTeoria: String(row[4] || '').trim()
+          });
+        }
       }
     }
   }
@@ -233,11 +243,24 @@ function obtenerMateriasYTemasRelacional(ss, legajo, materiasIdsFiltro) {
   let resultado = [];
   materiasAsignadasSet.forEach(idMat => {
     if (materiasMap[idMat]) {
-      // Ordenar temas por orden si existe
-      if (materiasMap[idMat].temas.length > 0 && materiasMap[idMat].temas[0].orden !== undefined) {
-        materiasMap[idMat].temas.sort((a, b) => (Number(a.orden) || 0) - (Number(b.orden) || 0));
+      let m = materiasMap[idMat];
+
+      // Si la materia fue asignada pero aún no tiene temas cargados en la hoja Temario,
+      // agregamos automáticamente un tema general para que SIEMPRE aparezca el botón "Preparar Clase"
+      if (!m.temas || m.temas.length === 0) {
+        m.temas = [{
+          idTema: 'TEMA_GENERAL_' + idMat,
+          orden: 1,
+          nombreTema: 'Contenido General de ' + m.nombre,
+          descripcion: 'Planificación sobre los contenidos de la cátedra.',
+          contexto: '',
+          linkTeoria: ''
+        }];
+      } else {
+        m.temas.sort((a, b) => (Number(a.orden) || 0) - (Number(b.orden) || 0));
       }
-      resultado.push(materiasMap[idMat]);
+
+      resultado.push(m);
     }
   });
 
@@ -559,6 +582,9 @@ function doPost(e) {
       case 'debugSheetData':
         responseData = debugSheetData();
         break;
+      case 'generarClaseIA':
+        responseData = generarClaseConGeminiGAS(params.token, params.materia, params.tema, params.textoOficial, params.contextoDinamico);
+        break;
       default:
         responseData = { success: false, error: "Acción '" + action + "' no permitida o desconocida." };
     }
@@ -568,6 +594,157 @@ function doPost(e) {
   } catch (err) {
     console.error("Error en doPost: " + err.toString());
     return crearRespuestaJson({ success: false, error: "Excepción en el servidor: " + err.toString() });
+  }
+}
+
+/**
+ * 9b. GENERADOR DE CLASE CON GEMINI EN GAS (FALLBACK HÍBRIDO 100% FUNCIONAL)
+ * Permite generar la clase directamente desde Google Apps Script si Vercel Serverless no está corriendo localmente.
+ */
+function generarClaseConGeminiGAS(token, materia, tema, textoOficial, contextoDinamico) {
+  const legajo = validarSesion(token);
+  if (!legajo) return { success: false, error: "Sesión expirada o inválida." };
+
+  try {
+    const apiKey = GEMINI_API_KEY || PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
+    if (!apiKey) {
+      return { success: false, error: "Falta configurar la GEMINI_API_KEY en las Propiedades del Script de Google Apps Script." };
+    }
+
+    const promptSistema = `
+      Actúa como un Profesor Titular de Cátedra y Diseñador Pedagógico Senior de la Universidad Tecnológica Nacional (UTN), Facultad Regional Delta.
+      Tu misión es estructurar una clase universitaria MEMORABLE, DINÁMICA y VISUALMENTE EXCELENTE sobre el tema "${tema}" para la asignatura "${materia}".
+
+      --- INICIO DEL MATERIAL/APUNTE DE CÁTEDRA ---
+      ${textoOficial || 'Sin apunte específico cargado. Utilizar el estado del arte de la ingeniería y estándares universitarios de la UTN.'}
+      --- FIN DEL MATERIAL DE CÁTEDRA ---
+
+      Orientaciones específicas enviadas por el profesor para la clase de hoy: "${contextoDinamico || 'Ninguna indicación adicional'}"
+
+      🚨 REGLAS INNEGOCIABLES DE CALIDAD DOCENTE Y PRESENTACIÓN:
+      1. PROHIBIDO crear diapositivas con bloques densos de texto. Las diapositivas son para proyectar, no para leer.
+      2. Cada diapositiva de contenido debe tener MÁXIMO 3 o 4 puntos clave, ultra sintéticos y contundentes (máximo 12 palabras por punto).
+      3. ESTRUCTURA DIDÁCTICA ESTRICTA DE 7 DIAPOSITIVAS:
+         - Slide 1 (portada): Título impactante del tema, materia y Facultad Regional Delta.
+         - Slide 2 (hook/disparador): Un problema real de la industria/ingeniería o una pregunta provocadora para abrir el debate inicial.
+         - Slide 3 (concepto_nucleo): Los fundamentos teóricos indispensables explicados con claridad meridiana.
+         - Slide 4 (caso_aplicado): Ejemplo tangible en el mundo real, industria, infraestructura o sistemas tecnológicos.
+         - Slide 5 (esquema_proceso): Paso a paso, arquitectura o metodología gráfica.
+         - Slide 6 (desafio_aula): Una actividad, pregunta disparadora o reto interactivo para que los estudiantes discutan en clase durante 5 a 10 minutos.
+         - Slide 7 (takeaway): Las 2 conclusiones maestras que el alumno se lleva grabadas al salir del aula.
+      4. NOTAS DEL ORADOR OBLIGATORIAS: Cada slide DEBE incluir "notasOrador" redactadas en primera persona para el profesor.
+
+      Debes devolver ÚNICAMENTE un JSON puro y válido (sin bloques markdown \`\`\`json) con el siguiente formato exacto:
+      {
+        "busqueda": ["Enfoque 1", "Enfoque 2", "Enfoque 3"],
+        "plan": {
+          "duracion": "2 horas cátedra (aprox. 80 - 90 minutos)",
+          "objetivos": ["Objetivo 1", "Objetivo 2", "Objetivo 3"],
+          "estructura": [
+            { "fase": "Apertura y Gancho", "duracion": "15 min", "actividad": "Detalle didáctico..." },
+            { "fase": "Desarrollo Conceptual", "duracion": "35 min", "actividad": "Detalle didáctico..." },
+            { "fase": "Dinámica Activa en Aula", "duracion": "25 min", "actividad": "Detalle didáctico..." },
+            { "fase": "Cierre y Conclusiones", "duracion": "15 min", "actividad": "Detalle didáctico..." }
+          ]
+        },
+        "slides": [
+          {
+            "titulo": "${tema}",
+            "subtitulo": "${materia} | UTN FRD",
+            "categoria": "Portada Institucional",
+            "tipo": "portada",
+            "contenido": "",
+            "notasOrador": "Bienvenida y presentación de la clase."
+          },
+          {
+            "titulo": "¿Por qué es crucial entender esto?",
+            "subtitulo": "El Desafío Real",
+            "categoria": "Gancho y Problemática",
+            "tipo": "hook",
+            "contenido": "• Punto clave 1\\n• Punto clave 2\\n• Punto clave 3",
+            "notasOrador": "Plantear caso real de la industria..."
+          },
+          {
+            "titulo": "Fundamentos y Principios Clave",
+            "subtitulo": "Concepto Núcleo",
+            "categoria": "Teoría Esencial",
+            "tipo": "concepto_nucleo",
+            "contenido": "• Punto clave 1\\n• Punto clave 2\\n• Punto clave 3",
+            "notasOrador": "Explicar la definición central..."
+          },
+          {
+            "titulo": "Aplicación en la Industria Real",
+            "subtitulo": "Caso de Uso",
+            "categoria": "Ingeniería Aplicada",
+            "tipo": "caso_aplicado",
+            "contenido": "• Punto clave 1\\n• Punto clave 2\\n• Punto clave 3",
+            "notasOrador": "Detallar el caso práctico..."
+          },
+          {
+            "titulo": "Flujo de Funcionamiento / Arquitectura",
+            "subtitulo": "Esquema Paso a Paso",
+            "categoria": "Estructura Visual",
+            "tipo": "esquema_proceso",
+            "contenido": "1. Entrada\\n2. Proceso\\n3. Salida",
+            "notasOrador": "Recorrer el diagrama..."
+          },
+          {
+            "titulo": "Desafío Grupal (5 Minutos)",
+            "subtitulo": "Manos a la Obra",
+            "categoria": "Dinámica Participativa",
+            "tipo": "desafio_aula",
+            "contenido": "• Problema a resolver en parejas...",
+            "notasOrador": "Monitorear el debate en el aula..."
+          },
+          {
+            "titulo": "Conclusiones y Takeaways",
+            "subtitulo": "Para Recordar Siempre",
+            "categoria": "Cierre Magistral",
+            "tipo": "takeaway",
+            "contenido": "• Regla de oro...",
+            "notasOrador": "Cierre y repaso para la próxima clase..."
+          }
+        ],
+        "promptsImagenes": [
+          "Prompt 1", "Prompt 2", "Prompt 3"
+        ]
+      }
+    `;
+
+    const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=" + apiKey;
+    const payload = {
+      contents: [{
+        parts: [{ text: promptSistema }]
+      }],
+      generationConfig: {
+        responseMimeType: "application/json",
+        temperature: 0.3
+      }
+    };
+
+    const options = {
+      method: "post",
+      contentType: "application/json",
+      payload: JSON.stringify(payload),
+      muteHttpExceptions: true
+    };
+
+    const response = UrlFetchApp.fetch(url, options);
+    const resCode = response.getResponseCode();
+    if (resCode !== 200) {
+      return { success: false, error: "Error en Gemini API (" + resCode + "): " + response.getContentText() };
+    }
+
+    const json = JSON.parse(response.getContentText());
+    const textResult = json.candidates[0].content.parts[0].text;
+    const claseObj = JSON.parse(textResult);
+    claseObj.success = true;
+
+    return claseObj;
+
+  } catch (error) {
+    console.error("Error en generarClaseConGeminiGAS: " + error.toString());
+    return { success: false, error: "Error al generar con Gemini en el backend: " + error.toString() };
   }
 }
 
