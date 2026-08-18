@@ -43,127 +43,122 @@ export default async function handler(req, res) {
       });
     }
 
-    // System Prompt de Élite Pedagógica UTN
-    const promptSistema = `
-      Actúa como un Profesor Titular de Cátedra y Diseñador Pedagógico Senior de la Universidad Tecnológica Nacional (UTN), Facultad Regional Delta.
-      Tu misión es estructurar una clase universitaria MEMORABLE, DINÁMICA y VISUALMENTE EXCELENTE sobre el tema "${tema}" para la asignatura "${materia}".
+    // System Instruction nativo de Élite Pedagógica UTN (ahorro extremo de tokens)
+    const systemInstruction = `
+Actúa como un Profesor Titular de Cátedra y Diseñador Pedagógico Senior de la Universidad Tecnológica Nacional (UTN), Facultad Regional Delta.
+Tu misión es estructurar una clase universitaria MEMORABLE, DINÁMICA y VISUALMENTE EXCELENTE sobre el tema solicitado.
 
-      --- INICIO DEL MATERIAL/APUNTE DE CÁTEDRA ---
-      ${textoOficial || 'Sin apunte específico cargado. Utilizar el estado del arte de la ingeniería y estándares universitarios de la UTN.'}
-      --- FIN DEL MATERIAL DE CÁTEDRA ---
+🚨 REGLAS PEDAGÓGICAS INNEGOCIABLES:
+1. PROHIBIDO crear diapositivas con bloques densos de texto. Las diapositivas son para proyectar, no para leer.
+2. Cada diapositiva de contenido debe tener MÁXIMO 3 o 4 puntos clave, ultra sintéticos y contundentes (máximo 12 palabras por punto).
+3. ESTRUCTURA DIDÁCTICA ESTRICTA DE EXACTAMENTE 7 DIAPOSITIVAS:
+   - Slide 1 (portada): Título impactante del tema, materia y mención a la Facultad Regional Delta.
+   - Slide 2 (hook): Problema real de la industria/ingeniería o pregunta provocadora para abrir el debate inicial.
+   - Slide 3 (concepto_nucleo): Fundamentos teóricos indispensables explicados con claridad meridiana.
+   - Slide 4 (caso_aplicado): Ejemplo tangible en el mundo real, industria, infraestructura o sistemas tecnológicos.
+   - Slide 5 (esquema_proceso): Paso a paso, arquitectura o metodología lógica/gráfica.
+   - Slide 6 (desafio_aula): Actividad, pregunta disparadora o reto interactivo para debate en clase (5 a 10 min).
+   - Slide 7 (takeaway): Las 2 conclusiones maestras que el alumno se lleva grabadas al salir del aula.
+4. NOTAS DEL ORADOR: Redactadas en primera persona para el profesor (ej: "Explicar a los alumnos que...", "Hacer énfasis en...").
+5. IMAGEN KEYWORD: Para cada slide, proporciona 2 a 3 palabras clave en inglés representativas del concepto para búsqueda de imagen libre (ej: "industrial robotics arm", "database network server", "electrical power grid").
+`;
 
-      Orientaciones específicas enviadas por el profesor para la clase de hoy: "${contextoDinamico || 'Ninguna indicación adicional'}"
+    // Recorte inteligente del texto de cátedra para no saturar tokens (máx 15.000 caracteres / ~3000 palabras clave)
+    let textoCatedraLimpio = textoOficial || 'Sin apunte específico cargado. Utilizar el estado del arte de la ingeniería y estándares universitarios de la UTN.';
+    if (textoCatedraLimpio.length > 15000) {
+      textoCatedraLimpio = textoCatedraLimpio.substring(0, 15000) + '... [Material resumido para síntesis didáctica]';
+    }
 
-      🚨 REGLAS INNEGOCIABLES DE CALIDAD DOCENTE Y PRESENTACIÓN:
-      1. PROHIBIDO crear diapositivas con bloques densos de texto. Las diapositivas son para proyectar, no para leer.
-      2. Cada diapositiva de contenido debe tener MÁXIMO 3 o 4 puntos clave, ultra sintéticos y contundentes (máximo 12 palabras por punto).
-      3. ESTRUCTURA DIDÁCTICA ESTRICTA DE 7 DIAPOSITIVAS:
-         - Slide 1 (portada): Título impactante del tema, materia y Facultad Regional Delta.
-         - Slide 2 (hook/disparador): Un problema real de la industria/ingeniería o una pregunta provocadora para abrir el debate inicial.
-         - Slide 3 (concepto_nucleo): Los fundamentos teóricos indispensables explicados con claridad meridiana.
-         - Slide 4 (caso_aplicado): Ejemplo tangible en el mundo real, industria, infraestructura o sistemas tecnológicos.
-         - Slide 5 (esquema_proceso): Paso a paso, arquitectura o metodología gráfica.
-         - Slide 6 (desafio_aula): Una actividad, pregunta disparadora o reto interactivo para que los estudiantes discutan en clase durante 5 a 10 minutos.
-         - Slide 7 (takeaway): Las 2 conclusiones maestras que el alumno se lleva grabadas al salir del aula.
-      4. NOTAS DEL ORADOR OBLIGATORIAS: Cada slide DEBE incluir "notasOrador" redactadas en primera persona para el profesor (ej: "Explicar a los alumnos que...", "Hacer énfasis en...", "Preguntar a la sala si...").
+    const userPrompt = `
+Materia: "${materia}"
+Tema a exponer: "${tema}"
+Orientaciones específicas del docente: "${contextoDinamico || 'Ninguna indicación adicional'}"
 
-      Debes devolver ÚNICAMENTE un JSON puro y válido (sin bloques markdown \`\`\`json) con el siguiente formato exacto:
-      {
-        "busqueda": [
-          "Enfoque didáctico sugerido 1 (ej: Enfoque inductivo partiendo de una falla real)",
-          "Enfoque didáctico sugerido 2 (ej: Enfoque comparativo entre arquitecturas)",
-          "Enfoque didáctico sugerido 3 (ej: Taller hands-on guiado)"
-        ],
-        "plan": {
-          "duracion": "2 horas cátedra (aprox. 80 - 90 minutos)",
-          "objetivos": [
-            "Comprender los fundamentos esenciales de...",
-            "Analizar críticamente la aplicación de...",
-            "Resolver problemas prácticos vinculados a..."
-          ],
-          "estructura": [
-            { "fase": "Apertura y Gancho", "duracion": "15 min", "actividad": "Presentación del problema real y disparador de debate." },
-            { "fase": "Desarrollo Conceptual", "duracion": "35 min", "actividad": "Exposición guiada del núcleo teórico y ejemplos prácticos." },
-            { "fase": "Dinámica Activa en Aula", "duracion": "25 min", "actividad": "Resolución del desafío propuesto en parejas o equipos." },
-            { "fase": "Cierre y Conclusiones", "duracion": "15 min", "actividad": "Puesta en común, dudas y consolidación de los conceptos clave." }
-          ]
+Material de Cátedra de referencia:
+${textoCatedraLimpio}
+`;
+
+    // Esquema estricto Structured Outputs (Garantiza 7 slides y ahorra miles de tokens de ejemplos)
+    const responseSchema = {
+      type: "OBJECT",
+      properties: {
+        busqueda: {
+          type: "ARRAY",
+          description: "3 enfoques didácticos sugeridos para la clase",
+          items: { type: "STRING" }
         },
-        "slides": [
-          {
-            "titulo": "${tema}",
-            "subtitulo": "${materia} | UTN FRD",
-            "categoria": "Portada Institucional",
-            "tipo": "portada",
-            "contenido": "",
-            "notasOrador": "Bienvenida al curso. Presentar la hoja de ruta de la clase y establecer expectativas."
+        plan: {
+          type: "OBJECT",
+          properties: {
+            duracion: { type: "STRING", description: "Ej: 2 horas cátedra (aprox. 80-90 min)" },
+            objetivos: {
+              type: "ARRAY",
+              description: "3 objetivos de aprendizaje específicos",
+              items: { type: "STRING" }
+            },
+            estructura: {
+              type: "ARRAY",
+              description: "Cronograma de momentos de clase (4 fases)",
+              items: {
+                type: "OBJECT",
+                properties: {
+                  fase: { type: "STRING" },
+                  duracion: { type: "STRING" },
+                  actividad: { type: "STRING" }
+                },
+                required: ["fase", "duracion", "actividad"]
+              }
+            }
           },
-          {
-            "titulo": "¿Por qué es crucial entender esto?",
-            "subtitulo": "El Desafío Real",
-            "categoria": "Gancho y Problemática",
-            "tipo": "hook",
-            "contenido": "• El cuello de botella tradicional en la industria.\\n• Impacto en rendimiento y escalabilidad.\\n• ¿Qué pasa si no lo implementamos correctamente?",
-            "notasOrador": "Plantear una anécdota o caso de fallo conocido. Dejar que 2 alumnos opinen antes de avanzar."
-          },
-          {
-            "titulo": "Fundamentos y Principios Clave",
-            "subtitulo": "Concepto Núcleo",
-            "categoria": "Teoría Esencial",
-            "tipo": "concepto_nucleo",
-            "contenido": "• Definición formal y premisa central.\\n• Propiedades fundamentales del modelo.\\n• Relación directa con el estándar de ingeniería.",
-            "notasOrador": "Desglosar cada punto en el pizarrón. Verificar con preguntas de control si quedó clara la definición."
-          },
-          {
-            "titulo": "Aplicación en la Industria Real",
-            "subtitulo": "Caso de Uso",
-            "categoria": "Ingeniería Aplicada",
-            "tipo": "caso_aplicado",
-            "contenido": "• Implementación en escenarios de alta demanda.\\n• Comparativa de eficiencia: Antes vs Después.\\n• Buenas prácticas adoptadas en proyectos reales.",
-            "notasOrador": "Detallar el caso de estudio. Invitar a relacionarlo con tecnologías que ellos ya utilicen."
-          },
-          {
-            "titulo": "Flujo de Funcionamiento / Arquitectura",
-            "subtitulo": "Esquema Paso a Paso",
-            "categoria": "Estructura Visual",
-            "tipo": "esquema_proceso",
-            "contenido": "1. Inicialización y captura de parámetros.\\n2. Procesamiento y transformación de datos.\\n3. Validación, persistencia y entrega de resultados.",
-            "notasOrador": "Recorrer las fases secuencialmente señalando posibles cuellos de botella en cada etapa."
-          },
-          {
-            "titulo": "Desafío Grupal (5 Minutos)",
-            "subtitulo": "Manos a la Obra",
-            "categoria": "Dinámica Participativa",
-            "tipo": "desafio_aula",
-            "contenido": "• Problema: Optimizar el escenario expuesto.\\n• Discutan en parejas: ¿Qué decisión tomarían?\\n• Puesta en común rápida de 3 propuestas.",
-            "notasOrador": "Caminar por el aula escuchando las hipótesis de los grupos. Luego pedir a 2 voluntarios que compartan su solución."
-          },
-          {
-            "titulo": "Conclusiones y Takeaways",
-            "subtitulo": "Para Recordar Siempre",
-            "categoria": "Cierre Magistral",
-            "tipo": "takeaway",
-            "contenido": "• Regla de oro para el ejercicio profesional.\\n• El error más común a evitar en exámenes y proyectos.\\n• Próximo paso: Práctica de laboratorio en la siguiente clase.",
-            "notasOrador": "Cerrar con energía. Remarcar que este tema se evaluará en el trabajo práctico e incentivar a consultar dudas."
+          required: ["duracion", "objetivos", "estructura"]
+        },
+        slides: {
+          type: "ARRAY",
+          description: "Colección estricta de exactamente 7 diapositivas didácticas estructuradas",
+          items: {
+            type: "OBJECT",
+            properties: {
+              titulo: { type: "STRING", description: "Título breve y contundente de la diapositiva" },
+              subtitulo: { type: "STRING", description: "Subtítulo o contexto temático" },
+              categoria: { type: "STRING", description: "Momento pedagógico: Portada, Gancho y Problemática, Concepto Núcleo, etc." },
+              tipo: { 
+                type: "STRING", 
+                enum: ["portada", "hook", "concepto_nucleo", "caso_aplicado", "esquema_proceso", "desafio_aula", "takeaway"] 
+              },
+              contenido: { type: "STRING", description: "Texto formateado con viñetas (• punto 1\\n• punto 2) sintético" },
+              puntosClave: {
+                type: "ARRAY",
+                description: "Los 2 a 4 puntos clave desglosados (máximo 12 palabras cada uno)",
+                items: { type: "STRING" }
+              },
+              destacado: { type: "STRING", description: "Frase, pregunta de debate o takeaway resaltado" },
+              imagenKeyword: { type: "STRING", description: "2 o 3 palabras clave en inglés para la imagen (ej: tech server room, robotic arm)" },
+              notasOrador: { type: "STRING", description: "Guía docente en primera persona con indicaciones para el aula" }
+            },
+            required: ["titulo", "subtitulo", "categoria", "tipo", "contenido", "notasOrador"]
           }
-        ],
-        "promptsImagenes": [
-          "Modern minimalist engineering blueprint illustration of ${tema}, dark blue and tech accents, clean vector style, 4k",
-          "Visual comparison diagram of system architecture for ${tema}, corporate university style, high contrast",
-          "Concept art of collaborative engineering classroom in a technical university, vibrant modern atmosphere"
-        ]
-      }
-    `;
+        },
+        promptsImagenes: {
+          type: "ARRAY",
+          description: "3 prompts en inglés de alta calidad para generación de imágenes",
+          items: { type: "STRING" }
+        }
+      },
+      required: ["busqueda", "plan", "slides", "promptsImagenes"]
+    };
 
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${geminiApiKey}`;
     const payload = {
+      systemInstruction: {
+        parts: [{ text: systemInstruction }]
+      },
       contents: [{
-        parts: [{
-          text: promptSistema
-        }]
+        parts: [{ text: userPrompt }]
       }],
       generationConfig: {
         responseMimeType: "application/json",
-        temperature: 0.3
+        responseSchema: responseSchema,
+        temperature: 0.2
       }
     };
 
