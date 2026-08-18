@@ -8,7 +8,7 @@
 // CONFIGURACIÓN: URL de la Web App de Google Apps Script (Backend)
 // Podés hardcodear la URL aquí o establecerla dinámicamente en la consola con:
 // localStorage.setItem('utn_gas_api_url', 'https://script.google.com/macros/s/.../exec')
-const GAS_API_URL = "https://script.google.com/macros/s/AKfycbymSwBNaV2wQgII5Ol8Hp579FghfntkZ6YpVTGjdecVo5nfuaeZQVJ3a2uy3OUGKK5r/exec"
+const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwikcFYhvZ92DAi1YD_LQrjNC8lmekWpOAANNC3Xd-nrtXTEyvkBcIHqciRXbJU9wJj/exec"
 
 /**
  * Realiza llamadas HTTP POST al backend en Google Apps Script
