@@ -373,7 +373,7 @@ function exportarAGoogleSlides(token, materiaId, materiaNombre, temaNombre, dato
       }
     }
 
-    // 3. Generar el resto de las Diapositivas Didácticas
+    // 3. Generar el resto de las Diapositivas Didácticas (con Imágenes HD y Widgets Visuales v4.0)
     for (let i = 1; i < datosClase.slides.length; i++) {
       let slideData = datosClase.slides[i];
       let nuevaSlide = presentacion.appendSlide(SlidesApp.PredefinedLayout.TITLE_AND_BODY);
@@ -390,13 +390,46 @@ function exportarAGoogleSlides(token, materiaId, materiaNombre, temaNombre, dato
           .setFontSize(26)
           .setBold(true);
 
-        // Cuerpo de contenido
+        // Cuerpo de contenido ajustado
         let cuerpoShape = slideShapes[1];
         let textoContenido = slideData.contenido || '';
         cuerpoShape.getText().setText(textoContenido);
         cuerpoShape.getText().getTextStyle()
           .setForegroundColor('#1E293B')
-          .setFontSize(18);
+          .setFontSize(16);
+        cuerpoShape.setWidth(400); // Dar espacio para la columna de imagen/widget a la derecha
+      }
+
+      // Inserción de Imagen HD de Cátedra mediante UrlFetchApp
+      if (slideData.imagenKeyword) {
+        try {
+          const kwClean = encodeURIComponent(slideData.imagenKeyword.trim());
+          const imgUrl = "https://image.pollinations.ai/prompt/professional%20hd%20engineering%20photo%20" + kwClean + "?width=800&height=450&nologo=true&seed=" + (i + 100);
+          const responseImg = UrlFetchApp.fetch(imgUrl, { muteHttpExceptions: true });
+          if (responseImg.getResponseCode() === 200) {
+            const blob = responseImg.getBlob();
+            const imgShape = nuevaSlide.insertImage(blob);
+            imgShape.setLeft(435);
+            imgShape.setTop(115);
+            imgShape.setWidth(260);
+            imgShape.setHeight(180);
+          }
+        } catch (eImg) {
+          console.warn("No se pudo descargar la imagen para la slide " + i + ": " + eImg);
+        }
+      }
+
+      // Inserción de Widget Visual (Caja de Métrica KPI / Destacado)
+      if (slideData.visualWidget && slideData.visualWidget.valorDestacado) {
+        try {
+          let widgetBox = nuevaSlide.insertShape(SlidesApp.ShapeType.ROUNDED_RECTANGLE, 435, 305, 260, 60);
+          widgetBox.getFill().setSolidFill('#0055A6');
+          let txt = widgetBox.getText();
+          txt.setText("💡 " + slideData.visualWidget.valorDestacado + "\n" + (slideData.visualWidget.etiqueta || "DATO DESTACADO"));
+          txt.getTextStyle().setForegroundColor('#FFFFFF').setFontSize(12).setBold(true);
+        } catch (eWidget) {
+          console.warn("No se pudo agregar widget a slide " + i + ": " + eWidget);
+        }
       }
 
       // Notas de orador (machete pedagógico del profesor)
