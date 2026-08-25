@@ -9,8 +9,10 @@
 export default async function handler(req, res) {
   // Configuración de cabeceras CORS dinámicas y seguras
   const allowedOrigins = [
+    'https://utncontenidos.vercel.app',
     'https://utn-contenidos.vercel.app',
     'http://localhost:3000',
+    'http://localhost:5500',
     'http://127.0.0.1:5500'
   ];
   const origin = req.headers.origin;
