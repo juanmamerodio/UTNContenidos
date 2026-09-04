@@ -619,7 +619,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (slidesGrid && respuesta.slides) {
                     slidesGrid.innerHTML = respuesta.slides.map((slide, index) => {
                         let contentHTML = '';
-                        let categoriaBadge = slide.categoria ? `<span class="badge" style="background: rgba(69, 86, 86, 0.12); color: var(--utn-green-dark); font-size: 0.75rem; text-transform: uppercase; margin-bottom: 8px; display: inline-block;">${sanitizeHTML(slide.categoria)}</span>` : '';
+                        let categoriaBadge = slide.categoria ? `<span class="badge" style="background: rgba(6, 162, 138, 0.12); color: var(--utn-green-dark); font-size: 0.75rem; text-transform: uppercase; margin-bottom: 8px; display: inline-block;">${sanitizeHTML(slide.categoria)}</span>` : '';
 
                         if (slide.tipo === 'portada') {
                             contentHTML = `
@@ -746,10 +746,10 @@ document.addEventListener('DOMContentLoaded', () => {
             let slidesHTML = '';
             if (clase.slides) {
                 slidesHTML = clase.slides.map((s, i) => {
-                    let notasPDF = s.notasOrador ? `<p style="margin:6px 0 0;font-size:12px;color:#455656;font-style:italic;"><strong>Guía docente:</strong> ${sanitizeHTML(s.notasOrador)}</p>` : '';
+                    let notasPDF = s.notasOrador ? `<p style="margin:6px 0 0;font-size:12px;color:#035a4d;font-style:italic;"><strong>Guía docente:</strong> ${sanitizeHTML(s.notasOrador)}</p>` : '';
                     let categoriaPDF = s.categoria ? `<span style="font-size:11px;color:#666;text-transform:uppercase;">[${sanitizeHTML(s.categoria)}]</span> ` : '';
                     return `
-                        <div style="margin-bottom:16px; padding:12px; border-left:4px solid #455656; background:#f4f6f5;">
+                        <div style="margin-bottom:16px; padding:12px; border-left:4px solid #06a28a; background:#f0f8f6; border-radius: 4px;">
                             <strong style="color:#1e293b;font-size:14px;">Diap. ${i + 1}: ${categoriaPDF}${sanitizeHTML(s.titulo)}</strong>
                             <p style="margin:6px 0 0;font-size:13px;color:#334155;white-space:pre-line;">${sanitizeHTML(s.subtitulo || s.contenido || '')}</p>
                             ${notasPDF}
@@ -770,15 +770,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             pdfContent.innerHTML = `
-                <div style="text-align:center;border-bottom:3px solid #455656;padding-bottom:16px;margin-bottom:24px;">
-                    <h1 style="font-size:22px;color:#455656;margin:0;">UTN Facultad Regional Delta</h1>
-                    <h2 style="font-size:16px;color:#555;margin:4px 0 0;">Guía de Planificación Didáctica</h2>
-                    <p style="font-size:13px;color:#888;margin:4px 0 0;">${sanitizeHTML(materia)} &mdash; ${sanitizeHTML(tema)}</p>
+                <div style="text-align:center;border-bottom:3px solid #06a28a;padding-bottom:16px;margin-bottom:24px;">
+                    <img src="UTN.jpg" alt="UTN" style="width:52px;height:52px;border-radius:10px;object-fit:cover;margin-bottom:8px;display:inline-block;">
+                    <h1 style="font-size:22px;color:#06a28a;margin:0;">UTN Facultad Regional Delta</h1>
+                    <h2 style="font-size:16px;color:#035a4d;margin:4px 0 0;">Guía de Planificación Didáctica</h2>
+                    <p style="font-size:13px;color:#666;margin:4px 0 0;">${sanitizeHTML(materia)} &mdash; ${sanitizeHTML(tema)}</p>
                 </div>
 
-                <h3 style="color:#455656;">Plan de Clase (${sanitizeHTML(clase.plan ? clase.plan.duracion : '')})</h3>
+                <h3 style="color:#06a28a;">Plan de Clase (${sanitizeHTML(clase.plan ? clase.plan.duracion : '')})</h3>
                 <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:24px;">
-                    <thead><tr style="background:#455656;color:#fff;">
+                    <thead><tr style="background:#06a28a;color:#fff;">
                         <th style="padding:8px;text-align:left;">Momento</th>
                         <th style="padding:8px;text-align:left;">Duración</th>
                         <th style="padding:8px;text-align:left;">Actividad</th>
@@ -786,7 +787,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <tbody>${estructuraHTML}</tbody>
                 </table>
 
-                <h3 style="color:#455656;">Estructura de Diapositivas</h3>
+                <h3 style="color:#06a28a;">Estructura de Diapositivas</h3>
                 ${slidesHTML}
 
                 <p style="margin-top:32px;font-size:11px;color:#999;text-align:center;">
