@@ -5,7 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="theme-color" content="#455656">
+    <meta name="theme-color" content="#06a28a">
+
+    <!-- Favicon e Identidad Visual UTN -->
+    <link rel="icon" type="image/jpeg" href="UTN.jpg">
+    <link rel="apple-touch-icon" href="UTN.jpg">
 
     <!-- Metadatos Institucionales UTN FRD -->
     <title>UTN Contenidos | Creador Inteligente de Clases — Facultad Regional Delta</title>
@@ -34,7 +38,7 @@
 
 <body>
 
-    <!-- Ambient Glow / Atmósfera Institucional Verde UTN (#455656) -->
+    <!-- Ambient Glow / Atmósfera Institucional Verde UTN (#06a28a) -->
     <div class="ambient-glow" aria-hidden="true">
         <div class="orb orb-1"></div>
         <div class="orb orb-2"></div>
@@ -47,14 +51,8 @@
     <header role="banner" id="main-header" class="glass-panel">
         <div class="header-container">
             <div class="brand-logo-container">
-                <!-- Icono de marca geométrico minimalista UTN -->
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="32" height="32" aria-hidden="true"
-                    class="brand-icon">
-                    <path d="M24 6 L38 18 L38 34 L24 42 L10 34 L10 18 Z" fill="none" stroke="currentColor"
-                        stroke-width="3.5" stroke-linejoin="round" />
-                    <path d="M24 14 L24 34 M14 24 L34 24" stroke="currentColor" stroke-width="3.5"
-                        stroke-linecap="round" />
-                </svg>
+                <!-- Logo Oficial UTN -->
+                <img src="UTN.jpg" alt="Logo Universidad Tecnológica Nacional" class="brand-logo-img">
                 <div class="brand-text-group">
                     <span class="brand-text">UTN Contenidos</span>
                     <span class="brand-subtext">Facultad Regional Delta</span>
@@ -97,7 +95,10 @@
         <section id="view-login" class="spa-view" aria-labelledby="login-title">
             <div class="login-wrapper glass-panel">
                 <div class="login-form-panel">
-                    <div style="text-align: center;">
+                    <div class="login-brand-header">
+                        <div class="login-logo-wrapper">
+                            <img src="UTN.jpg" alt="Logo Universidad Tecnológica Nacional" class="login-logo-img">
+                        </div>
                         <span class="login-header-badge">Campus Docente UTN FRD</span>
                     </div>
                     <h1 id="login-title">Ingreso Docente</h1>
@@ -393,8 +394,13 @@
     <footer role="contentinfo" id="main-footer" class="glass-panel">
         <div class="footer-container">
             <div class="footer-column">
-                <h3>Universidad Tecnológica Nacional</h3>
-                <p><strong>Facultad Regional Delta</strong></p>
+                <div class="footer-brand-title">
+                    <img src="UTN.jpg" alt="Logo Universidad Tecnológica Nacional" class="footer-logo-img">
+                    <div>
+                        <h3>Universidad Tecnológica Nacional</h3>
+                        <p class="footer-faculty-name">Facultad Regional Delta</p>
+                    </div>
+                </div>
                 <address>
                     San Martín 1171, B2804 Campana<br>
                     Provincia de Buenos Aires, Argentina<br>
