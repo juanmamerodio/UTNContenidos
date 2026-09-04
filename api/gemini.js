@@ -9,10 +9,8 @@
 export default async function handler(req, res) {
   // Configuración de cabeceras CORS dinámicas y seguras
   const allowedOrigins = [
-    'https://utncontenidos.vercel.app',
     'https://utn-contenidos.vercel.app',
     'http://localhost:3000',
-    'http://localhost:5500',
     'http://127.0.0.1:5500'
   ];
   const origin = req.headers.origin;
@@ -54,16 +52,15 @@ Tu misión es estructurar una clase universitaria MEMORABLE, DINÁMICA y VISUALM
 1. PROHIBIDO crear diapositivas con bloques densos de texto. Las diapositivas son para proyectar, no para leer.
 2. Cada diapositiva de contenido debe tener MÁXIMO 3 o 4 puntos clave, ultra sintéticos y contundentes (máximo 12 palabras por punto).
 3. ESTRUCTURA DIDÁCTICA ESTRICTA DE EXACTAMENTE 7 DIAPOSITIVAS:
-   - Slide 1 (portada): Título impactante del tema, materia y mención a la Facultad Regional Delta. Usa layoutType: "hero-header".
-   - Slide 2 (hook): Problema real de la industria/ingeniería o pregunta provocadora. Usa layoutType: "full-quote" o "split-left-image".
-   - Slide 3 (concepto_nucleo): Fundamentos teóricos indispensables. Usa layoutType: "split-right-image".
-   - Slide 4 (caso_aplicado): Ejemplo tangible en la industria/tecnología. Usa layoutType: "metric-callout" e incluye un widget KPI impactante.
-   - Slide 5 (esquema_proceso): Paso a paso, arquitectura o metodología. Usa layoutType: "timeline-steps" e incluye pasos numéricos en visualWidget.
-   - Slide 6 (desafio_aula): Actividad o reto interactivo para debate en clase (5 a 10 min). Usa layoutType: "split-left-image" con widget callout.
-   - Slide 7 (takeaway): Las 2 conclusiones maestras. Usa layoutType: "split-right-image" con badge_list.
+   - Slide 1 (portada): Título impactante del tema, materia y mención a la Facultad Regional Delta.
+   - Slide 2 (hook): Problema real de la industria/ingeniería o pregunta provocadora para abrir el debate inicial.
+   - Slide 3 (concepto_nucleo): Fundamentos teóricos indispensables explicados con claridad meridiana.
+   - Slide 4 (caso_aplicado): Ejemplo tangible en el mundo real, industria, infraestructura o sistemas tecnológicos.
+   - Slide 5 (esquema_proceso): Paso a paso, arquitectura o metodología lógica/gráfica.
+   - Slide 6 (desafio_aula): Actividad, pregunta disparadora o reto interactivo para debate en clase (5 a 10 min).
+   - Slide 7 (takeaway): Las 2 conclusiones maestras que el alumno se lleva grabadas al salir del aula.
 4. NOTAS DEL ORADOR: Redactadas en primera persona para el profesor (ej: "Explicar a los alumnos que...", "Hacer énfasis en...").
-5. IMAGEN KEYWORD: Para cada slide, proporciona 2 o 3 palabras clave precisas en inglés representativas del concepto para búsqueda visual de alta definición (ej: "industrial robotics arm", "database network server", "electrical power grid").
-6. MAQUETACIÓN Y WIDGETS VISUALES: Asigna a cada slide el layoutType adecuado y construye un visualWidget con datos sintéticos destacados (kpi, timeline, callout o badge_list).
+5. IMAGEN KEYWORD: Para cada slide, proporciona 2 a 3 palabras clave en inglés representativas del concepto para búsqueda de imagen libre (ej: "industrial robotics arm", "database network server", "electrical power grid").
 `;
 
     // Recorte inteligente del texto de cátedra para no saturar tokens (máx 15.000 caracteres / ~3000 palabras clave)
@@ -128,11 +125,6 @@ ${textoCatedraLimpio}
                 type: "STRING", 
                 enum: ["portada", "hook", "concepto_nucleo", "caso_aplicado", "esquema_proceso", "desafio_aula", "takeaway"] 
               },
-              layoutType: {
-                type: "STRING",
-                enum: ["hero-header", "split-left-image", "split-right-image", "timeline-steps", "metric-callout", "full-quote"],
-                description: "Maquetación visual recomendada para el renderizado"
-              },
               contenido: { type: "STRING", description: "Texto formateado con viñetas (• punto 1\\n• punto 2) sintético" },
               puntosClave: {
                 type: "ARRAY",
@@ -141,20 +133,9 @@ ${textoCatedraLimpio}
               },
               destacado: { type: "STRING", description: "Frase, pregunta de debate o takeaway resaltado" },
               imagenKeyword: { type: "STRING", description: "2 o 3 palabras clave en inglés para la imagen (ej: tech server room, robotic arm)" },
-              notasOrador: { type: "STRING", description: "Guía docente en primera persona con indicaciones para el aula" },
-              visualWidget: {
-                type: "OBJECT",
-                description: "Widget visual de interfaz para destacar datos o procesos",
-                properties: {
-                  widgetType: { type: "STRING", enum: ["kpi", "timeline", "callout", "badge_list"] },
-                  valorDestacado: { type: "STRING", description: "Métrica o valor clave (ej: 99.9%, 5 MIN, #1)" },
-                  etiqueta: { type: "STRING", description: "Descripción del widget o métrica" },
-                  pasos: { type: "ARRAY", items: { type: "STRING" }, description: "Pasos numerados si es de tipo timeline" },
-                  itemsBadge: { type: "ARRAY", items: { type: "STRING" }, description: "Etiquetas rápidas si es de tipo badge_list" }
-                }
-              }
+              notasOrador: { type: "STRING", description: "Guía docente en primera persona con indicaciones para el aula" }
             },
-            required: ["titulo", "subtitulo", "categoria", "tipo", "contenido", "notasOrador", "imagenKeyword"]
+            required: ["titulo", "subtitulo", "categoria", "tipo", "contenido", "notasOrador"]
           }
         },
         promptsImagenes: {
