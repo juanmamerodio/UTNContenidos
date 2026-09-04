@@ -169,6 +169,7 @@ erDiagram
 | ✅ Completado | T5 | **CacheService RAG** en `obtenerContextoTema()` (lectura instantánea a ~100ms de Google Docs) | 1h | S2 |
 | ✅ Completado | T10 | **Reclamar/Gestionar Materias** (Backend `obtenerOfertaAcademica` + `reclamarMaterias`, Modal UI y sincronización de Dashboard) | 2h | S2 |
 | ✅ Completado | T6 | **Rediseño de Presentaciones & Prompt de Élite IA v3.0** (7 slides didácticos, notas de orador nativas en Google Slides/PDF y branding UTN) | 2h | S2 |
+| ✅ Completado | T11 | **Rediseño Premium Verde UTN (#455656) & UI Multi-Dispositivo** (Mobile-first, stepper didáctico, tablets y accesibilidad 50+) | 3h | S3 |
 | 🔲 Pendiente | T7 | **Versionar GAS con clasp** — `gas/app.gs` en el repo | 1h | S3 |
 | 🔲 Pendiente | T8 | **Migrar Auth a Supabase** — login ~200ms permanente | 1 semana | S4 |
 | 🔲 Pendiente | T9 | **Migrar DB (Sheets) a Supabase PostgreSQL** | 2 semanas | S4 |
@@ -190,4 +191,5 @@ erDiagram
 | 2026-08-14 | **Fix UI & Backend:** Se garantizó que siempre aparezca el botón "Preparar Clase" aunque una materia no tenga temas aún cargados en `Temario` (tema comodín automático). |
 | 2026-08-14 | **Arquitectura Híbrida Gemini (Fix HTTP 405):** Se incorporó `generarClaseConGeminiGAS` en `app.js` y fallback transparente en `script.js` para permitir la generación tanto en Vercel como en entornos locales/GAS directo. |
 | 2026-08-18 | **Optimización Extrema de Tokens & Motor Visual Slides v3.5:** Implementación de `systemInstruction` + `responseSchema` (Structured Outputs) en `api/gemini.js` y `app.js` (>60% ahorro de tokens y garantía estricta de 7 slides). Rediseño total de `exportarAGoogleSlides` en `app.js` con maquetación de tarjetas (Cards), tipografía `Montserrat`/`Open Sans`, paleta institucional UTN FRD e inserción automática de imágenes HD. |
+| 2026-09-01 | **Rediseño Premium Institucional Verde Opaco UTN (`#455656`) & Engine Multi-Dispositivo (T11):** Transición cromática de alta jerarquía a la paleta oficial Verde UTN (`#455656`), `style.css` 100% responsive con breakpoints para smartphones (<640px), notebooks/tablets (641px-1024px) y pantallas grandes (>1024px). Incorporación de stepper didáctico de 3 pasos para docentes 50+, tablas adaptativas de timeline pedagógica, botones táctiles accesibles (≥48px) y PDF institucional estilizado. |
 
