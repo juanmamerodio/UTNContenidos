@@ -3,19 +3,20 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="theme-color" content="#455656">
 
     <!-- Metadatos Institucionales UTN FRD -->
-    <title>UTN Contenidos | Creador Inteligente de Clases - Facultad Regional Delta</title>
+    <title>UTN Contenidos | Creador Inteligente de Clases — Facultad Regional Delta</title>
     <meta name="description"
-        content="Herramienta de asistencia didáctica para la planificación de clases presenciales de los docentes de la UTN Facultad Regional Delta.">
+        content="Plataforma institucional de asistencia didáctica e inteligencia artificial pedagógica para docentes de la UTN Facultad Regional Delta.">
     <meta name="author" content="UTN FRD">
     <meta name="robots" content="noindex, nofollow">
 
     <!-- Open Graph -->
-    <meta property="og:title" content="Asistente de Contenidos UTN">
-    <meta property="og:description" content="Planificación didáctica e ideas para tus clases con un solo clic.">
+    <meta property="og:title" content="UTN Contenidos — Asistente Docente IA">
+    <meta property="og:description" content="Planificación didáctica y diapositivas de clase universitarias en un solo clic.">
     <meta property="og:type" content="website">
     <meta property="og:locale" content="es_AR">
 
@@ -24,7 +25,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
 
     <!-- Generador de PDFs en el cliente (Costo $0) -->
@@ -33,7 +34,7 @@
 
 <body>
 
-    <!-- Ambient 3D Volumetric Glow Orbs (After Effects Style) -->
+    <!-- Ambient Glow / Atmósfera Institucional Verde UTN (#455656) -->
     <div class="ambient-glow" aria-hidden="true">
         <div class="orb orb-1"></div>
         <div class="orb orb-2"></div>
@@ -41,20 +42,23 @@
     </div>
 
     <!-- ==========================================
-         HEADER FLOTANTE (ESTILO PREMIUM MINIMALISTA)
+         HEADER FLOTANTE INSTITUCIONAL
          ========================================== -->
     <header role="banner" id="main-header" class="glass-panel">
         <div class="header-container">
             <div class="brand-logo-container">
-                <!-- Icono de marca geométrico minimalista -->
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="30" height="30" aria-hidden="true"
+                <!-- Icono de marca geométrico minimalista UTN -->
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="32" height="32" aria-hidden="true"
                     class="brand-icon">
                     <path d="M24 6 L38 18 L38 34 L24 42 L10 34 L10 18 Z" fill="none" stroke="currentColor"
                         stroke-width="3.5" stroke-linejoin="round" />
                     <path d="M24 14 L24 34 M14 24 L34 24" stroke="currentColor" stroke-width="3.5"
                         stroke-linecap="round" />
                 </svg>
-                <span class="brand-text">UTN Contenidos</span>
+                <div class="brand-text-group">
+                    <span class="brand-text">UTN Contenidos</span>
+                    <span class="brand-subtext">Facultad Regional Delta</span>
+                </div>
             </div>
 
             <!-- Navegación Principal (Se muestra al ingresar) -->
@@ -62,11 +66,10 @@
                 <ul>
                     <li><a href="#dashboard" class="active">Mis Materias</a></li>
                     <li><a href="#historial">Historial</a></li>
-                    <li><a href="#recursos">Recursos</a></li>
                 </ul>
             </nav>
 
-            <!-- Menú de Usuario -->
+            <!-- Menú de Usuario Docente -->
             <div class="user-profile" id="user-menu" hidden>
                 <button aria-haspopup="true" aria-expanded="false" aria-controls="user-dropdown">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
@@ -77,8 +80,6 @@
                     <span id="user-name-display">Profesor</span>
                 </button>
                 <ul id="user-dropdown" role="menu" hidden>
-                    <li role="menuitem"><a href="#perfil">Mi Perfil</a></li>
-                    <li role="menuitem"><a href="#configuracion">Preferencias</a></li>
                     <li role="menuitem"><button id="btn-logout">Cerrar Sesión</button></li>
                 </ul>
             </div>
@@ -86,40 +87,40 @@
     </header>
 
     <!-- ==========================================
-         CONTENEDOR PRINCIPAL
+         CONTENEDOR PRINCIPAL MULTI-DISPOSITIVO
          ========================================== -->
     <main role="main" id="app-root">
 
         <!-- 
-          FASE 1: VISTA DE INGRESO (LOGIN MINIMALISTA)
+          FASE 1: VISTA DE INGRESO (LOGIN MINIMALISTA & ACCESIBLE)
         -->
         <section id="view-login" class="spa-view" aria-labelledby="login-title">
             <div class="login-wrapper glass-panel">
                 <div class="login-form-panel">
-                    <h1 id="login-title">UTN Contenidos</h1>
-                    <p class="login-subtitle">Planificación didáctica inteligente para equipos docentes de la Regional
-                        Delta.</p>
+                    <div style="text-align: center;">
+                        <span class="login-header-badge">Campus Docente UTN FRD</span>
+                    </div>
+                    <h1 id="login-title">Ingreso Docente</h1>
+                    <p class="login-subtitle">Planificación didáctica y creación de clases universitarias con IA.</p>
 
                     <form id="form-login" action="#" method="POST" novalidate>
                         <div class="form-group">
                             <label for="input-legajo">Legajo Docente</label>
                             <input type="text" id="input-legajo" name="legajo" required aria-required="true"
-                                placeholder="Ej: 12345" pattern="[0-9]+">
-                            <span class="error-message" id="error-legajo" aria-live="polite" hidden>El legajo es
-                                necesario y debe ser numérico.</span>
+                                placeholder="Ej: 12345" inputmode="numeric" pattern="[0-9]+">
+                            <span class="error-message" id="error-legajo" aria-live="polite" hidden>El legajo es necesario y debe ser numérico.</span>
                         </div>
 
                         <div class="form-group">
                             <label for="input-dni">Número de DNI</label>
                             <input type="password" id="input-dni" name="dni" required aria-required="true"
-                                placeholder="Ingresá tu DNI sin puntos">
-                            <span class="error-message" id="error-dni" aria-live="polite" hidden>El DNI es necesario
-                                para ingresar.</span>
+                                placeholder="Ingresá tu DNI sin puntos" inputmode="numeric">
+                            <span class="error-message" id="error-dni" aria-live="polite" hidden>El DNI es necesario para validar tu identidad.</span>
                         </div>
 
                         <div class="form-actions">
                             <button type="submit" id="btn-login-submit">
-                                <span>Ingresar</span>
+                                <span>Ingresar al Asistente</span>
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
                                     fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
                                     stroke-linejoin="round">
@@ -130,7 +131,7 @@
                         </div>
 
                         <div class="form-help">
-                            <a href="#soporte-tecnico">Ayuda técnica</a>
+                            <a href="#soporte-tecnico">¿Necesitás ayuda técnica con tu usuario?</a>
                         </div>
                     </form>
                 </div>
@@ -141,40 +142,42 @@
           FASE 2: VISTA DE MATERIAS (DASHBOARD)
         -->
         <section id="view-dashboard" class="spa-view" aria-labelledby="dashboard-title" hidden>
+            
+            <!-- Stepper Didáctico / Guía Paso a Paso -->
+            <div class="educational-guide-steps" aria-label="Progreso didáctico">
+                <div class="guide-step active">
+                    <span class="step-number">1</span>
+                    <span>Elegí tu Materia y Tema</span>
+                </div>
+                <span class="step-divider" aria-hidden="true">→</span>
+                <div class="guide-step">
+                    <span class="step-number">2</span>
+                    <span>Revisá el Plan Pedagógico</span>
+                </div>
+                <span class="step-divider" aria-hidden="true">→</span>
+                <div class="guide-step">
+                    <span class="step-number">3</span>
+                    <span>Exportá a Slides / PDF</span>
+                </div>
+            </div>
+
             <header class="view-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;">
                 <div>
                     <h1 id="dashboard-title">¿Qué clase preparamos hoy?</h1>
-                    <p>Elegí un tema de tu materia para armar tus diapositivas y guías pedagógicas al instante.</p>
+                    <p>Seleccioná un tema de tus cátedras para estructurar diapositivas, momentos de clase y dinámicas de aula.</p>
                 </div>
-                <button id="btn-open-claim-modal" class="btn-secondary" style="font-size: 0.95rem; padding: 12px 20px;">
+                <button id="btn-open-claim-modal" class="btn-secondary">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="10"></circle>
                         <line x1="12" y1="8" x2="12" y2="16"></line>
                         <line x1="8" y1="12" x2="16" y2="12"></line>
                     </svg>
-                    <span>Reclamar / Gestionar Materias</span>
+                    <span>Gestionar / Reclamar Materias</span>
                 </button>
             </header>
 
             <div class="dashboard-grid">
-                <!-- Tarjetas de materias de demostración (se reemplazan dinámicamente) -->
-                <article class="subject-card">
-                    <div class="subject-header">
-                        <span class="badge">1er Año</span>
-                        <h2>Análisis Matemático I</h2>
-                    </div>
-                    <div class="subject-body">
-                        <p>Conceptos clave sobre el cálculo de una sola variable.</p>
-                        <h3>Temas del programa:</h3>
-                        <ul class="topic-list">
-                            <li>
-                                <span>Límites y Continuidad</span>
-                                <button class="btn-select-topic" data-materia="Análisis Matemático I"
-                                    data-tema="Límites y Continuidad" data-link="">Preparar Clase</button>
-                            </li>
-                        </ul>
-                    </div>
-                </article>
+                <!-- Se llena dinámicamente desde script.js -->
             </div>
         </section>
 
@@ -184,7 +187,7 @@
         <section id="view-historial" class="spa-view" aria-labelledby="historial-title" hidden>
             <header class="view-header">
                 <h1 id="historial-title">Historial de Clases</h1>
-                <p>Acá podés ver y acceder a todas las presentaciones que generaste previamente.</p>
+                <p>Accedé a todas las presentaciones y guías didácticas que generaste previamente.</p>
             </header>
 
             <div class="historial-grid" id="historial-grid">
@@ -200,6 +203,24 @@
         -->
         <section id="view-generator" class="spa-view" aria-labelledby="generator-title" hidden>
 
+            <!-- Stepper Didáctico Activo en Fase 2 -->
+            <div class="educational-guide-steps" aria-label="Progreso didáctico">
+                <div class="guide-step">
+                    <span class="step-number">✓</span>
+                    <span>Materia y Tema Seleccionados</span>
+                </div>
+                <span class="step-divider" aria-hidden="true">→</span>
+                <div class="guide-step active">
+                    <span class="step-number">2</span>
+                    <span>Estructura de Clase Lista</span>
+                </div>
+                <span class="step-divider" aria-hidden="true">→</span>
+                <div class="guide-step">
+                    <span class="step-number">3</span>
+                    <span>Exportación</span>
+                </div>
+            </div>
+
             <!-- Ruta de navegación simple -->
             <nav aria-label="Ruta de navegación" class="breadcrumb-nav">
                 <ol>
@@ -211,17 +232,10 @@
 
             <header class="view-header">
                 <h1 id="generator-title">Tu material de clase está listo</h1>
-                <p>A continuación tenés las guías didácticas e ideas visuales creadas especialmente para tu aula.</p>
+                <p>Revisá a continuación la guía pedagógica completa y las diapositivas elaboradas según los contenidos oficiales de la UTN.</p>
 
                 <div class="action-toolbar">
-                    <button id="btn-present-fullscreen" class="btn-primary" style="background: linear-gradient(135deg, #007AFF, #5856D6); box-shadow: 0 4px 14px rgba(0, 122, 255, 0.35);">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                        </svg>
-                        Presentar Slides (Pantalla Completa)
-                    </button>
-                    <button id="btn-export-slides" class="btn-secondary">
+                    <button id="btn-export-slides" class="btn-primary">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M2 3h20" />
@@ -237,7 +251,7 @@
                             <polyline points="7 10 12 15 17 10" />
                             <line x1="12" y1="15" x2="12" y2="3" />
                         </svg>
-                        Descargar Guía (PDF)
+                        Descargar Guía Docente (PDF)
                     </button>
                 </div>
             </header>
@@ -247,8 +261,7 @@
                 <!-- SECCIÓN A: Ideas de Búsqueda -->
                 <section class="content-section" aria-labelledby="title-section-a">
                     <h2 id="title-section-a">A. Enfoques sugeridos para abordar el tema</h2>
-                    <p class="section-desc">Ideas y orientaciones didácticas de apoyo alineadas con los contenidos
-                        universitarios.</p>
+                    <p class="section-desc">Orientaciones pedagógicas de apoyo alineadas con los contenidos universitarios y su aplicación profesional.</p>
                     <div class="code-blocks">
                         <!-- Se llena dinámicamente -->
                     </div>
@@ -283,9 +296,8 @@
 
                 <!-- SECCIÓN C: Contenido de Diapositivas -->
                 <section class="content-section" aria-labelledby="title-section-c">
-                    <h2 id="title-section-c">C. Estructura de diapositivas sugerida</h2>
-                    <p class="section-desc">Textos pensados para facilitar la lectura y comprensión visual de los
-                        alumnos.</p>
+                    <h2 id="title-section-c">C. Estructura de diapositivas sugerida (7 Momentos Didácticos)</h2>
+                    <p class="section-desc">Textos sintéticos y directos diseñados para facilitar la comprensión visual de los estudiantes.</p>
 
                     <div class="slides-grid">
                         <!-- Se llena dinámicamente -->
@@ -294,9 +306,8 @@
 
                 <!-- SECCIÓN D: Ideas para Ilustraciones o Gráficos -->
                 <section class="content-section" aria-labelledby="title-section-d">
-                    <h2 id="title-section-d">D. Ideas para imágenes de apoyo</h2>
-                    <p class="section-desc">Sugerencias visuales y descripciones útiles para enriquecer tus diapositivas
-                        o tu pizarra.</p>
+                    <h2 id="title-section-d">D. Ideas para esquemas e ilustraciones</h2>
+                    <p class="section-desc">Sugerencias visuales y descripciones para enriquecer tus diapositivas o tu explicación en pizarra.</p>
 
                     <div class="prompt-list">
                         <!-- Se llena dinámicamente -->
@@ -309,7 +320,7 @@
     </main>
 
     <!-- ==========================================
-         MODALES DE INTERACCIÓN (ESTILO iOS 26)
+         MODALES DE INTERACCIÓN ACCESIBLES
          ========================================== -->
 
     <!-- Ventana de Espera (Carga) -->
@@ -317,7 +328,7 @@
         <div class="loader-content">
             <div class="spinner-wrapper">
                 <svg class="spinner" viewBox="0 0 50 50">
-                    <circle class="path" cx="25" cy="25" r="20" fill="none" stroke="#007AFF" stroke-width="4.5">
+                    <circle class="path" cx="25" cy="25" r="20" fill="none" stroke="currentColor" stroke-width="4.5">
                     </circle>
                 </svg>
                 <div class="pulse-sphere"></div>
@@ -330,36 +341,35 @@
     <!-- Ventana de Éxito -->
     <dialog id="modal-success" aria-labelledby="success-title">
         <div class="dialog-content">
-            <!-- Icono de Check estilo iOS en SVG -->
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" width="60" height="60"
+            <!-- Icono de Check estilo UTN en SVG -->
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" width="64" height="64"
                 style="margin: 0 auto; display: block;">
-                <circle cx="26" cy="26" r="25" fill="#34C759" />
-                <path d="M16 26 L23 33 L36 18" stroke="white" stroke-width="5" fill="none" stroke-linecap="round"
+                <circle cx="26" cy="26" r="25" fill="#2A733E" />
+                <path d="M16 26 L23 33 L36 18" stroke="white" stroke-width="4.5" fill="none" stroke-linecap="round"
                     stroke-linejoin="round" />
             </svg>
-            <h2 id="success-title">¡Todo Listo!</h2>
-            <p>Tu presentación ya se guardó correctamente en tu cuenta institucional.</p>
+            <h2 id="success-title">¡Presentación Lista!</h2>
+            <p>Tu archivo de Google Slides ya se guardó correctamente en tu cuenta institucional de Google Drive.</p>
             <div class="dialog-actions">
-                <a href="#" id="link-open-slides" target="_blank" rel="noopener noreferrer" class="btn-primary">Abrir
-                    presentación en Google Slides</a>
-                <button id="btn-close-success" class="btn-secondary">Volver</button>
+                <a href="#" id="link-open-slides" target="_blank" rel="noopener noreferrer" class="btn-primary">Abrir presentación en Google Slides</a>
+                <button id="btn-close-success" class="btn-secondary">Volver al Asistente</button>
             </div>
         </div>
     </dialog>
 
     <!-- Ventana de Reclamar / Gestionar Materias -->
-    <dialog id="modal-reclamar" aria-labelledby="reclamar-title" style="max-width: 700px; width: 90%;">
+    <dialog id="modal-reclamar" aria-labelledby="reclamar-title" style="max-width: 700px; width: 92%;">
         <div class="dialog-content" style="text-align: left;">
             <h2 id="reclamar-title" style="margin-bottom: 6px;">Plan de Estudios — Oferta Académica</h2>
-            <p style="margin-bottom: 20px;">Marque las materias que dicta para agregarlas a su perfil activo.</p>
+            <p style="margin-bottom: 20px;">Marcá las materias que dictás para agregarlas a tu perfil activo.</p>
             
-            <div id="catalog-container" style="max-height: 400px; overflow-y: auto; padding-right: 10px; margin-bottom: 20px;">
+            <div id="catalog-container" style="max-height: 420px; overflow-y: auto; padding-right: 10px; margin-bottom: 20px;">
                 <!-- Se llena dinámicamente -->
             </div>
 
-            <div class="dialog-actions" style="justify-content: flex-end; gap: 10px;">
-                <button id="btn-reclamar-confirm" class="btn-primary">Guardar en Mi Perfil</button>
+            <div class="dialog-actions" style="flex-direction: row; justify-content: flex-end; gap: 10px; flex-wrap: wrap;">
                 <button id="btn-reclamar-cancel" class="btn-secondary">Cancelar</button>
+                <button id="btn-reclamar-confirm" class="btn-primary">Guardar en Mi Perfil</button>
             </div>
         </div>
     </dialog>
@@ -368,68 +378,17 @@
     <dialog id="modal-contexto" aria-labelledby="contexto-title">
         <div class="dialog-content">
             <h2 id="contexto-title">Instrucciones de clase</h2>
-            <p>Instrucciones especiales para la IA (Ej: Enfocar en práctica, nivel inicial)...</p>
-            <textarea id="textarea-contexto" placeholder="Escribí aquí tus indicaciones..."></textarea>
+            <p>Indicaciones especiales para personalizar la clase (Ej: Enfoque práctico de laboratorio, nivel inicial, ejercicio grupal)...</p>
+            <textarea id="textarea-contexto" placeholder="Escribí aquí tus indicaciones docentes opcionales..."></textarea>
             <div class="dialog-actions">
-                <button id="btn-contexto-confirm" class="btn-primary">Confirmar y Generar</button>
+                <button id="btn-contexto-confirm" class="btn-primary">Confirmar y Generar Clase</button>
                 <button id="btn-contexto-cancel" class="btn-secondary">Volver</button>
             </div>
         </div>
     </dialog>
 
-    <!-- Ventana / Reproductor de Diapositivas a Pantalla Completa (Web Deck Presenter) -->
-    <dialog id="modal-slides-player" style="padding: 0; border: none; background: #0b1329; color: #fff; width: 100vw; height: 100vh; max-width: 100vw; max-height: 100vh;">
-        <div class="slides-player-container" style="display: flex; flex-direction: column; width: 100%; height: 100%; position: relative;">
-            <!-- Barra Superior de Herramientas de Presentación -->
-            <div class="player-header" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 24px; background: rgba(10, 20, 45, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.1); z-index: 10;">
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <span class="player-badge" style="background: rgba(0, 122, 255, 0.2); color: #60a5fa; border: 1px solid rgba(96,165,250,0.3); padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">UTN FRD PRESENTACIÓN</span>
-                    <h3 id="player-title" style="margin: 0; font-size: 1rem; color: #e2e8f0; font-weight: 600;">Título de la Diapositiva</h3>
-                </div>
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <span id="player-counter" style="font-size: 0.9rem; color: #94a3b8; font-weight: 600;">Slide 1 / 7</span>
-                    <button id="btn-toggle-notes" class="btn-secondary" style="padding: 6px 14px; font-size: 0.85rem; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2);">
-                        🎙️ Guía Docente
-                    </button>
-                    <button id="btn-close-player" class="btn-secondary" style="padding: 6px 14px; font-size: 0.85rem; background: rgba(239,68,68,0.2); color: #f87171; border: 1px solid rgba(239,68,68,0.3);">
-                        ✕ Salir
-                    </button>
-                </div>
-            </div>
-
-            <!-- Cuerpo del Visor de Slide -->
-            <div class="player-body" style="flex: 1; display: flex; overflow: hidden; position: relative;">
-                <!-- Escenario Principal de Diapositiva -->
-                <div id="player-slide-stage" style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px; overflow-y: auto;">
-                    <!-- Se renderiza dinámicamente el layout activo -->
-                </div>
-
-                <!-- Panel Lateral Desplegable: Notas de Orador / Guía de Aula -->
-                <aside id="player-notes-panel" style="width: 340px; background: rgba(15, 23, 42, 0.95); border-left: 1px solid rgba(255,255,255,0.1); padding: 24px; display: none; flex-direction: column; overflow-y: auto;">
-                    <h4 style="margin: 0 0 12px 0; color: #60a5fa; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">🎙️ GUÍA DOCENTE DE AULA</h4>
-                    <p id="player-notes-text" style="font-size: 0.95rem; line-height: 1.6; color: #cbd5e1; font-style: italic; white-space: pre-wrap; margin: 0;"></p>
-                </aside>
-            </div>
-
-            <!-- Controles Flotantes Inferiores -->
-            <div class="player-controls" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; background: rgba(10, 20, 45, 0.85); border-top: 1px solid rgba(255,255,255,0.1); z-index: 10;">
-                <div style="font-size: 0.8rem; color: #64748b;">
-                    Usa las flechas <kbd style="background: rgba(255,255,255,0.15); padding: 2px 6px; border-radius: 4px;">←</kbd> <kbd style="background: rgba(255,255,255,0.15); padding: 2px 6px; border-radius: 4px;">→</kbd> o las teclas para navegar.
-                </div>
-                <div style="display: flex; gap: 12px;">
-                    <button id="btn-player-prev" class="btn-secondary" style="padding: 8px 20px; background: rgba(255,255,255,0.15); color: #fff;">
-                        ← Anterior
-                    </button>
-                    <button id="btn-player-next" class="btn-primary" style="padding: 8px 24px; background: linear-gradient(135deg, #007AFF, #5856D6);">
-                        Siguiente →
-                    </button>
-                </div>
-            </div>
-        </div>
-    </dialog>
-
     <!-- ==========================================
-         FOOTER INSTITUCIONAL
+         FOOTER INSTITUCIONAL UTN FRD
          ========================================== -->
     <footer role="contentinfo" id="main-footer" class="glass-panel">
         <div class="footer-container">
@@ -444,17 +403,16 @@
             </div>
 
             <div class="footer-column">
-                <h3>Enlaces Útiles</h3>
+                <h3>Enlaces Institucionales</h3>
                 <ul>
-                    <li><a href="https://www.frd.utn.edu.ar/" target="_blank" rel="noopener">Sitio Web Oficial FRD</a>
-                    </li>
+                    <li><a href="https://www.frd.utn.edu.ar/" target="_blank" rel="noopener">Sitio Web Oficial FRD</a></li>
                     <li><a href="https://sysacad.frd.utn.edu.ar/" target="_blank" rel="noopener">Sysacad</a></li>
                     <li><a href="https://cv.frd.utn.edu.ar/" target="_blank" rel="noopener">Campus Virtual</a></li>
                 </ul>
             </div>
 
             <div class="footer-column">
-                <h3>Soporte Técnico</h3>
+                <h3>Soporte Técnico Docente</h3>
                 <p>¿Tenés alguna consulta sobre la herramienta?</p>
                 <a href="mailto:sistemas@frd.utn.edu.ar">sistemas@frd.utn.edu.ar</a>
             </div>
