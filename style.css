@@ -19,7 +19,7 @@
     --utn-green-gradient: linear-gradient(135deg, #455656 0%, #2A3636 100%);
     --utn-green-gradient-subtle: linear-gradient(135deg, rgba(69, 86, 86, 0.1) 0%, rgba(42, 54, 54, 0.04) 100%);
     --utn-accent: #235858;
-    --utn-accent-light: #3D7A7A;
+    --utn-accent-light: #06a28a;
 
     /* --- Fondos & Superficies --- */
     --bg-base: #F3F5F4;
@@ -69,7 +69,9 @@
 }
 
 /* --- RESET & ACCESIBILIDAD --- */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
@@ -143,21 +145,45 @@ body {
 }
 
 @keyframes float-orb-1 {
-    0% { transform: translate(0, 0) scale(1); }
-    50% { transform: translate(6vw, 5vh) scale(1.06); }
-    100% { transform: translate(-3vw, -6vh) scale(0.96); }
+    0% {
+        transform: translate(0, 0) scale(1);
+    }
+
+    50% {
+        transform: translate(6vw, 5vh) scale(1.06);
+    }
+
+    100% {
+        transform: translate(-3vw, -6vh) scale(0.96);
+    }
 }
 
 @keyframes float-orb-2 {
-    0% { transform: translate(0, 0) scale(1); }
-    50% { transform: translate(-5vw, -8vh) scale(0.92); }
-    100% { transform: translate(7vw, 5vh) scale(1.04); }
+    0% {
+        transform: translate(0, 0) scale(1);
+    }
+
+    50% {
+        transform: translate(-5vw, -8vh) scale(0.92);
+    }
+
+    100% {
+        transform: translate(7vw, 5vh) scale(1.04);
+    }
 }
 
 @keyframes float-orb-3 {
-    0% { transform: translate(0, 0) scale(0.95); }
-    50% { transform: translate(3vw, -4vh) scale(1.08); }
-    100% { transform: translate(-6vw, 7vh) scale(1); }
+    0% {
+        transform: translate(0, 0) scale(0.95);
+    }
+
+    50% {
+        transform: translate(3vw, -4vh) scale(1.08);
+    }
+
+    100% {
+        transform: translate(-6vw, 7vh) scale(1);
+    }
 }
 
 a {
@@ -349,8 +375,15 @@ button {
 }
 
 @keyframes scaleIn {
-    from { opacity: 0; transform: scale(0.95) translateY(-8px); }
-    to { opacity: 1; transform: scale(1) translateY(0); }
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
 }
 
 #user-dropdown li {
@@ -403,8 +436,15 @@ button {
 }
 
 @keyframes zoomEaseIn {
-    from { opacity: 0; transform: translateY(16px) scale(0.98); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
+    from {
+        opacity: 0;
+        transform: translateY(16px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 /* --- INDICADOR PEDAGÓGICO DE FLUJO (STEPPER) --- */
@@ -699,7 +739,7 @@ button {
     flex-direction: column;
 }
 
-.subject-body > p {
+.subject-body>p {
     color: var(--text-secondary);
     font-size: 0.9rem;
     margin-bottom: 1.5rem;
@@ -1224,18 +1264,38 @@ dialog::backdrop {
 }
 
 @keyframes corePulse {
-    from { transform: translate(-50%, -50%) scale(0.8); opacity: 0.5; }
-    to { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+    from {
+        transform: translate(-50%, -50%) scale(0.8);
+        opacity: 0.5;
+    }
+
+    to {
+        transform: translate(-50%, -50%) scale(1.2);
+        opacity: 1;
+    }
 }
 
 @keyframes spin {
-    100% { transform: rotate(360deg); }
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 @keyframes dash {
-    0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; }
-    50% { stroke-dasharray: 90, 150; stroke-dashoffset: -35; }
-    100% { stroke-dasharray: 90, 150; stroke-dashoffset: -124; }
+    0% {
+        stroke-dasharray: 1, 150;
+        stroke-dashoffset: 0;
+    }
+
+    50% {
+        stroke-dasharray: 90, 150;
+        stroke-dashoffset: -35;
+    }
+
+    100% {
+        stroke-dasharray: 90, 150;
+        stroke-dashoffset: -124;
+    }
 }
 
 .dialog-actions {
@@ -1346,7 +1406,7 @@ dialog::backdrop {
     opacity: 0;
     transform: translateY(15px) scale(0.97);
     transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-                transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .toast.toast-visible {
@@ -1359,10 +1419,21 @@ dialog::backdrop {
     transform: translateY(8px) scale(0.97);
 }
 
-.toast-success { border-left: 4px solid var(--success); }
-.toast-error { border-left: 4px solid var(--error); }
-.toast-warning { border-left: 4px solid var(--warning); }
-.toast-info { border-left: 4px solid var(--utn-green-light); }
+.toast-success {
+    border-left: 4px solid var(--success);
+}
+
+.toast-error {
+    border-left: 4px solid var(--error);
+}
+
+.toast-warning {
+    border-left: 4px solid var(--warning);
+}
+
+.toast-info {
+    border-left: 4px solid var(--utn-green-light);
+}
 
 .toast-icon {
     flex-shrink: 0;
@@ -1370,10 +1441,21 @@ dialog::backdrop {
     align-items: center;
 }
 
-.toast-success .toast-icon { color: #4ADE80; }
-.toast-error .toast-icon { color: #F87171; }
-.toast-warning .toast-icon { color: #FBBF24; }
-.toast-info .toast-icon { color: #94A3B8; }
+.toast-success .toast-icon {
+    color: #4ADE80;
+}
+
+.toast-error .toast-icon {
+    color: #F87171;
+}
+
+.toast-warning .toast-icon {
+    color: #FBBF24;
+}
+
+.toast-info .toast-icon {
+    color: #94A3B8;
+}
 
 .toast-message {
     flex-grow: 1;
@@ -1533,7 +1615,10 @@ dialog::backdrop {
     }
 
     /* Tabla de clase responsive estilo lista en mobile */
-    .table-plan, .table-plan tbody, .table-plan tr, .table-plan td {
+    .table-plan,
+    .table-plan tbody,
+    .table-plan tr,
+    .table-plan td {
         display: block;
         width: 100%;
     }
