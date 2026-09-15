@@ -7,10 +7,6 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="theme-color" content="#06a28a">
 
-    <!-- Política de Seguridad de Contenido (CSP): mitiga XSS y fuga de datos -->
-    <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://image.pollinations.ai; connect-src 'self' https://script.google.com https://generativelanguage.googleapis.com; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'">
-
     <!-- Favicon e Identidad Visual UTN -->
     <link rel="icon" type="image/jpeg" href="UTN.jpg">
     <link rel="apple-touch-icon" href="UTN.jpg">
@@ -379,149 +375,15 @@
         </div>
     </dialog>
 
-    <!-- Ventana del Configurador de Clase (Personalización) -->
-    <dialog id="modal-contexto" aria-labelledby="contexto-title" style="max-width: 780px; width: 94%;">
-        <div class="dialog-content" style="text-align: left;">
-            <h2 id="contexto-title" style="margin-bottom: 6px;">⚙️ Personalizá tu clase</h2>
-            <p style="margin-bottom: 18px;">Todo es opcional: si no tocás nada, se genera con el formato predeterminado de la UTN.</p>
-
-            <div class="config-grid">
-                <div class="config-group">
-                    <label for="cfg-duracion" title="¿Cuánto dura tu clase?">Duración de la clase</label>
-                    <select id="cfg-duracion">
-                        <option value="">Predeterminado (80–90 min)</option>
-                        <option value="40">40 minutos</option>
-                        <option value="60">60 minutos</option>
-                        <option value="120">120 minutos</option>
-                        <option value="bloque-doble">Bloque doble (3 horas)</option>
-                    </select>
-                </div>
-                <div class="config-group">
-                    <label for="cfg-slides" title="Arrastrá para elegir cuántas diapositivas querés">Cantidad de diapositivas: <span id="cfg-slides-val" style="font-size: 1.4rem; font-weight: 800; color: var(--utn-green-dark); display:inline-block; min-width: 34px; text-align:center;">7</span></label>
-                    <input type="range" id="cfg-slides" min="5" max="20" step="1" value="7" aria-describedby="cfg-slides-val">
-                </div>
-                <div class="config-group">
-                    <label for="cfg-estilo" title="Cómo se va a ver la presentación">Estilo visual</label>
-                    <select id="cfg-estilo">
-                        <option value="">Predeterminado (Clásica UTN)</option>
-                        <option value="minimalista">Minimalista</option>
-                        <option value="contemporanea">Contemporánea</option>
-                        <option value="alta-carga">Alta carga visual</option>
-                    </select>
-                </div>
-                <div class="config-group">
-                    <label for="cfg-nivel" title="Qué tan profundo va el contenido">Nivel de profundidad</label>
-                    <select id="cfg-nivel">
-                        <option value="">Predeterminado</option>
-                        <option value="intro">Introductorio</option>
-                        <option value="intermedio">Intermedio</option>
-                        <option value="avanzado">Avanzado</option>
-                        <option value="mixto">Mixto (teoría + debate)</option>
-                    </select>
-                </div>
-                <div class="config-group">
-                    <label for="cfg-ejemplos">Ejemplos</label>
-                    <select id="cfg-ejemplos">
-                        <option value="">Predeterminado</option>
-                        <option value="cotidianos">Cotidianos</option>
-                        <option value="industria">Casos de industria regional</option>
-                        <option value="ambos">Ambos</option>
-                        <option value="ninguno">Sin ejemplos</option>
-                    </select>
-                </div>
-                <div class="config-group">
-                    <label for="cfg-imagenes">Imágenes</label>
-                    <select id="cfg-imagenes">
-                        <option value="">Predeterminado (Fotos HD)</option>
-                        <option value="fotos">Fotos reales HD</option>
-                        <option value="ilustraciones">Ilustraciones planas</option>
-                        <option value="diagramas">Solo diagramas</option>
-                        <option value="ninguna">Sin imágenes</option>
-                    </select>
-                </div>
-                <div class="config-group">
-                    <label for="cfg-url-teoria">URL de teoría (reemplaza la del temario)</label>
-                    <input type="url" id="cfg-url-teoria" placeholder="https://docs.google.com/document/d/...">
-                </div>
-                <div class="config-group">
-                    <label for="cfg-temas-extra">Temas adicionales a abordar</label>
-                    <input type="text" id="cfg-temas-extra" placeholder="Ej: teorema de Rolle; optimización; ejemplos de aplicación">
-                </div>
-            </div>
-
-            <fieldset class="config-group" style="margin-top: 14px;">
-                <legend>Momentos de la clase a incluir</legend>
-                <div class="momentos-row">
-                    <label style="display:inline-flex; gap:6px; align-items:center;"><input type="checkbox" id="mom-hook" checked> Gancho</label>
-                    <label style="display:inline-flex; gap:6px; align-items:center;"><input type="checkbox" id="mom-concepto" checked> Concepto</label>
-                    <label style="display:inline-flex; gap:6px; align-items:center;"><input type="checkbox" id="mom-caso" checked> Caso aplicado</label>
-                    <label style="display:inline-flex; gap:6px; align-items:center;"><input type="checkbox" id="mom-esquema" checked> Esquema</label>
-                    <label style="display:inline-flex; gap:6px; align-items:center;"><input type="checkbox" id="mom-desafio" checked> Desafío</label>
-                </div>
-            </fieldset>
-
-            <div class="config-group" style="margin-top: 14px;">
-                <label for="textarea-contexto">Instrucciones libres (opcional)</label>
-                <textarea id="textarea-contexto" placeholder="Ej: Quiero que las slides estén cargadas de información, con ejemplos cotidianos y muy explicativas..."></textarea>
-            </div>
-
-            <div style="margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
-                <label for="cfg-plantilla-nombre" style="font-size: 0.82rem; font-weight: 700; color: var(--text-secondary);">Plantilla:</label>
-                <select id="cfg-plantilla-select" style="min-width: 200px; padding: 0.6rem 0.9rem; border: 1.5px solid var(--border-glass-dark); border-radius: var(--radius-md); font-size: 0.9rem; background: rgba(255,255,255,0.9); color: var(--text-primary);">
-                    <option value="">(Predeterminada)</option>
-                </select>
-                <input type="text" id="cfg-plantilla-nombre" placeholder="Nombre de la plantilla" maxlength="40" style="min-width: 180px; padding: 0.6rem 0.9rem; border: 1.5px solid var(--border-glass-dark); border-radius: var(--radius-md); font-size: 0.9rem;">
-                <button type="button" id="btn-template-save" class="btn-secondary">💾 Guardar como plantilla</button>
-                <button type="button" id="btn-template-load" class="btn-secondary">📂 Cargar</button>
-                <button type="button" id="btn-template-clear" class="btn-secondary">🗑️ Borrar</button>
-            </div>
-
-            <div class="dialog-actions" style="flex-direction: row; justify-content: flex-end; gap: 10px; flex-wrap: wrap;">
+    <!-- Ventana de Contexto Personalizado (Instrucciones) -->
+    <dialog id="modal-contexto" aria-labelledby="contexto-title">
+        <div class="dialog-content">
+            <h2 id="contexto-title">Instrucciones de clase</h2>
+            <p>Indicaciones especiales para personalizar la clase (Ej: Enfoque práctico de laboratorio, nivel inicial, ejercicio grupal)...</p>
+            <textarea id="textarea-contexto" placeholder="Escribí aquí tus indicaciones docentes opcionales..."></textarea>
+            <div class="dialog-actions">
+                <button id="btn-contexto-confirm" class="btn-primary">Confirmar y Generar Clase</button>
                 <button id="btn-contexto-cancel" class="btn-secondary">Volver</button>
-                <button id="btn-contexto-confirm" class="btn-primary">Generar Clase</button>
-            </div>
-        </div>
-    </dialog>
-
-    <!-- Ventana de Reformular Diapositiva (Espiral 2) -->
-    <dialog id="modal-reformular" aria-labelledby="reformular-title">
-        <div class="dialog-content" style="text-align: left;">
-            <h2 id="reformular-title" style="margin-bottom: 6px;">🔄 Reformular diapositiva</h2>
-            <p style="margin-bottom: 18px;">Decime qué cambiar de esta diapositiva puntual. El resto de la presentación no se toca.</p>
-            <textarea id="textarea-reformular" placeholder="Ej: Hacela más corta, cambiá el ejemplo por uno cotidiano, usá un tono más simple..."></textarea>
-            <div class="dialog-actions" style="flex-direction: row; justify-content: flex-end; gap: 10px; flex-wrap: wrap;">
-                <button id="btn-reformular-cancel" class="btn-secondary">Cancelar</button>
-                <button id="btn-reformular-confirm" class="btn-primary">Reformular</button>
-            </div>
-        </div>
-    </dialog>
-
-    <!-- Ventana de Edición Manual de Diapositiva (Espiral 3) -->
-    <dialog id="modal-editar" aria-labelledby="editar-title" style="max-width: 720px; width: 94%;">
-        <div class="dialog-content" style="text-align: left;">
-            <h2 id="editar-title" style="margin-bottom: 6px;">✏️ Editar diapositiva</h2>
-            <p style="margin-bottom: 18px;">Cambiá los textos a mano. Los cambios se guardan y se exportan tal cual a Google Slides.</p>
-
-            <div class="config-group" style="display: block; margin-bottom: 12px;">
-                <label for="editar-titulo" style="display:block; margin-bottom: 6px;">Título</label>
-                <input type="text" id="editar-titulo" maxlength="120">
-            </div>
-            <div class="config-group" style="display: block; margin-bottom: 12px;">
-                <label for="editar-subtitulo" style="display:block; margin-bottom: 6px;">Subtítulo</label>
-                <input type="text" id="editar-subtitulo" maxlength="200">
-            </div>
-            <div class="config-group" style="display: block; margin-bottom: 12px;">
-                <label for="editar-contenido" style="display:block; margin-bottom: 6px;">Contenido (un punto por línea)</label>
-                <textarea id="editar-contenido" rows="5" placeholder="• Punto 1&#10;• Punto 2&#10;• Punto 3"></textarea>
-            </div>
-            <div class="config-group" style="display: block; margin-bottom: 12px;">
-                <label for="editar-notas" style="display:block; margin-bottom: 6px;">Notas del orador (guía docente)</label>
-                <textarea id="editar-notas" rows="4" placeholder="Explicar a los alumnos que..."></textarea>
-            </div>
-
-            <div class="dialog-actions" style="flex-direction: row; justify-content: flex-end; gap: 10px; flex-wrap: wrap;">
-                <button id="btn-editar-cancelar" class="btn-secondary">Cancelar</button>
-                <button id="btn-editar-guardar" class="btn-primary">Guardar cambios</button>
             </div>
         </div>
     </dialog>
