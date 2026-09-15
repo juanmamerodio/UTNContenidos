@@ -1,0 +1,18 @@
+# Dependencias y builds
+node_modules/
+dist/
+.next/
+out/
+
+# Cachés y logs
+*.log
+.DS_Store
+Thumbs.db
+
+# Variables de entorno / secretos
+.env
+.env.local
+.env.production
+
+# Carpetas del sistema
+.vercel/
