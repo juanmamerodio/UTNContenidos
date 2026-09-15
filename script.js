@@ -94,6 +94,13 @@ function sanitizeHTML(text) {
     return div.innerHTML;
 }
 
+// Sanitización de URLs: solo permite protocolos http/https (evita javascript:)
+function sanitizeURL(url) {
+    const str = String(url || '').trim();
+    if (/^https?:\/\//i.test(str)) return str;
+    return '#';
+}
+
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- 1. REFERENCIAS AL DOM ---
@@ -126,11 +133,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnCloseSuccess = document.getElementById('btn-close-success');
     const linkOpenSlides = document.getElementById('link-open-slides');
 
-    // Nuevas referencias para el Modal de Contexto Dinámico
+    // Referencias para el Modal de Contexto Dinámico
     const modalContexto = document.getElementById('modal-contexto');
     const textareaContexto = document.getElementById('textarea-contexto');
     const btnContextoConfirm = document.getElementById('btn-contexto-confirm');
     const btnContextoCancel = document.getElementById('btn-contexto-cancel');
+
+    // Referencias del Configurador de Clase (Sprint B)
+    const cfgDuracion = document.getElementById('cfg-duracion');
+    const cfgSlides = document.getElementById('cfg-slides');
+    const cfgSlidesVal = document.getElementById('cfg-slides-val');
+    const cfgEstilo = document.getElementById('cfg-estilo');
+    const cfgNivel = document.getElementById('cfg-nivel');
+    const cfgEjemplos = document.getElementById('cfg-ejemplos');
+    const cfgImagenes = document.getElementById('cfg-imagenes');
+    const cfgUrlTeoria = document.getElementById('cfg-url-teoria');
+    const cfgTemasExtra = document.getElementById('cfg-temas-extra');
+    const btnTemplateSave = document.getElementById('btn-template-save');
+    const btnTemplateLoad = document.getElementById('btn-template-load');
+    const btnTemplateClear = document.getElementById('btn-template-clear');
 
     // Referencias para el Modal de Reclamar Materias
     const modalReclamar = document.getElementById('modal-reclamar');
@@ -142,6 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // VARIABLES GLOBALES
     let claseGeneradaActual = null;
     let temaSeleccionadoActual = null; // Guardará el tema clickeado temporalmente
+    let contextoClaseActual = null;    // IDs relacionales del tema/materia en curso
     let sesionToken = null;            // Token efímero de sesión (sólo esto se persiste)
 
     // --- 2. CONTROLADOR DE VISTAS (SPA ROUTER) ---
@@ -325,7 +347,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <p>Materia ID: ${sanitizeHTML(item.materiaId || 'N/A')}</p>
                     <p>Fecha: ${sanitizeHTML(item.fechaCreacion)}</p>
                     <div style="margin-top: 15px;">
-                        <a href="${item.urlSlides}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="display:inline-block; text-align:center; padding: 10px 15px; border-radius: 8px; text-decoration:none;">Ver Slides</a>
+                        <a href="${sanitizeURL(item.urlSlides)}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="display:inline-block; text-align:center; padding: 10px 15px; border-radius: 8px; text-decoration:none;">Ver Slides</a>
                     </div>
                 </div>
             </article>
@@ -351,14 +373,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         materias.forEach(materia => {
             let temas = (materia.temas && materia.temas.length > 0) ? materia.temas : [
-                { nombreTema: 'Contenido General / Introducción', linkTeoria: '' }
+                { idTema: '', nombreTema: 'Contenido General / Introducción', linkTeoria: '' }
             ];
 
             let temasHTML = temas.map(tema => `
                 <li>
                     <span>${sanitizeHTML(tema.nombreTema)}</span>
                     <button class="btn-select-topic" 
+                            data-materia-id="${sanitizeHTML(materia.id)}" 
                             data-materia="${sanitizeHTML(materia.nombre)}" 
+                            data-tema-id="${sanitizeHTML(tema.idTema || '')}"
                             data-tema="${sanitizeHTML(tema.nombreTema)}" 
                             data-link="${sanitizeHTML(tema.linkTeoria || '')}">
                         Preparar Clase
@@ -388,29 +412,184 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- 5. MODAL DE CONTEXTO DINÁMICO ---
+    // --- 5. MODAL DE CONTEXTO / CONFIGURADOR DE CLASE ---
     function abrirModalContexto(e) {
         const btn = e.target;
         temaSeleccionadoActual = {
+            materiaId: btn.getAttribute('data-materia-id') || btn.getAttribute('data-materia'),
             materiaNombre: btn.getAttribute('data-materia'),
+            temaId: btn.getAttribute('data-tema-id'),
             temaNombre: btn.getAttribute('data-tema'),
             linkTeoria: btn.getAttribute('data-link')
         };
 
-        textareaContexto.value = ''; // Limpiar entrada previa
+        // Restaurar plantilla guardada del docente (si existe)
+        restaurarPlantillaConfigurador();
+
+        textareaContexto.value = ''; // Limpiar instrucciones libres previas
         modalContexto.showModal();
+    }
+
+    // --- 5a. PLANTILLAS DEL CONFIGURADOR (localStorage, múltiples con nombre) ---
+    const PLANTILLA_KEY = 'utn_plantillas';
+
+    function leerPlantillas() {
+        try {
+            const raw = localStorage.getItem(PLANTILLA_KEY);
+            const obj = raw ? JSON.parse(raw) : {};
+            return (obj && typeof obj === 'object') ? obj : {};
+        } catch (e) {
+            localStorage.removeItem(PLANTILLA_KEY);
+            return {};
+        }
+    }
+
+    function guardarPlantillas(obj) {
+        try {
+            localStorage.setItem(PLANTILLA_KEY, JSON.stringify(obj));
+        } catch (e) {
+            showNotification('error', 'No se pudo guardar la plantilla (almacenamiento lleno).');
+        }
+    }
+
+    function refrescarSelectorPlantillas() {
+        const select = document.getElementById('cfg-plantilla-select');
+        if (!select) return;
+        const plantillas = leerPlantillas();
+        select.innerHTML = '<option value="">(Predeterminada)</option>';
+        Object.keys(plantillas).sort().forEach(nombre => {
+            const opt = document.createElement('option');
+            opt.value = nombre;
+            opt.textContent = nombre;
+            select.appendChild(opt);
+        });
+    }
+
+    function recolectarConfiguracion() {
+        const momentos = [];
+        const mapaMomentos = [
+            ['mom-hook', 'hook'],
+            ['mom-concepto', 'concepto_nucleo'],
+            ['mom-caso', 'caso_aplicado'],
+            ['mom-esquema', 'esquema_proceso'],
+            ['mom-desafio', 'desafio_aula']
+        ];
+        mapaMomentos.forEach(([id, valor]) => {
+            const el = document.getElementById(id);
+            if (el && el.checked) momentos.push(valor);
+        });
+
+        return {
+            duracion: cfgDuracion.value,
+            numSlides: parseInt(cfgSlides.value, 10) || 7,
+            estilo: cfgEstilo.value,
+            nivel: cfgNivel.value,
+            ejemplos: cfgEjemplos.value,
+            imagenes: cfgImagenes.value,
+            urlTeoria: cfgUrlTeoria.value.trim(),
+            temasAdicionales: cfgTemasExtra.value.split(';').map(s => s.trim()).filter(Boolean),
+            momentos: momentos,
+            instrucciones: textareaContexto.value.trim()
+        };
+    }
+
+    function aplicarConfiguracionEnForm(cfg) {
+        if (!cfg || typeof cfg !== 'object') return;
+        cfgDuracion.value = cfg.duracion || '';
+        cfgSlides.value = String(cfg.numSlides || 7);
+        cfgSlidesVal.textContent = String(cfg.numSlides || 7);
+        cfgEstilo.value = cfg.estilo || '';
+        cfgNivel.value = cfg.nivel || '';
+        cfgEjemplos.value = cfg.ejemplos || '';
+        cfgImagenes.value = cfg.imagenes || '';
+        cfgUrlTeoria.value = cfg.urlTeoria || '';
+        cfgTemasExtra.value = (cfg.temasAdicionales || []).join('; ');
+        textareaContexto.value = cfg.instrucciones || '';
+
+        const mapaMomentos = ['hook', 'concepto_nucleo', 'caso_aplicado', 'esquema_proceso', 'desafio_aula'];
+        mapaMomentos.forEach(m => {
+            const el = document.getElementById('mom-' + m);
+            if (el) el.checked = !cfg.momentos || cfg.momentos.includes(m);
+        });
+    }
+
+    function restaurarPlantillaConfigurador() {
+        refrescarSelectorPlantillas();
+        const inputNombre = document.getElementById('cfg-plantilla-nombre');
+        if (inputNombre) inputNombre.value = '';
+    }
+
+    const inputPlantillaNombre = document.getElementById('cfg-plantilla-nombre');
+    const selectPlantilla = document.getElementById('cfg-plantilla-select');
+
+    if (btnTemplateSave) {
+        btnTemplateSave.addEventListener('click', () => {
+            const nombre = (inputPlantillaNombre.value || '').trim();
+            if (!nombre) {
+                showNotification('warning', 'Escribí un nombre para tu plantilla.');
+                return;
+            }
+            const plantillas = leerPlantillas();
+            plantillas[nombre] = recolectarConfiguracion();
+            guardarPlantillas(plantillas);
+            refrescarSelectorPlantillas();
+            showNotification('success', `Plantilla "${nombre}" guardada.`);
+        });
+    }
+    if (btnTemplateLoad) {
+        btnTemplateLoad.addEventListener('click', () => {
+            const nombre = selectPlantilla.value;
+            if (!nombre) {
+                showNotification('warning', 'Elegí una plantilla para cargar.');
+                return;
+            }
+            const plantillas = leerPlantillas();
+            if (plantillas[nombre]) {
+                aplicarConfiguracionEnForm(plantillas[nombre]);
+                showNotification('success', `Plantilla "${nombre}" cargada.`);
+            } else {
+                showNotification('error', 'Esa plantilla ya no existe.');
+                refrescarSelectorPlantillas();
+            }
+        });
+    }
+    if (btnTemplateClear) {
+        btnTemplateClear.addEventListener('click', () => {
+            const nombre = selectPlantilla.value;
+            if (!nombre) {
+                showNotification('warning', 'Elegí una plantilla para borrar.');
+                return;
+            }
+            const plantillas = leerPlantillas();
+            delete plantillas[nombre];
+            guardarPlantillas(plantillas);
+            refrescarSelectorPlantillas();
+            showNotification('success', `Plantilla "${nombre}" borrada.`);
+        });
+    }
+
+    // Actualizar el valor visual del slider de diapositivas
+    if (cfgSlides && cfgSlidesVal) {
+        cfgSlides.addEventListener('input', () => {
+            cfgSlidesVal.textContent = cfgSlides.value;
+        });
     }
 
     btnContextoConfirm.addEventListener('click', () => {
         if (!temaSeleccionadoActual) return;
-        const contextoDinamico = textareaContexto.value.trim();
+        // Recolectamos la configuración completa del configurador
+        const configuracion = recolectarConfiguracion();
+        // Guardamos los IDs relacionales para usarlos en la exportación
+        contextoClaseActual = {
+            materiaId: temaSeleccionadoActual.materiaId,
+            temaId: temaSeleccionadoActual.temaId
+        };
         modalContexto.close();
 
         ejecutarGeneracionIA(
             temaSeleccionadoActual.materiaNombre,
             temaSeleccionadoActual.temaNombre,
-            contextoDinamico,
-            temaSeleccionadoActual.linkTeoria
+            configuracion
         );
     });
 
@@ -418,6 +597,146 @@ document.addEventListener('DOMContentLoaded', () => {
         modalContexto.close();
         temaSeleccionadoActual = null;
     });
+
+    // --- 5c. REFORMULAR UNA DIAPOSITIVA (Espiral 2) ---
+    const modalReformular = document.getElementById('modal-reformular');
+    const textareaReformular = document.getElementById('textarea-reformular');
+    const btnReformularConfirm = document.getElementById('btn-reformular-confirm');
+    const btnReformularCancel = document.getElementById('btn-reformular-cancel');
+    let slideIndexEnEdicion = null;
+
+    function abrirModalReformular(e) {
+        const btn = e.target.closest ? e.target.closest('.btn-reformular-slide') : e.target;
+        if (!btn) return;
+        slideIndexEnEdicion = parseInt(btn.getAttribute('data-slide-index'), 10);
+        textareaReformular.value = '';
+        modalReformular.showModal();
+    }
+
+    if (btnReformularConfirm) {
+        btnReformularConfirm.addEventListener('click', async () => {
+            if (slideIndexEnEdicion === null || !claseGeneradaActual || !claseGeneradaActual.slides) return;
+            const instruccion = textareaReformular.value.trim();
+            if (!instruccion) {
+                showNotification('warning', 'Escribí qué querés cambiar de la diapositiva.');
+                return;
+            }
+
+            const slideActual = claseGeneradaActual.slides[slideIndexEnEdicion];
+            modalReformular.close();
+
+            document.getElementById('loader-title').textContent = "Reformulando diapositiva...";
+            document.getElementById('loader-title').nextElementSibling.textContent = "La IA está ajustando esa diapositiva puntual. No se tocan las demás.";
+            modalLoader.showModal();
+
+            try {
+                // 1. Intentar Vercel Serverless
+                let nuevaSlide = null;
+                try {
+                    const respGemini = await fetch('/api/gemini', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            modo: 'regenerarSlide',
+                            materia: breadcrumbSubject.textContent,
+                            tema: breadcrumbTopic.textContent,
+                            slideIndex: slideIndexEnEdicion,
+                            slideActual,
+                            instruccion
+                        })
+                    });
+                    if (respGemini.ok) {
+                        const json = await respGemini.json();
+                        if (json && json.success) nuevaSlide = json.slide;
+                    }
+                } catch (errLocal) {
+                    console.warn("Fallo /api/gemini en regenerarSlide. Fallback a GAS...", errLocal);
+                }
+
+                // 2. Fallback a Google Apps Script
+                if (!nuevaSlide) {
+                    const resGAS = await callBackend('regenerarSlideIA', {
+                        token: sesionToken,
+                        materia: breadcrumbSubject.textContent,
+                        tema: breadcrumbTopic.textContent,
+                        slideIndex: slideIndexEnEdicion,
+                        slideActual,
+                        instruccion
+                    });
+                    if (resGAS && resGAS.success) nuevaSlide = resGAS.slide;
+                }
+
+                modalLoader.close();
+
+                if (nuevaSlide) {
+                    // Reemplazo quirúrgico: solo esa slide cambia
+                    claseGeneradaActual.slides[slideIndexEnEdicion] = nuevaSlide;
+                    renderizarSlidesGrid(claseGeneradaActual.slides);
+                    showNotification('success', '¡Diapositiva reformulada! El resto quedó igual.');
+                } else {
+                    showNotification('error', 'No se pudo reformular la diapositiva. Intentá de nuevo.');
+                }
+            } catch (error) {
+                modalLoader.close();
+                showNotification('error', 'Error de conexión al reformular la diapositiva.');
+                console.error('regenerarSlide failure:', error);
+            }
+        });
+    }
+
+    if (btnReformularCancel) {
+        btnReformularCancel.addEventListener('click', () => {
+            modalReformular.close();
+            slideIndexEnEdicion = null;
+        });
+    }
+
+    // --- 5d. EDITAR UNA DIAPOSITIVA MANUALMENTE (Espiral 3) ---
+    const modalEditar = document.getElementById('modal-editar');
+    const editarTitulo = document.getElementById('editar-titulo');
+    const editarSubtitulo = document.getElementById('editar-subtitulo');
+    const editarContenido = document.getElementById('editar-contenido');
+    const editarNotas = document.getElementById('editar-notas');
+    const btnEditarGuardar = document.getElementById('btn-editar-guardar');
+    const btnEditarCancelar = document.getElementById('btn-editar-cancelar');
+    let slideIndexEnEdicionManual = null;
+
+    function abrirModalEditar(e) {
+        const btn = e.target.closest ? e.target.closest('.btn-editar-slide') : e.target;
+        if (!btn) return;
+        slideIndexEnEdicionManual = parseInt(btn.getAttribute('data-slide-index'), 10);
+        if (!claseGeneradaActual || !claseGeneradaActual.slides || !claseGeneradaActual.slides[slideIndexEnEdicionManual]) return;
+
+        const slide = claseGeneradaActual.slides[slideIndexEnEdicionManual];
+        editarTitulo.value = slide.titulo || '';
+        editarSubtitulo.value = slide.subtitulo || '';
+        editarContenido.value = slide.contenido || '';
+        editarNotas.value = slide.notasOrador || '';
+        modalEditar.showModal();
+    }
+
+    if (btnEditarGuardar) {
+        btnEditarGuardar.addEventListener('click', () => {
+            if (slideIndexEnEdicionManual === null) return;
+            const slide = claseGeneradaActual.slides[slideIndexEnEdicionManual];
+            // Sanitización server-side la hace GAS al exportar; acá validamos longitud
+            slide.titulo = String(editarTitulo.value || '').slice(0, 120);
+            slide.subtitulo = String(editarSubtitulo.value || '').slice(0, 200);
+            slide.contenido = String(editarContenido.value || '').slice(0, 2000);
+            slide.notasOrador = String(editarNotas.value || '').slice(0, 2000);
+
+            modalEditar.close();
+            renderizarSlidesGrid(claseGeneradaActual.slides);
+            showNotification('success', '¡Cambios guardados! Se exportarán con tu presentación.');
+        });
+    }
+
+    if (btnEditarCancelar) {
+        btnEditarCancelar.addEventListener('click', () => {
+            modalEditar.close();
+            slideIndexEnEdicionManual = null;
+        });
+    }
 
     // --- 5b. MODAL DE RECLAMAR MATERIAS (OFERTA ACADÉMICA) ---
     if (btnOpenClaimModal && modalReclamar) {
@@ -515,7 +834,87 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- 6. ASISTENTE INTELIGENTE: CREACIÓN DE CONTENIDO ---
-    async function ejecutarGeneracionIA(materiaNombre, temaNombre, contextoDinamico, linkTeoria) {
+    // Renderiza las tarjetas de diapositivas (reutilizable tras regenerar una slide)
+    function renderizarSlidesGrid(slides) {
+        const slidesGrid = document.querySelector('#view-generator .slides-grid');
+        if (!slidesGrid || !slides || slides.length === 0) return;
+
+        slidesGrid.innerHTML = slides.map((slide, index) => {
+            let contentHTML = '';
+            let categoriaBadge = slide.categoria ? `<span class="badge" style="background: rgba(6, 162, 138, 0.12); color: var(--utn-green-dark); font-size: 0.75rem; text-transform: uppercase; margin-bottom: 8px; display: inline-block;">${sanitizeHTML(slide.categoria)}</span>` : '';
+
+            if (slide.tipo === 'portada') {
+                contentHTML = `
+                    <h4>Portada Institucional UTN FRD</h4>
+                    <p style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-top: 5px;">${sanitizeHTML(slide.titulo)}</p>
+                    <p style="color: var(--text-secondary);">${sanitizeHTML(slide.subtitulo || '')}</p>
+                `;
+            } else {
+                const lineas = (slide.contenido || '').split('\n').filter(l => l.trim());
+                contentHTML = `
+                    <ul style="padding-left: 18px; margin: 10px 0; color: var(--text-primary);">
+                         ${lineas.map(line => `<li style="margin-bottom: 6px; line-height: 1.4;">${sanitizeHTML(line.replace(/^[•\-\*]\s*/, ''))}</li>`).join('')}
+                    </ul>
+                `;
+            }
+
+            let notasHTML = slide.notasOrador ? `
+                <div style="margin-top: 14px; padding: 12px 14px; background: var(--utn-green-surface); border-left: 3px solid var(--utn-green-primary); border-radius: 6px;">
+                    <strong style="font-size: 0.82rem; color: var(--utn-green-dark); display: block; margin-bottom: 4px;">🎙️ GUÍA DOCENTE (NOTAS DE AULA):</strong>
+                    <p style="font-size: 0.88rem; color: var(--text-secondary); margin: 0; font-style: italic; line-height: 1.4;">${sanitizeHTML(slide.notasOrador)}</p>
+                </div>
+            ` : '';
+
+            // Botones de edición y reformulación (toda slide editable; reformular solo contenido)
+            const btnEditar = `
+                <button type="button" class="btn-editar-slide btn-secondary" data-slide-index="${index}" style="margin-top: 10px; font-size: 0.8rem; padding: 6px 12px;">
+                    ✏️ Editar contenido
+                </button>
+            `;
+            const btnReformular = slide.tipo !== 'portada' ? `
+                <button type="button" class="btn-reformular-slide btn-secondary" data-slide-index="${index}" style="margin-top: 10px; font-size: 0.8rem; padding: 6px 12px;">
+                    🔄 Reformular esta diapositiva
+                </button>
+            ` : '';
+
+            return `
+                <article class="slide-card" style="display: flex; flex-direction: column; justify-content: space-between; border-radius: 14px; transition: transform 0.2s ease, box-shadow 0.2s ease;">
+                    <div>
+                        <header style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                            <div>
+                                ${categoriaBadge}
+                                <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--utn-green-dark); margin: 0;">Diap. ${index + 1}: ${sanitizeHTML(slide.titulo)}</h3>
+                            </div>
+                        </header>
+                        <div class="slide-content">
+                            ${contentHTML}
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        ${btnEditar}
+                        ${btnReformular}
+                    </div>
+                    ${notasHTML}
+                </article>
+            `;
+        }).join('');
+
+        // Asignar eventos de edición y reformulación
+        document.querySelectorAll('.btn-editar-slide').forEach(btn => {
+            btn.addEventListener('click', abrirModalEditar);
+        });
+        document.querySelectorAll('.btn-reformular-slide').forEach(btn => {
+            btn.addEventListener('click', abrirModalReformular);
+        });
+    }
+
+    async function ejecutarGeneracionIA(materiaNombre, temaNombre, configuracion) {
+        // Configuración opcional del configurador (Sprint B)
+        configuracion = (configuracion && typeof configuracion === 'object') ? configuracion : {};
+        const contextoDinamico = configuracion.instrucciones || '';
+        // Si el docente no overrideó la URL de teoría, usamos la del temario
+        const linkTeoria = configuracion.urlTeoria || temaSeleccionadoActual.linkTeoria;
+
         // Loader muy cálido y no técnico
         document.getElementById('loader-title').textContent = "Preparando tus materiales...";
         document.getElementById('loader-title').nextElementSibling.textContent = "Armando el plan de clase y estructurando tus diapositivas sugeridas.";
@@ -545,7 +944,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         materia: materiaNombre,
                         tema: temaNombre,
                         textoOficial: respuestaContexto.textoOficial,
-                        contextoDinamico
+                        contextoDinamico,
+                        configuracion
                     })
                 });
 
@@ -565,7 +965,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     materia: materiaNombre,
                     tema: temaNombre,
                     textoOficial: respuestaContexto.textoOficial,
-                    contextoDinamico
+                    contextoDinamico,
+                    configuracion
                 });
             }
 
@@ -615,52 +1016,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 // C. Estructura de Diapositivas Sugerida (Diseño Universitario de Alto Impacto)
-                const slidesGrid = document.querySelector('#view-generator .slides-grid');
-                if (slidesGrid && respuesta.slides) {
-                    slidesGrid.innerHTML = respuesta.slides.map((slide, index) => {
-                        let contentHTML = '';
-                        let categoriaBadge = slide.categoria ? `<span class="badge" style="background: rgba(6, 162, 138, 0.12); color: var(--utn-green-dark); font-size: 0.75rem; text-transform: uppercase; margin-bottom: 8px; display: inline-block;">${sanitizeHTML(slide.categoria)}</span>` : '';
-
-                        if (slide.tipo === 'portada') {
-                            contentHTML = `
-                                <h4>Portada Institucional UTN FRD</h4>
-                                <p style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-top: 5px;">${sanitizeHTML(slide.titulo)}</p>
-                                <p style="color: var(--text-secondary);">${sanitizeHTML(slide.subtitulo || '')}</p>
-                            `;
-                        } else {
-                            const lineas = (slide.contenido || '').split('\n').filter(l => l.trim());
-                            contentHTML = `
-                                <ul style="padding-left: 18px; margin: 10px 0; color: var(--text-primary);">
-                                     ${lineas.map(line => `<li style="margin-bottom: 6px; line-height: 1.4;">${sanitizeHTML(line.replace(/^[•\-\*]\s*/, ''))}</li>`).join('')}
-                                </ul>
-                            `;
-                        }
-
-                        let notasHTML = slide.notasOrador ? `
-                            <div style="margin-top: 14px; padding: 12px 14px; background: var(--utn-green-surface); border-left: 3px solid var(--utn-green-primary); border-radius: 6px;">
-                                <strong style="font-size: 0.82rem; color: var(--utn-green-dark); display: block; margin-bottom: 4px;">🎙️ GUÍA DOCENTE (NOTAS DE AULA):</strong>
-                                <p style="font-size: 0.88rem; color: var(--text-secondary); margin: 0; font-style: italic; line-height: 1.4;">${sanitizeHTML(slide.notasOrador)}</p>
-                            </div>
-                        ` : '';
-
-                        return `
-                            <article class="slide-card" style="display: flex; flex-direction: column; justify-content: space-between; border-radius: 14px; transition: transform 0.2s ease, box-shadow 0.2s ease;">
-                                <div>
-                                    <header style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-                                        <div>
-                                            ${categoriaBadge}
-                                            <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--utn-green-dark); margin: 0;">Diap. ${index + 1}: ${sanitizeHTML(slide.titulo)}</h3>
-                                        </div>
-                                    </header>
-                                    <div class="slide-content">
-                                        ${contentHTML}
-                                    </div>
-                                </div>
-                                ${notasHTML}
-                            </article>
-                        `;
-                    }).join('');
-                }
+                renderizarSlidesGrid(respuesta.slides);
 
                 // D. Ideas para imágenes de apoyo
                 const promptList = document.querySelector('#view-generator .prompt-list');
@@ -708,7 +1064,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // LLAMADA AL BACKEND (HTTP POST) — token requerido para autorización
             const respuesta = await callBackend('exportarAGoogleSlides', {
                 token: sesionToken,
-                materiaId: breadcrumbSubject.textContent, // usamos el nombre como ID simplificado
+                materiaId: (contextoClaseActual && contextoClaseActual.materiaId) || breadcrumbSubject.textContent,
                 materiaNombre: breadcrumbSubject.textContent,
                 temaNombre: breadcrumbTopic.textContent,
                 datosClase: claseGeneradaActual

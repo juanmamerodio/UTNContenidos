@@ -4,414 +4,192 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-
-    <!-- Metadatos Institucionales UTN FRD -->
-    <title>UTN Contenidos | Creador Inteligente de Clases - Facultad Regional Delta</title>
-    <meta name="description"
-        content="Herramienta de asistencia didáctica para la planificación de clases presenciales de los docentes de la UTN Facultad Regional Delta.">
-    <meta name="author" content="UTN FRD">
     <meta name="robots" content="noindex, nofollow">
-
-    <!-- Open Graph -->
-    <meta property="og:title" content="Asistente de Contenidos UTN">
-    <meta property="og:description" content="Planificación didáctica e ideas para tus clases con un solo clic.">
-    <meta property="og:type" content="website">
-    <meta property="og:locale" content="es_AR">
-
-    <!-- Estilos y Tipografía Premium -->
+    <title>UTNContenidos | Diagramas de Arquitectura — Alpha 0.5</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
-        rel="stylesheet">
-
-    <!-- Generador de PDFs en el cliente (Costo $0) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+    <style>
+        body { background: var(--bg-base); }
+        .diagram-card {
+            max-width: 1100px;
+            margin: 2rem auto;
+            padding: 1.5rem 2rem;
+            background: #ffffff;
+            border: 1px solid var(--border-glass-dark);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-soft);
+        }
+        .diagram-card h2 { color: var(--utn-green-dark); font-family: var(--font-title); }
+        .diagram-card p { color: var(--text-secondary); }
+        .mermaid { margin: 1.5rem 0; }
+    </style>
 </head>
 
 <body>
-
-    <!-- Ambient 3D Volumetric Glow Orbs (After Effects Style) -->
-    <div class="ambient-glow" aria-hidden="true">
-        <div class="orb orb-1"></div>
-        <div class="orb orb-2"></div>
-        <div class="orb orb-3"></div>
-    </div>
-
-    <!-- ==========================================
-         HEADER FLOTANTE (ESTILO PREMIUM MINIMALISTA)
-         ========================================== -->
     <header role="banner" id="main-header" class="glass-panel">
         <div class="header-container">
             <div class="brand-logo-container">
-                <!-- Icono de marca geométrico minimalista -->
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="30" height="30" aria-hidden="true"
-                    class="brand-icon">
-                    <path d="M24 6 L38 18 L38 34 L24 42 L10 34 L10 18 Z" fill="none" stroke="currentColor"
-                        stroke-width="3.5" stroke-linejoin="round" />
-                    <path d="M24 14 L24 34 M14 24 L34 24" stroke="currentColor" stroke-width="3.5"
-                        stroke-linecap="round" />
-                </svg>
-                <span class="brand-text">UTN Contenidos</span>
-            </div>
-
-            <!-- Navegación Principal (Se muestra al ingresar) -->
-            <nav role="navigation" aria-label="Navegación principal" id="main-nav" hidden>
-                <ul>
-                    <li><a href="#dashboard" class="active">Mis Materias</a></li>
-                    <li><a href="#historial">Historial</a></li>
-                    <li><a href="#recursos">Recursos</a></li>
-                </ul>
-            </nav>
-
-            <!-- Menú de Usuario -->
-            <div class="user-profile" id="user-menu" hidden>
-                <button aria-haspopup="true" aria-expanded="false" aria-controls="user-dropdown">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
-                    <span id="user-name-display">Profesor</span>
-                </button>
-                <ul id="user-dropdown" role="menu" hidden>
-                    <li role="menuitem"><a href="#perfil">Mi Perfil</a></li>
-                    <li role="menuitem"><a href="#configuracion">Preferencias</a></li>
-                    <li role="menuitem"><button id="btn-logout">Cerrar Sesión</button></li>
-                </ul>
+                <img src="UTN.jpg" alt="Logo Universidad Tecnológica Nacional" class="brand-logo-img">
+                <div class="brand-text-group">
+                    <span class="brand-text">UTN Contenidos</span>
+                    <span class="brand-subtext">Diagramas de Arquitectura</span>
+                </div>
             </div>
         </div>
     </header>
 
-    <!-- ==========================================
-         CONTENEDOR PRINCIPAL
-         ========================================== -->
-    <main role="main" id="app-root">
+    <main id="app-root">
 
-        <!-- 
-          FASE 1: VISTA DE INGRESO (LOGIN MINIMALISTA)
-        -->
-        <section id="view-login" class="spa-view" aria-labelledby="login-title">
-            <div class="login-wrapper glass-panel">
-                <div class="login-form-panel">
-                    <h1 id="login-title">UTN Contenidos</h1>
-                    <p class="login-subtitle">Planificación didáctica inteligente para equipos docentes de la Regional
-                        Delta.</p>
+        <section class="diagram-card">
+            <h2>1. Arquitectura General (Alpha 0.5 — Sprint Blindaje)</h2>
+            <p>Flujo completo de la SPA híbrida Vercel + Google Apps Script, con la capa de blindaje del Sprint A.</p>
+            <pre class="mermaid">
+flowchart TD
+    subgraph Frontend["Frontend - SPA (Vercel / Local)"]
+        UI["index.html"] --> JS["script.js"]
+        JS -->|"POST /api/gemini"| ORQ["api/gemini.js<br/>(Serverless)"]
+        JS -->|"POST acciones"| GAS["GAS Web App<br/>(app.md)"]
+    end
 
-                    <form id="form-login" action="#" method="POST" novalidate>
-                        <div class="form-group">
-                            <label for="input-legajo">Legajo Docente</label>
-                            <input type="text" id="input-legajo" name="legajo" required aria-required="true"
-                                placeholder="Ej: 12345" pattern="[0-9]+">
-                            <span class="error-message" id="error-legajo" aria-live="polite" hidden>El legajo es
-                                necesario y debe ser numérico.</span>
-                        </div>
+    subgraph Blindaje["Capa de Blindaje - Sprint A"]
+        RL["Rate-limit login<br/>+ Lockout 15min"] --> AUTH["Validación Legajo+DNI"]
+        TH["Throttle global 20/60s"]
+        PL["Payload cap 500KB<br/>+ Slides máx 30"]
+        DBG["debugSheetData gated<br/>(ALLOW_DEBUG=true)"]
+        INJ["Anti prompt-injection<br/>en RAG"]
+        LOCK["LockService<br/>escrituras atómicas"]
+    end
 
-                        <div class="form-group">
-                            <label for="input-dni">Número de DNI</label>
-                            <input type="password" id="input-dni" name="dni" required aria-required="true"
-                                placeholder="Ingresá tu DNI sin puntos">
-                            <span class="error-message" id="error-dni" aria-live="polite" hidden>El DNI es necesario
-                                para ingresar.</span>
-                        </div>
+    subgraph Backend["Backend Serverless Híbrido - Costo $0"]
+        ORQ -->|"Structured Outputs<br/>Gemini 3.1 Flash Lite"| GEM["Gemini API"]
+        GAS -->|"UrlFetchApp"| GEM
+        GAS -->|"CacheService + LockService"| SHEETS[("Google Sheets<br/>DLR / 3NF")]
+        GAS -->|"RAG con caché 6h<br/>(15k chars)"| DOCS["Google Docs Apuntes"]
+        GAS -->|"Slides + Notas de Orador"| SLIDES["Google Slides"]
+    end
 
-                        <div class="form-actions">
-                            <button type="submit" id="btn-login-submit">
-                                <span>Ingresar</span>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
-                                    stroke-linejoin="round">
-                                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                                    <polyline points="12 5 19 12 12 19"></polyline>
-                                </svg>
-                            </button>
-                        </div>
-
-                        <div class="form-help">
-                            <a href="#soporte-tecnico">Ayuda técnica</a>
-                        </div>
-                    </form>
-                </div>
-            </div>
+    AUTH --> GAS
+    JS --> RL
+    JS --> PL
+    RL --> TH
+    GAS -.-> DBG
+    JS --> INJ
+</pre>
         </section>
 
-        <!-- 
-          FASE 2: VISTA DE MATERIAS (DASHBOARD)
-        -->
-        <section id="view-dashboard" class="spa-view" aria-labelledby="dashboard-title" hidden>
-            <header class="view-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;">
-                <div>
-                    <h1 id="dashboard-title">¿Qué clase preparamos hoy?</h1>
-                    <p>Elegí un tema de tu materia para armar tus diapositivas y guías pedagógicas al instante.</p>
-                </div>
-                <button id="btn-open-claim-modal" class="btn-secondary" style="font-size: 0.95rem; padding: 12px 20px;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <line x1="12" y1="8" x2="12" y2="16"></line>
-                        <line x1="8" y1="12" x2="16" y2="12"></line>
-                    </svg>
-                    <span>Reclamar / Gestionar Materias</span>
-                </button>
-            </header>
+        <section class="diagram-card">
+            <h2>2. Modelo Relacional Normalizado (DLR / 3NF)</h2>
+            <p>Esquema de datos en Google Sheets: catálogo desacoplado y tabla de unión para asignaciones docentes.</p>
+            <pre class="mermaid">
+erDiagram
+    DOCENTES ||--o{ ASIGNACIONES_DOCENTE : "tiene asignada"
+    MATERIAS ||--o{ ASIGNACIONES_DOCENTE : "es asignada a"
+    MATERIAS ||--o{ TEMAS : "contiene"
+    DOCENTES ||--o{ HISTORIAL_PRESENTACIONES : "genera"
+    TEMAS ||--o{ HISTORIAL_PRESENTACIONES : "referencia"
 
-            <div class="dashboard-grid">
-                <!-- Tarjetas de materias de demostración (se reemplazan dinámicamente) -->
-                <article class="subject-card">
-                    <div class="subject-header">
-                        <span class="badge">1er Año</span>
-                        <h2>Análisis Matemático I</h2>
-                    </div>
-                    <div class="subject-body">
-                        <p>Conceptos clave sobre el cálculo de una sola variable.</p>
-                        <h3>Temas del programa:</h3>
-                        <ul class="topic-list">
-                            <li>
-                                <span>Límites y Continuidad</span>
-                                <button class="btn-select-topic" data-materia="Análisis Matemático I"
-                                    data-tema="Límites y Continuidad" data-link="">Preparar Clase</button>
-                            </li>
-                        </ul>
-                    </div>
-                </article>
-            </div>
+    DOCENTES {
+        string legajo PK
+        string dni UK
+        string nombre
+        string email
+        string estado
+        datetime fecha_alta
+    }
+
+    MATERIAS {
+        string id_materia PK
+        string codigo_plan
+        string nombre
+        string nivel
+        string departamento
+        string descripcion
+        boolean activa
+    }
+
+    ASIGNACIONES_DOCENTE {
+        string id_asignacion PK
+        string legajo_docente FK
+        string id_materia FK
+        string rol_cargo
+        string comision
+        string ciclo_lectivo
+        datetime fecha_asignacion
+    }
+
+    TEMAS {
+        string id_tema PK
+        string id_materia FK
+        int orden_unidad
+        string nombre_tema
+        string descripcion
+        string url_apunte_rag
+        boolean activo
+    }
+
+    HISTORIAL_PRESENTACIONES {
+        string id_historial PK
+        string legajo_docente FK
+        string id_tema FK
+        string url_slides
+        string estado_generacion
+        datetime fecha_creacion
+    }
+</pre>
         </section>
 
-        <!-- 
-          FASE 2.5: VISTA DE HISTORIAL
-        -->
-        <section id="view-historial" class="spa-view" aria-labelledby="historial-title" hidden>
-            <header class="view-header">
-                <h1 id="historial-title">Historial de Clases</h1>
-                <p>Acá podés ver y acceder a todas las presentaciones que generaste previamente.</p>
-            </header>
+        <section class="diagram-card">
+            <h2>3. Flujo Funcional del Docente</h2>
+            <p>El recorrido completo: ingreso, configuración, generación y exportación en menos de 6 clics.</p>
+            <pre class="mermaid">
+sequenceDiagram
+    participant P as Profesor (50+)
+    participant S as SPA (script.js)
+    participant G as GAS (app.md)
+    participant V as Vercel (api/gemini.js)
+    participant M as Gemini API
 
-            <div class="historial-grid" id="historial-grid">
-                <!-- Se llena dinámicamente desde script.js -->
-                <div class="empty-state" role="status">
-                    <p>Cargando historial...</p>
-                </div>
-            </div>
+    P->>S: Ingresa Legajo + DNI
+    S->>G: validarDocente (rate-limit + lockout)
+    G-->>S: Token efímero + Dashboard (caché 1h)
+    P->>S: Elige Materia y Tema (2 clics)
+    P->>S: Instrucciones de clase (opcional)
+    S->>G: obtenerContextoTema (RAG caché 6h)
+    S->>V: generarClaseIA (Structured Outputs)
+    V->>M: Prompt pedagógico 7 momentos
+    M-->>V: JSON 7 slides + plan + notas
+    V-->>S: Clase generada (fallback GAS si 405)
+    P->>S: "Guardar en Google Slides"
+    S->>G: exportarAGoogleSlides (LockService)
+    G->>G: Crea Slides + Notas de Orador
+    G-->>S: URL de la presentación
+    S-->>P: Modal éxito + Link directo
+</pre>
         </section>
 
-        <!-- 
-          FASE 3: VISTA DE CONTENIDOS GENERADOS (CORE IA VISTA DOCENTE)
-        -->
-        <section id="view-generator" class="spa-view" aria-labelledby="generator-title" hidden>
-
-            <!-- Ruta de navegación simple -->
-            <nav aria-label="Ruta de navegación" class="breadcrumb-nav">
-                <ol>
-                    <li><a href="#dashboard" id="btn-back-dashboard">Inicio</a></li>
-                    <li id="breadcrumb-subject" aria-current="page">Materia Seleccionada</li>
-                    <li id="breadcrumb-topic" aria-current="page">Tema Seleccionado</li>
-                </ol>
-            </nav>
-
-            <header class="view-header">
-                <h1 id="generator-title">Tu material de clase está listo</h1>
-                <p>A continuación tenés las guías didácticas e ideas visuales creadas especialmente para tu aula.</p>
-
-                <div class="action-toolbar">
-                    <button id="btn-export-slides" class="btn-primary">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M2 3h20" />
-                            <path d="M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3" />
-                            <path d="m7 21 5-5 5 5" />
-                        </svg>
-                        Guardar en Google Slides
-                    </button>
-                    <button id="btn-export-pdf" class="btn-secondary">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                            <polyline points="7 10 12 15 17 10" />
-                            <line x1="12" y1="15" x2="12" y2="3" />
-                        </svg>
-                        Descargar Guía (PDF)
-                    </button>
-                </div>
-            </header>
-
-            <div class="generator-content-grid">
-
-                <!-- SECCIÓN A: Ideas de Búsqueda -->
-                <section class="content-section" aria-labelledby="title-section-a">
-                    <h2 id="title-section-a">A. Enfoques sugeridos para abordar el tema</h2>
-                    <p class="section-desc">Ideas y orientaciones didácticas de apoyo alineadas con los contenidos
-                        universitarios.</p>
-                    <div class="code-blocks">
-                        <!-- Se llena dinámicamente -->
-                    </div>
-                </section>
-
-                <!-- SECCIÓN B: Plan de Trabajo de la Clase -->
-                <section class="content-section" aria-labelledby="title-section-b">
-                    <h2 id="title-section-b">B. Organización de la Clase</h2>
-                    <div class="plan-details">
-                        <p><strong>Tiempo estimado:</strong> 2 horas cátedra (90 minutos netos).</p>
-
-                        <h3>Lo que tus alumnos van a aprender hoy:</h3>
-                        <ul>
-                            <!-- Se llena dinámicamente -->
-                        </ul>
-
-                        <h3>Momento a momento en el aula:</h3>
-                        <table class="table-plan">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Momento</th>
-                                    <th scope="col">Duración</th>
-                                    <th scope="col">¿Qué hacemos en clase?</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Se llena dinámicamente -->
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <!-- SECCIÓN C: Contenido de Diapositivas -->
-                <section class="content-section" aria-labelledby="title-section-c">
-                    <h2 id="title-section-c">C. Estructura de diapositivas sugerida</h2>
-                    <p class="section-desc">Textos pensados para facilitar la lectura y comprensión visual de los
-                        alumnos.</p>
-
-                    <div class="slides-grid">
-                        <!-- Se llena dinámicamente -->
-                    </div>
-                </section>
-
-                <!-- SECCIÓN D: Ideas para Ilustraciones o Gráficos -->
-                <section class="content-section" aria-labelledby="title-section-d">
-                    <h2 id="title-section-d">D. Ideas para imágenes de apoyo</h2>
-                    <p class="section-desc">Sugerencias visuales y descripciones útiles para enriquecer tus diapositivas
-                        o tu pizarra.</p>
-
-                    <div class="prompt-list">
-                        <!-- Se llena dinámicamente -->
-                    </div>
-                </section>
-
-            </div>
+        <section class="diagram-card">
+            <h2>4. Hoja de Ruta (Roadmap Alpha 0.5)</h2>
+            <p>Los 4 sprints planificados desde la auditoría (PLAN_ALPHA_5.md).</p>
+            <pre class="mermaid">
+flowchart LR
+    A["Sprint A<br/>Blindaje<br/>(Seguridad)"] --> B["Sprint B<br/>Configurador de Clase<br/>(Personalización)"]
+    B --> C["Sprint C<br/>Fiabilidad & UX Docente"]
+    C --> D["Sprint D<br/>Distribución & Telemetría<br/>(clasp, audit log)"]
+    D -.-> E["Fase 2 Beta<br/>Auth Microsoft Entra ID"]
+</pre>
         </section>
 
     </main>
 
-    <!-- ==========================================
-         MODALES DE INTERACCIÓN (ESTILO iOS 26)
-         ========================================== -->
-
-    <!-- Ventana de Espera (Carga) -->
-    <dialog id="modal-loader" aria-labelledby="loader-title">
-        <div class="loader-content">
-            <div class="spinner-wrapper">
-                <svg class="spinner" viewBox="0 0 50 50">
-                    <circle class="path" cx="25" cy="25" r="20" fill="none" stroke="#007AFF" stroke-width="4.5">
-                    </circle>
-                </svg>
-                <div class="pulse-sphere"></div>
-            </div>
-            <h2 id="loader-title">Preparando materiales...</h2>
-            <p>Buscando el mejor enfoque pedagógico. Por favor, esperá unos segundos.</p>
-        </div>
-    </dialog>
-
-    <!-- Ventana de Éxito -->
-    <dialog id="modal-success" aria-labelledby="success-title">
-        <div class="dialog-content">
-            <!-- Icono de Check estilo iOS en SVG -->
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" width="60" height="60"
-                style="margin: 0 auto; display: block;">
-                <circle cx="26" cy="26" r="25" fill="#34C759" />
-                <path d="M16 26 L23 33 L36 18" stroke="white" stroke-width="5" fill="none" stroke-linecap="round"
-                    stroke-linejoin="round" />
-            </svg>
-            <h2 id="success-title">¡Todo Listo!</h2>
-            <p>Tu presentación ya se guardó correctamente en tu cuenta institucional.</p>
-            <div class="dialog-actions">
-                <a href="#" id="link-open-slides" target="_blank" rel="noopener noreferrer" class="btn-primary">Abrir
-                    presentación en Google Slides</a>
-                <button id="btn-close-success" class="btn-secondary">Volver</button>
-            </div>
-        </div>
-    </dialog>
-
-    <!-- Ventana de Reclamar / Gestionar Materias -->
-    <dialog id="modal-reclamar" aria-labelledby="reclamar-title" style="max-width: 700px; width: 90%;">
-        <div class="dialog-content" style="text-align: left;">
-            <h2 id="reclamar-title" style="margin-bottom: 6px;">Plan de Estudios — Oferta Académica</h2>
-            <p style="margin-bottom: 20px;">Marque las materias que dicta para agregarlas a su perfil activo.</p>
-            
-            <div id="catalog-container" style="max-height: 400px; overflow-y: auto; padding-right: 10px; margin-bottom: 20px;">
-                <!-- Se llena dinámicamente -->
-            </div>
-
-            <div class="dialog-actions" style="justify-content: flex-end; gap: 10px;">
-                <button id="btn-reclamar-confirm" class="btn-primary">Guardar en Mi Perfil</button>
-                <button id="btn-reclamar-cancel" class="btn-secondary">Cancelar</button>
-            </div>
-        </div>
-    </dialog>
-
-    <!-- Ventana de Contexto Personalizado (Instrucciones) -->
-    <dialog id="modal-contexto" aria-labelledby="contexto-title">
-        <div class="dialog-content">
-            <h2 id="contexto-title">Instrucciones de clase</h2>
-            <p>Instrucciones especiales para la IA (Ej: Enfocar en práctica, nivel inicial)...</p>
-            <textarea id="textarea-contexto" placeholder="Escribí aquí tus indicaciones..."></textarea>
-            <div class="dialog-actions">
-                <button id="btn-contexto-confirm" class="btn-primary">Confirmar y Generar</button>
-                <button id="btn-contexto-cancel" class="btn-secondary">Volver</button>
-            </div>
-        </div>
-    </dialog>
-
-    <!-- ==========================================
-         FOOTER INSTITUCIONAL
-         ========================================== -->
     <footer role="contentinfo" id="main-footer" class="glass-panel">
-        <div class="footer-container">
-            <div class="footer-column">
-                <h3>Universidad Tecnológica Nacional</h3>
-                <p><strong>Facultad Regional Delta</strong></p>
-                <address>
-                    San Martín 1171, B2804 Campana<br>
-                    Provincia de Buenos Aires, Argentina<br>
-                    Tel: +54 3489 420400
-                </address>
-            </div>
-
-            <div class="footer-column">
-                <h3>Enlaces Útiles</h3>
-                <ul>
-                    <li><a href="https://www.frd.utn.edu.ar/" target="_blank" rel="noopener">Sitio Web Oficial FRD</a>
-                    </li>
-                    <li><a href="https://sysacad.frd.utn.edu.ar/" target="_blank" rel="noopener">Sysacad</a></li>
-                    <li><a href="https://cv.frd.utn.edu.ar/" target="_blank" rel="noopener">Campus Virtual</a></li>
-                </ul>
-            </div>
-
-            <div class="footer-column">
-                <h3>Soporte Técnico</h3>
-                <p>¿Tenés alguna consulta sobre la herramienta?</p>
-                <a href="mailto:sistemas@frd.utn.edu.ar">sistemas@frd.utn.edu.ar</a>
-            </div>
-        </div>
         <div class="footer-bottom">
-            <p>&copy; 2026 UTN Facultad Regional Delta. Diseñado especialmente para nuestros equipos docentes.</p>
+            <p>&copy; 2026 UTN Facultad Regional Delta. Diagramas de referencia técnica de UTNContenidos.</p>
         </div>
     </footer>
 
-    <!-- ==========================================
-         CONTENEDOR DE NOTIFICACIONES TOAST
-         ========================================== -->
-    <div id="toast-container" aria-live="polite" aria-atomic="false"></div>
-
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'base', themeVariables: { primaryColor: '#06a28a', primaryTextColor: '#0f1f1c', primaryBorderColor: '#047a68', lineColor: '#035a4d', fontFamily: 'Inter' } });
+    </script>
 </body>
-<script src="script.js"></script>
 
 </html>
