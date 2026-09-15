@@ -915,13 +915,17 @@ document.addEventListener('DOMContentLoaded', () => {
         // Si el docente no overrideó la URL de teoría, usamos la del temario
         const linkTeoria = configuracion.urlTeoria || temaSeleccionadoActual.linkTeoria;
 
-        // Loader muy cálido y no técnico
-        document.getElementById('loader-title').textContent = "Preparando tus materiales...";
-        document.getElementById('loader-title').nextElementSibling.textContent = "Armando el plan de clase y estructurando tus diapositivas sugeridas.";
+        // Loader muy cálido y no técnico (Sprint C: etapas con feedback)
+        const setLoader = (titulo, detalle) => {
+            document.getElementById('loader-title').textContent = titulo;
+            document.getElementById('loader-title').nextElementSibling.textContent = detalle;
+        };
+        setLoader("Preparando tus materiales...", "Armando el plan de clase y estructurando tus diapositivas sugeridas.");
         modalLoader.showModal();
 
         try {
             // 1. OBTENER CONTEXTO (RAG) DESDE EL BACKEND (Google Apps Script)
+            setLoader("Buscando el material de tu cátedra...", "Estamos leyendo tu apunte oficial de teoría.");
             const respuestaContexto = await callBackend('obtenerContextoTema', {
                 token: sesionToken,
                 linkTeoria
@@ -934,6 +938,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // 2. GENERAR CLASE IA (Estrategia Híbrida: Vercel Serverless con fallback automático a GAS)
             let respuesta = null;
 
+            setLoader("Generando tu clase con IA...", "Esto puede tardar unos segundos. Estamos armando el plan y las diapositivas.");
             try {
                 const responseGemini = await fetch('/api/gemini', {
                     method: 'POST',
@@ -1194,6 +1199,22 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    // --- 8b. ACCESIBILIDAD: enfoque inicial en los dialogs (Sprint C) ---
+    // Al abrir cada dialog, movemos el foco al primer campo/acción útil.
+    const primerCampoDe = (id) => {
+        const modal = document.getElementById(id);
+        if (!modal) return;
+        const modalOriginalShow = modal.showModal;
+        modal.showModal = function () {
+            modalOriginalShow.call(this);
+            const focusable = modal.querySelector('input, select, textarea, button:not([hidden])');
+            if (focusable) setTimeout(() => focusable.focus(), 50);
+        };
+    };
+    // Devolvemos el foco al botón que abrió el modal al cerrarse (los <dialog> nativos
+    // ya lo hacen automáticamente, esto refuerza para el caso de select/textarea).
+    ['modal-contexto', 'modal-reformular', 'modal-editar', 'modal-reclamar'].forEach(primerCampoDe);
 
     // --- 8. REINICIO DE SESIÓN ACTIVA ---
     const tokenGuardado = sessionStorage.getItem('utn_token');

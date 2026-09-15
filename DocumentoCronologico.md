@@ -257,6 +257,24 @@ Cada tarjeta tiene ahora su botón **"✏️ Editar contenido"** (incluso la por
 
 **Lo que cierra (Espiral 4):** el **cierre del flujo completo** — plantillas con nombre, verificación del recorrido en menos de 6 clics y el checklist de QA del Sprint B.
 
+## **El 15 de septiembre — "El Sprint C: pulir lo que ya funciona"**
+
+Con el configurador aprobado y en producción, el siguiente paso fue la **fiabilidad** (Sprint C): no sumar funciones nuevas, sino hacer que las que ya existen no fallen ni frustren al docente.
+
+| Cambio | Archivo | Para qué |
+| :---- | :---- | :---- |
+| **Portada robusta en Google Slides** | `app.md` | Antes la portada dependía de que la plantilla en blanco trajera recuadros de título; si no los traía, quedaba una slide azul vacía. Ahora el título y el subtítulo se **crean siempre** (textos autoajustados) y nunca más queda una portada en blanco. |
+| **Imágenes con límite de espera** | `app.md` | Cada imagen tiene máximo 6 segundos para descargarse. Si el servicio de imágenes está lento o caído, la diapositiva se arma igual sin esa imagen en vez de trabar todo el export. |
+| **Temperatura unificada** | `app.md` y `api/gemini.js` | La IA ahora responde con el mismo nivel de creatividad en los dos caminos (Vercel y GAS), así el resultado es consistente. |
+| **Carga por etapas** | `script.js` | El mensaje de espera cambia según el paso: "Buscando el material de tu cátedra..." y luego "Generando tu clase con IA...". El profesor siempre sabe en qué etapa está. |
+| **Enfoque accesible en las ventanas** | `script.js` | Al abrir cada ventana, el cursor se coloca automáticamente en el primer campo. Menos clics y más claro para los docentes de 50+. |
+
+También se actualizó el backend en Google Apps Script con una **nueva dirección de Web App** (la anterior cambió al volver a publicar), ya conectada en el frontend y verificada en vivo: responde correctamente y mantiene activo el blindaje del Sprint A.
+
+*Por qué en este orden:* primero se arma la funcionalidad completa (Sprint A y B), y recién después se pule la estabilidad (Sprint C). Un sistema que funciona a medias no sirve, pero tampoco sirve uno que funciona perfecto a veces y se cae de golpe: la fiabilidad es lo que hace que un docente confíe en usarla delante de sus alumnos.
+
+**Lo que viene (Sprint D):** distribución y telemetría — versionar el backend con `clasp` para que el código del repo y el de producción nunca se desincronicen, un registro de eventos (audit log) en la planilla y un checklist de despliegue documentado.
+
 ## **El 8 de septiembre (sexta parte) — "El Sprint B, Espiral 4: plantillas con nombre y cierre"**
 
 La cuarta y última vuelta del espiral cerró el Sprint B con el detalle que convierte al configurador en una herramienta personal: **plantillas con nombre**.

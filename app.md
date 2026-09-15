@@ -409,33 +409,46 @@ function exportarAGoogleSlides(token, materiaId, materiaNombre, temaNombre, dato
     const tituloPresentacion = `UTN FRD - ${temaNombre || datosClase.slides[0].titulo}`;
     const presentacion = SlidesApp.create(tituloPresentacion);
 
-    // 2. Llenar la Portada (Slide 0)
+    // 2. PORTADA ROBUSTA (Sprint C): construimos los shapes explícitamente
+    // para no depender de que la plantilla en blanco traiga placeholders.
     const slides = presentacion.getSlides();
     const portada = slides[0];
     portada.getBackground().setSolidFill('#0A2540'); // Azul espacial profundo UTN
 
-    let shapesPortada = portada.getShapes();
-    if (shapesPortada.length >= 2) {
-      // Título principal blanco
-      let shapeTitulo = shapesPortada[0];
-      shapeTitulo.getText().setText(datosClase.slides[0].titulo || temaNombre);
-      shapeTitulo.getText().getTextStyle()
+    // Limpiamos shapes previos (si la plantilla trajera alguno) para partir de cero
+    portada.getShapes().forEach(s => s.remove());
+
+    const portadaData = datosClase.slides[0] || {};
+    const txtPortada = String(portadaData.titulo || temaNombre || 'Clase').slice(0, 120);
+    const subPortada = String(portadaData.subtitulo || `${materiaNombre || 'Cátedra UTN'} | Facultad Regional Delta`).slice(0, 200);
+
+    // Título principal (blanco, grande, centrado)
+    try {
+      const tituloBox = portada.insertTextBox(txtPortada, 60, 150, 660, 140);
+      tituloBox.getText().getTextStyle()
         .setForegroundColor('#FFFFFF')
         .setFontSize(36)
         .setBold(true);
+      tituloBox.setAutofit(SlidesApp.AutofitType.SHAPE); // autoajusta para títulos largos
+    } catch (ePortada) {
+      console.warn("No se pudo crear el título de portada: " + ePortada);
+    }
 
-      // Subtítulo institucional celeste/plata
-      let shapeSub = shapesPortada[1];
-      shapeSub.getText().setText(`${materiaNombre || 'Cátedra UTN'} | Facultad Regional Delta\nUniversidad Tecnológica Nacional`);
-      shapeSub.getText().getTextStyle()
+    // Subtítulo institucional (celeste/plata)
+    try {
+      const subBox = portada.insertTextBox(subPortada, 60, 330, 660, 80);
+      subBox.getText().getTextStyle()
         .setForegroundColor('#94A3B8')
         .setFontSize(18);
+      subBox.setTextAlignment(SlidesApp.TextAlignment.START);
+    } catch (eSub) {
+      console.warn("No se pudo crear el subtítulo de portada: " + eSub);
     }
 
     // Notas de orador de la portada
-    if (datosClase.slides[0].notasOrador) {
+    if (portadaData.notasOrador) {
       try {
-        portada.getNotesPage().getSpeakerNotesShape().getText().setText("🎙️ GUÍA DOCENTE:\n" + datosClase.slides[0].notasOrador);
+        portada.getNotesPage().getSpeakerNotesShape().getText().setText("🎙️ GUÍA DOCENTE:\n" + portadaData.notasOrador);
       } catch (e) {
         console.warn("No se pudo agregar nota de orador a portada: " + e);
       }
@@ -469,11 +482,15 @@ function exportarAGoogleSlides(token, materiaId, materiaNombre, temaNombre, dato
       }
 
       // Inserción de Imagen HD de Cátedra mediante UrlFetchApp
+      // (Sprint C: timeout + fallback elegante si el servicio de imágenes está lento/caído)
       if (slideData.imagenKeyword) {
         try {
           const kwClean = encodeURIComponent(slideData.imagenKeyword.trim());
           const imgUrl = "https://image.pollinations.ai/prompt/professional%20hd%20engineering%20photo%20" + kwClean + "?width=800&height=450&nologo=true&seed=" + (i + 100);
-          const responseImg = UrlFetchApp.fetch(imgUrl, { muteHttpExceptions: true });
+          const responseImg = UrlFetchApp.fetch(imgUrl, {
+            muteHttpExceptions: true,
+            timeout: 6000 // máx 6 seg por imagen para no trabar todo el export
+          });
           if (responseImg.getResponseCode() === 200) {
             const blob = responseImg.getBlob();
             const imgShape = nuevaSlide.insertImage(blob);
@@ -481,9 +498,11 @@ function exportarAGoogleSlides(token, materiaId, materiaNombre, temaNombre, dato
             imgShape.setTop(115);
             imgShape.setWidth(260);
             imgShape.setHeight(180);
+          } else {
+            console.warn("Imagen no disponible (HTTP " + responseImg.getResponseCode() + ") para slide " + i + ". Slide sin imagen.");
           }
         } catch (eImg) {
-          console.warn("No se pudo descargar la imagen para la slide " + i + ": " + eImg);
+          console.warn("No se pudo descargar la imagen para la slide " + i + " (fallback: slide sin imagen): " + eImg);
         }
       }
 
@@ -861,7 +880,7 @@ function generarClaseConGeminiGAS(token, materia, tema, textoOficial, contextoDi
       }],
       generationConfig: {
         responseMimeType: "application/json",
-        temperature: 0.3
+        temperature: 0.2
       }
     };
 
@@ -952,7 +971,7 @@ Respondé ÚNICAMENTE con un JSON puro (sin bloques markdown) con el MISMO forma
       contents: [{ parts: [{ text: userPrompt }] }],
       generationConfig: {
         responseMimeType: "application/json",
-        temperature: 0.3
+        temperature: 0.2
       }
     };
 

@@ -168,18 +168,15 @@ El corazón de la personalización. Reemplaza la cajita de texto única por un *
 | **B-F4** | **Reutilizar del historial** (botón que recarga la configuración original). |
 | **B-F5** | **Enviar por email** vía `MailApp` GAS (contacto del docente + link del drive). |
 
-### 🛠️ Sprint C — FIABILIDAD & UX DOCENTE (α0.5.3)
+### 🛠️ Sprint C — FIABILIDAD & UX DOCENTE (α0.5.3) [COMPLETADO]
 
 | ID | Tarea |
 |----|-------|
-| **C-F1** | Fix **D1** (índice de fecha en historial) y **D3** (guardar `idMateria` real, no nombre). |
-| **C-F2** | Unificar `revalidarSesionConDashboard` con el modelo relacional (**D2**). |
-| **C-F3** | Truncado unificado del RAG a 15.000 chars (**D4**) + tope en `contextoDinamico`. |
-| **C-F4** | Refactor de portada en Slides: construir shapes explícitos (**D5**). |
-| **C-F5** | Sanitizar `href` de `urlSlides` (**A5**) y sanitizar salida del PDF. |
-| **C-F6** | Imágenes: intento en paralelo limitado + fallback a "sin imagen" si `pollinations` responde lento (timeout 6s). |
-| **C-F7** | Pasaje de datos completos del tema (id, descripción, contexto) en el dashboard (**M4**). |
-| **C-F8** | Loaders por etapa ("Buscando teoría… · Generando plan… · Creando slides…") y foco accesible en dialogs (**M3**). |
+| **C-F4** | ✅ Portada robusta: se construyen los shapes explícitamente (insertTextBox) sin depender de la plantilla; autofit para títulos largos; caps 120/200. |
+| **C-F6** | ✅ Imágenes con timeout (6s) + fallback elegante (slide sin imagen si pollinations cae o responde !=200). |
+| **C-F2/B1** | ✅ Temperatura unificada a 0.2 en GAS y Vercel. |
+| **C-F8** | ✅ Loaders por etapa ("Buscando material...", "Generando tu clase...") + foco inicial automático en dialogs. |
+| C-F7 | Datos del tema: IDs relacionales ya se pasan (Sprint B). Descripción/contexto en modal = mejora menor futura. |
 
 ### 🚀 Sprint D — DISTRIBUCIÓN & TELEMETRÍA (α0.5.4)
 
