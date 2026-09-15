@@ -164,9 +164,21 @@ erDiagram
 
 ---
 
-## 📋 Backlog Técnico Priorizado
+## 📊 Estado Consolidado (panorama rápido)
 
-| Estado | ID | Tarea | Esfuerzo | Sprint |
+**Versión en producción:** α0.5.6 · `https://utncontenidos.vercel.app` · repo `github.com/juanmamerodio/UTNContenidos` (main)
+
+| Área | Estado |
+|------|--------|
+| Sprint A (Blindaje) | ✅ COMPLETO — rate-limit, CSP, LockService, payload caps, anti-injection, debugSheetData gated, Cache-Control |
+| Sprint B (Configurador) | ✅ COMPLETO — 4 espirales: contrato → reformular → editar → plantillas |
+| QA + Prueba del Hombre | ✅ APROBADO (16/16 tests + prof 65 años) |
+| Deploy producción | ✅ En vivo y verificado |
+| Sprint C (Fiabilidad UX) | 🔲 Pendiente |
+| Sprint D (Distribución) | 🔲 Pendiente (clasp, audit log, checklist deploy) |
+| Fase 2 (Auth Microsoft Entra) | 📋 Documentada en `WALKTHROUGH_FASE2.md` |
+
+## 📋 Backlog Técnico Priorizado| Estado | ID | Tarea | Esfuerzo | Sprint |
 |--------|----|-------|----------|--------|
 | ✅ Completado | T1 | **Warmup Trigger GAS** (función `mantenerCaliente` agregada en `app.js`) | 15 min | S1 |
 | ✅ Completado | T2 | **CORS restrictivo** en `api/gemini.js` (dominios autorizados Vercel/Local) | 10 min | S1 |
@@ -225,4 +237,5 @@ erDiagram
 | 2026-09-08 | **QA Sprint B + Prueba del Hombre (α0.5.6):** QA técnico automatizado 16/16 PASS (contrato configuracion, caps slides 5-20, plantillas con nombre, parseo tolerante, sanitización URLs). Prueba simulada con docente de matemáticas de 65 años: APROBADO. Quick wins aplicados: slider de slides con número grande prominente + micro-ayudas (`title`) en selects del configurador. |
 | 2026-09-08 | **DEPLOY a producción BLOQUEADO por credenciales:** Vercel CLI 50.39.0 instalado pero el token no es válido. Requiere `vercel login` manual del usuario (interactivo) antes de `vercel --prod`. Repo no es git (no hay `.git`). |
 | 2026-09-15 | **DEPLOY A PRODUCCIÓN REALIZADO (α0.5.6):** Repo conectado a `https://github.com/juanmamerodio/UTNContenidos` (rama `main`). Push de todo el Sprint A+B + QA. **Incidente resuelto:** el `git merge -X theirs` pisó el working tree con la versión vieja del remoto (fast-forward) → se restauró desde `5d1de48` y se re-deployó. **Lección:** con `--allow-unrelated-histories` no usar `-X theirs`; restaurar con `git checkout <commit> -- .` y commit limpio. Producción `https://utncontenidos.vercel.app` verificado: CSP, configurador, modal-editar y reformular OK. Verificación por archivo descargado (no por pipe de curl en PowerShell, que corta el body a 577 chars). |
+| 2026-09-15 | **CAUSA RAIZ del error de deploy (aclaración):** NO fue sincronización Vercel↔GitHub. Fue `git merge --allow-unrelated-histories -X theirs` que, al ser historias distintas, marcó cada archivo como conflicto y tomó la versión del remoto (vieja), pisando el working tree local. Vercel solo LEE de GitHub y auto-deploya; no "copia" nada al revés. La restauración correcta fue `git checkout <mi_commit> -- .` + commit limpio + `vercel --prod`. |
 
