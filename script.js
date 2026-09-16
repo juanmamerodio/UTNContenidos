@@ -6,15 +6,20 @@
  */
 
 // CONFIGURACIÓN: URL de la Web App de Google Apps Script (Backend)
-// Podés hardcodear la URL aquí o establecerla dinámicamente en la consola con:
-// localStorage.setItem('utn_gas_api_url', 'https://script.google.com/macros/s/.../exec')
+// La constante es la fuente de verdad de producción. Si quedó una URL vieja
+// guardada en localStorage (de un deployment anterior), la descartamos: cada
+// vez que se republica el Apps Script, las URLs viejas quedan desactivadas y
+// provocan "Failed to fetch" en el login.
 const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxZ_smpiPkuYUoumB4cWPHuzHICybGFhB8h8-X_3MSrMeThUD__vwvChrvyreU6JxF9/exec"
 
 /**
  * Realiza llamadas HTTP POST al backend en Google Apps Script
  */
 async function callBackend(action, data = {}) {
-    const url = localStorage.getItem('utn_gas_api_url') || GAS_API_URL;
+    // Usamos SIEMPRE la URL del código; un override viejo en localStorage
+    // apunta a un Web App desactivado y rompe todo el flujo.
+    const url = GAS_API_URL;
+    try { localStorage.removeItem('utn_gas_api_url'); } catch (e) { /* no crítico */ }
 
     if (!url || url.includes('XXXXXXXXXXXXXXXXXXXX')) {
         const errorMsg = "Falta configurar la URL del Web App de Google Apps Script (GAS_API_URL en script.js).";
@@ -24,11 +29,14 @@ async function callBackend(action, data = {}) {
 
     const payload = { action, ...data };
 
+    console.log("Backend URL:", url);
+    console.log("Payload:", payload);
+
     const response = await fetch(url, {
         method: "POST",
         mode: "cors",
         headers: {
-            "Content-Type": "text/plain;charset=utf-8" // Evita OPTIONS preflight complejo en Apps Script
+            "Content-Type": "text/plain;charset=utf-8"
         },
         body: JSON.stringify(payload)
     });
