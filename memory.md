@@ -12,6 +12,17 @@
 | 2026-08-07 | **`gemini-3.1-flash-lite` ES un modelo válido** de la Gemini API para API Key. El análisis inicial lo marcó como incorrecto — estaba equivocado. El modelo está bien configurado en `api/gemini.js`. |
 | 2026-08-07 | **El login tarda 12 segundos reales** en producción. Confirmado por el usuario. Causa raíz auditada en `app.js`. |
 
+## 📝 Feedback del Usuario — 2026-09-15 (pendientes α0.6)
+
+| # | Problema reportado | Solución |
+|---|-------------------|----------|
+| 1 | El profesor **no puede agregar temas** en "Temas del programa" por materia | Nueva acción GAS `agregarTema` + botón "＋ Agregar tema" en el dashboard + modal |
+| 2 | Historial pobre: sin distintivo de uso, sin carpetas, sin reabrir contenido, sin auto-limpieza | Badge de estado (usado/no usado), carpetas, botón "Reabrir clase" (guarda `datosClase` JSON), auto-archivado >15 días (estado "ARCHIVADO") |
+| 3 | Confusión: ¿la IA la llama `app.md` o `api/gemini.js`? Y personalizar no cambia la salida | Aclarar arquitectura híbrida + reforzar impacto de la config (enforce numSlides + bloque de estilo) |
+| 4 | Las plantillas NO están en ninguna BD (solo localStorage) | Nueva hoja `Plantillas` (3NF) + acciones GAS `guardarPlantilla`/`obtenerPlantillas`/`borrarPlantilla` |
+| 5 | Diagramas desactualizados | Actualizar `diagramas.html` (ER con Plantillas + Historial enriquecido) y `memory.md` ER |
+| 6 | Pantalla de personalización "fea" | Rediseño minimalista iOS 27 + sin scrollbar en el modal configurador |
+
 ---
 
 ## 🏛️ Decisiones de Arquitectura Permanentes
@@ -200,7 +211,9 @@ erDiagram
 | ✅ Completado | B-E4 | **Sprint B Espiral 4 — Plantillas con nombre + Cierre** (`localStorage.utn_plantillas` objeto nombre→config, selector + guardar/cargar/borrar con try/catch, `refrescarSelectorPlantillas`) | ~3h | B |
 | 🔲 Pendiente | C-F4→C-F8 | **Sprint C — Fiabilidad UX** (portada Slides robusta, imágenes con fallback, datos completos dashboard, loaders por etapa) | ~5h | C |
 | ✅ Completado | C-F4/C-F6/C-F8 | **Sprint C — Fiabilidad UX (α0.5.7):** Portada robusta (shapes explícitos + autofit), imágenes con timeout 6s + fallback, temperatura unificada 0.2, loaders por etapa + foco accesible en dialogs | ~4h | C |
+| ✅ Completado | α0.6-F1→F6 | **Sprint α0.6 — Feedback del Usuario (2026-09-15):** (1) `agregarTema` GAS + modal + botón en dashboard; (2) historial con distintivo (reciente/usado/archivado>15d), carpeta (`actualizarHistorial`), reabrir clase (`datosClase` JSON col I); (3) enforcement de numSlides con retry correctivo en GAS; (4) hoja `Plantillas` 3NF + `guardarPlantilla`/`obtenerPlantillas`/`borrarPlantilla` con sync localStorage+BD; (5) diagramas actualizados (ER con Plantillas + secuencia); (6) configurador rediseñado iOS 27 minimal (chips, pills, details, sin scrollbar) | ~8h | α0.6 |
 | 🔲 Pendiente | D-F1→D-F4 | **Sprint D — Distribución** (clasp, checklist deploy, audit log Sheets, OAuth Microsoft Entra) | ~4h+ | D |
+| 🔲 Pendiente | α0.6-F1→F6 | **Sprint α0.6 — Feedback del usuario** (agregar temas, historial con carpetas/estado/reabrir, enforce config IA, plantillas en BD, diagramas, UI minimalista) | ~6h | α0.6 |
 
 ---
 
@@ -242,4 +255,5 @@ erDiagram
 | 2026-09-15 | **Nuevo deployment GAS + Sprint C (α0.5.7):** El usuario actualizó manualmente el Apps Script (app.md = app.gs) y se generó NUEVA URL Web App (`AKfycbxZ_smpiPku...`) — actualizada en `script.js` y pusheada. Endpoint verificado (HTTP 200 + gate `debugSheetData` deshabilitado en prod = blindaje activo). **Sprint C implementado:** portada robusta (shapes explícitos/insertTextBox + autofit), imágenes con timeout 6s y fallback elegante, temperatura unificada a 0.2, loaders por etapa y foco accesible en dialogs. QA 4/4 PASS. |
 | 2026-09-15 | **FIX LOGIN "Failed to fetch" (α0.5.8):** El usuario reportó que el login fallaba con "No pudimos conectar". **Causa raíz:** el navegador tenía la URL vieja del Web App GAS guardada en `localStorage('utn_gas_api_url')`, que `callBackend` priorizaba sobre la constante nueva. Al republicar el Apps Script, la URL vieja queda desactivada → fetch falla. **Fix:** `callBackend` ahora usa SIEMPRE `GAS_API_URL` y limpia el override obsoleto de localStorage. También se agregó `https://cdnjs.cloudflare.com` al `connect-src` de la CSP (warning del sourcemap de html2pdf). Endpoint verificado con request idéntico al navegador → 200 + JSON correcto. |
 | 2026-09-15 | **CAUSA RAIZ REAL del login (α0.5.9):** El log de consola del usuario mostró el error exacto: GAS responde al POST con **302 redirect a `script.googleusercontent.com/macros/echo`** y la CSP bloqueaba ESE dominio (no estaba en `connect-src`) → "Failed to fetch" en Chrome, Edge Y Brave. **Fix doble:** 1) agregar `https://script.googleusercontent.com` al `connect-src` de la CSP; 2) **self-host html2pdf** (`vendor/html2pdf.bundle.min.js`, 906KB local) eliminando la dependencia de cdnjs y el "Tracking Prevention blocked" de Brave/Edge. Verificado con Node (follow redirect): URL final = googleusercontent, status 200, JSON correcto. **Lección:** toda Web App de GAS redirige a googleusercontent; ese dominio SIEMPRE debe estar en connect-src. |
+| 2026-09-15 | **SPRINT α0.6 — FEEDBACK IMPLEMENTADO (v6):** (1) **Agregar tema**: `agregarTema` en GAS (hoja Temas DLR, LockService, orden auto) + modal `modal-nuevo-tema` + botón "＋ Agregar tema" en cada card del dashboard. (2) **Historial rico**: distintivo por estado (verde=reciente, azul=usado, gris=archivado +15 días), botón "↩ Reabrir clase" (`datosClase` guardado en col I del historial, `actualizarHistorial`), botón "📁 Agregar a carpeta" (col H). (3) **Enforcement config IA**: si Gemini no respeta `numSlides`, `intentarCorregirCantidadSlides` hace retry correctivo + flag `configuracionAplicada`. (4) **Plantillas en BD**: nueva hoja `Plantillas` (3NF: ID, Legajo, Nombre, Config, Fecha) + acciones `guardarPlantilla`/`obtenerPlantillas`/`borrarPlantilla`; frontend con sync localStorage↔BD. (5) **Diagramas**: `diagramas.html` actualizado (ER con PLANTILLAS + campos carpeta/datosClase + secuencia completa). (6) **UI iOS 27**: configurador minimalista (pills, chips, details colapsables, sin scrollbar, botón ✕ circular). QA 7/7 PASS. Pendiente humano: desplegar nuevo app.gs en GAS (acciones nuevas) + confirmar |
 

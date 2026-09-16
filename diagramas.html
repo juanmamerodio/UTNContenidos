@@ -87,6 +87,7 @@ erDiagram
     MATERIAS ||--o{ TEMAS : "contiene"
     DOCENTES ||--o{ HISTORIAL_PRESENTACIONES : "genera"
     TEMAS ||--o{ HISTORIAL_PRESENTACIONES : "referencia"
+    DOCENTES ||--o{ PLANTILLAS : "guarda"
 
     DOCENTES {
         string legajo PK
@@ -134,6 +135,16 @@ erDiagram
         string url_slides
         string estado_generacion
         datetime fecha_creacion
+        string carpeta
+        string datos_clase_json
+    }
+
+    PLANTILLAS {
+        string id_plantilla PK
+        string legajo_docente FK
+        string nombre
+        string configuracion_json
+        datetime fecha_creacion
     }
 </pre>
         </section>
@@ -152,18 +163,26 @@ sequenceDiagram
     P->>S: Ingresa Legajo + DNI
     S->>G: validarDocente (rate-limit + lockout)
     G-->>S: Token efímero + Dashboard (caché 1h)
+    P->>S: (Opcional) ＋ Agregar tema a una materia
+    S->>G: agregarTema (LockService)
+    G-->>S: Tema persistido en hoja Temas
     P->>S: Elige Materia y Tema (2 clics)
-    P->>S: Instrucciones de clase (opcional)
+    P->>S: Configurador iOS 27 (todo opcional)
+    S->>G: obtenerPlantillas (hoja Plantillas BD)
+    P->>S: Personaliza / guarda plantilla
     S->>G: obtenerContextoTema (RAG caché 6h)
-    S->>V: generarClaseIA (Structured Outputs)
-    V->>M: Prompt pedagógico 7 momentos
-    M-->>V: JSON 7 slides + plan + notas
+    S->>V: generarClaseIA (Structured Outputs + config)
+    V->>M: Prompt pedagógico + configuración
+    M-->>V: JSON N slides + plan + notas
     V-->>S: Clase generada (fallback GAS si 405)
     P->>S: "Guardar en Google Slides"
     S->>G: exportarAGoogleSlides (LockService)
-    G->>G: Crea Slides + Notas de Orador
+    G->>G: Crea Slides + Notas de Orador + registra historial
     G-->>S: URL de la presentación
     S-->>P: Modal éxito + Link directo
+    P->>S: Historial (reciente/usado/archivado +15d)
+    P->>S: "↩ Reabrir clase" (datosClase) / "📁 Carpeta"
+    S->>G: actualizarHistorial (carpeta + datosClase)
 </pre>
         </section>
 
@@ -175,7 +194,8 @@ flowchart LR
     A["Sprint A<br/>Blindaje<br/>(Seguridad)"] --> B["Sprint B<br/>Configurador de Clase<br/>(Personalización)"]
     B --> C["Sprint C<br/>Fiabilidad & UX Docente"]
     C --> D["Sprint D<br/>Distribución & Telemetría<br/>(clasp, audit log)"]
-    D -.-> E["Fase 2 Beta<br/>Auth Microsoft Entra ID"]
+    D --> F["α0.6 Feedback<br/>Agregar temas · Historial rico<br/>Plantillas BD · UI iOS 27"]
+    F -.-> E["Fase 2 Beta<br/>Auth Microsoft Entra ID"]
 </pre>
         </section>
 

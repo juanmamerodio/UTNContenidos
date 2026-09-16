@@ -275,6 +275,23 @@ También se actualizó el backend en Google Apps Script con una **nueva direcci�
 
 **Lo que viene (Sprint D):** distribución y telemetría — versionar el backend con `clasp` para que el código del repo y el de producción nunca se desincronicen, un registro de eventos (audit log) en la planilla y un checklist de despliegue documentado.
 
+## **El 15 de septiembre (segunda parte) — "El sprint del feedback: la plataforma escucha al docente"**
+
+Después de la prueba de campo, llegaron las observaciones del usuario y se convirtieron en el **sprint α0.6**, el primero construido 100% a partir de feedback real. Cada punto se resolvió de punta a punta:
+
+| Observación | Solución |
+| :---- | :---- |
+| **El profesor no podía agregar temas** | Botón "＋ Agregar tema a esta materia" en cada materia + ventana de carga (nombre, descripción, link del apunte). El tema se guarda en la planilla y aparece al instante. |
+| **El historial era pobre** | Cada presentación tiene ahora un **distintivo de estado** (verde = reciente, celeste = usada, gris = archivada después de 15 días), botón **"Reabrir clase"** (vuelve a la pantalla completa del plan de clase para editarla y reexportarla) y botón **"Agregar a carpeta"** para organizarla. |
+| **Personalizar no cambiaba nada** | Se reforzó el motor de IA: si el modelo no respeta la cantidad de diapositivas pedidas, se re-intenta automáticamente hasta lograrlo. La configuración del docente ahora sí se nota en el resultado. |
+| **Las plantillas no estaban en ninguna base de datos** | Se creó la hoja **Plantillas** (modelo relacional) y las plantillas del docente ahora viajan con su cuenta, no solo en su navegador. |
+| **Los diagramas estaban desactualizados** | `diagramas.html` se regeneró con el nuevo modelo de datos (entidad Plantillas, campos carpeta y contenido del historial) y el flujo completo del docente. |
+| **La pantalla de personalización era fea** | Rediseño minimalista estilo iOS 27: opciones en píldoras, momentos en chips, opciones avanzadas plegadas, sin barra de scroll y un botón ✕ circular para cerrar. |
+
+*Por qué este sprint importa:* la diferencia entre una herramienta que se usa una vez y una que se adopta está en estos detalles. Un profesor que puede **cargar su propio tema, guardar su plantilla favorita, encontrar su clase pasada por color y reabrirla para reutilizarla** ya no está probando un prototipo: está usando una herramienta de trabajo.
+
+**Pendiente para el humano:** desplegar el backend actualizado en Google Apps Script (las nuevas acciones de temas, plantillas e historial) para que todo el flujo quede activo en producción.
+
 ## **El 8 de septiembre (sexta parte) — "El Sprint B, Espiral 4: plantillas con nombre y cierre"**
 
 La cuarta y última vuelta del espiral cerró el Sprint B con el detalle que convierte al configurador en una herramienta personal: **plantillas con nombre**.

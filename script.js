@@ -173,6 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let temaSeleccionadoActual = null; // Guardará el tema clickeado temporalmente
     let contextoClaseActual = null;    // IDs relacionales del tema/materia en curso
     let sesionToken = null;            // Token efímero de sesión (sólo esto se persiste)
+    let claseHistorialCache = null;    // Última respuesta del historial (para reabrir clases)
 
     // --- 2. CONTROLADOR DE VISTAS (SPA ROUTER) ---
     const navigateTo = (viewId) => {
@@ -322,6 +323,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const respuesta = await callBackend('obtenerHistorialDocente', { token: sesionToken });
             if (respuesta && respuesta.success) {
+                claseHistorialCache = respuesta.historial;
                 renderizarHistorial(respuesta.historial);
             } else {
                 showNotification('error', "No se pudo cargar el historial.");
@@ -346,20 +348,93 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        historialGrid.innerHTML = historial.map(item => `
+        // Distintivo visual: verde = reciente/activo, celeste = usado, gris = archivado (>15 días)
+        const badges = {
+            nuevo: '<span class="badge" style="background: rgba(6,162,138,0.14); color:#047a68;">● Reciente</span>',
+            usado: '<span class="badge" style="background: rgba(59,130,246,0.14); color:#1d4ed8;">● Usado</span>',
+            archivado: '<span class="badge" style="background: rgba(100,116,139,0.14); color:#475569;">● Archivado (+15 días)</span>'
+        };
+        const diasDesde = (fecha) => Math.max(0, Math.floor((Date.now() - new Date(fecha).getTime()) / 86400000));
+
+        historialGrid.innerHTML = historial.map(item => {
+            const dias = diasDesde(item.fechaCreacion);
+            let estado = 'nuevo';
+            if (dias > 15) estado = 'archivado';
+            else if (item.carpeta && item.carpeta !== '') estado = 'usado';
+
+            const botonReabrir = item.datosClase ? `
+                <button type="button" class="btn-reabrir-clase btn-secondary" data-historial-id="${sanitizeHTML(item.idHistorial)}" style="font-size:0.8rem; padding:8px 12px;">↩ Reabrir clase</button>
+            ` : '';
+            const botonCarpeta = `
+                <button type="button" class="btn-mover-carpeta btn-secondary" data-historial-id="${sanitizeHTML(item.idHistorial)}" data-carpeta-actual="${sanitizeHTML(item.carpeta || '')}" style="font-size:0.8rem; padding:8px 12px;">📁 ${sanitizeHTML(item.carpeta || 'Agregar a carpeta')}</button>
+            `;
+
+            return `
             <article class="subject-card">
                 <div class="subject-header">
                     <h2>${sanitizeHTML(item.temaNombre)}</h2>
+                    <span style="display:inline-block; margin-top:6px;">${badges[estado]}</span>
                 </div>
                 <div class="subject-body">
-                    <p>Materia ID: ${sanitizeHTML(item.materiaId || 'N/A')}</p>
+                    <p>Materia: ${sanitizeHTML(item.materiaId || 'N/A')}</p>
                     <p>Fecha: ${sanitizeHTML(item.fechaCreacion)}</p>
-                    <div style="margin-top: 15px;">
+                    <p style="color: var(--text-tertiary); font-size:0.8rem;">Antigüedad: ${dias} día(s)</p>
+                    <div style="margin-top: 15px; display:flex; gap:8px; flex-wrap:wrap;">
                         <a href="${sanitizeURL(item.urlSlides)}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="display:inline-block; text-align:center; padding: 10px 15px; border-radius: 8px; text-decoration:none;">Ver Slides</a>
+                        ${botonReabrir}
+                        ${botonCarpeta}
                     </div>
                 </div>
             </article>
-        `).join('');
+            `;
+        }).join('');
+
+        // Eventos del historial
+        document.querySelectorAll('.btn-reabrir-clase').forEach(btn => {
+            btn.addEventListener('click', reabrirClaseDesdeHistorial);
+        });
+        document.querySelectorAll('.btn-mover-carpeta').forEach(btn => {
+            btn.addEventListener('click', pedirCarpetaParaHistorial);
+        });
+    }
+
+    // --- 4b. REABRIR UNA CLASE DESDE EL HISTORIAL (Feedback #2) ---
+    async function reabrirClaseDesdeHistorial(e) {
+        const btn = e.target.closest ? e.target.closest('.btn-reabrir-clase') : e.target;
+        const id = btn.getAttribute('data-historial-id');
+        const item = claseHistorialCache?.find(h => String(h.idHistorial) === String(id));
+        if (!item || !item.datosClase) {
+            showNotification('warning', 'Esta presentación no guardó su contenido para reabrirlo.');
+            return;
+        }
+        claseGeneradaActual = item.datosClase;
+        breadcrumbSubject.textContent = item.materiaId || 'Materia';
+        breadcrumbTopic.textContent = item.temaNombre || 'Tema';
+        renderizarContenidoGenerado();
+        showNotification('success', 'Clase reabierta. Podés editarla y volver a exportarla.');
+    }
+
+    async function pedirCarpetaParaHistorial(e) {
+        const btn = e.target.closest ? e.target.closest('.btn-mover-carpeta') : e.target;
+        const id = btn.getAttribute('data-historial-id');
+        const carpetaActual = btn.getAttribute('data-carpeta-actual') || '';
+        const nuevaCarpeta = prompt('¿A qué carpeta querés mover esta presentación?', carpetaActual);
+        if (nuevaCarpeta === null) return;
+        try {
+            const res = await callBackend('actualizarHistorial', {
+                token: sesionToken,
+                idHistorial: id,
+                carpeta: nuevaCarpeta
+            });
+            if (res.success) {
+                showNotification('success', 'Carpeta actualizada.');
+                cargarHistorial();
+            } else {
+                showNotification('error', res.error || 'No se pudo mover a la carpeta.');
+            }
+        } catch (err) {
+            showNotification('error', 'Error de conexión al mover de carpeta.');
+        }
     }
 
     // --- 4. RENDERIZADO DINÁMICO DEL DASHBOARD (iOS WIDGET STYLE) ---
@@ -408,6 +483,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <p>${sanitizeHTML(materia.descripcion || '')}</p>
                         <h3>Temas del programa:</h3>
                         <ul class="topic-list">${temasHTML}</ul>
+                        <button type="button" class="btn-agregar-tema btn-secondary" data-materia-id="${sanitizeHTML(materia.id)}" data-materia="${sanitizeHTML(materia.nombre)}" style="margin-top:12px; font-size:0.85rem; width:100%;">＋ Agregar tema a esta materia</button>
                     </div>
                 </article>
             `;
@@ -417,6 +493,72 @@ document.addEventListener('DOMContentLoaded', () => {
         // Asignar eventos a los botones de selección
         document.querySelectorAll('.btn-select-topic').forEach(btn => {
             btn.addEventListener('click', abrirModalContexto);
+        });
+        document.querySelectorAll('.btn-agregar-tema').forEach(btn => {
+            btn.addEventListener('click', abrirModalNuevoTema);
+        });
+    }
+
+    // --- 4c. AGREGAR TEMA DE CÁTEDRA (Feedback #1) ---
+    const modalNuevoTema = document.getElementById('modal-nuevo-tema');
+    const inputNuevoTemaNombre = document.getElementById('nuevo-tema-nombre');
+    const inputNuevoTemaDesc = document.getElementById('nuevo-tema-descripcion');
+    const inputNuevoTemaLink = document.getElementById('nuevo-tema-link');
+    const btnNuevoTemaGuardar = document.getElementById('btn-nuevo-tema-guardar');
+    const btnNuevoTemaCancelar = document.getElementById('btn-nuevo-tema-cancelar');
+    let materiaParaNuevoTema = null;
+
+    function abrirModalNuevoTema(e) {
+        const btn = e.target.closest ? e.target.closest('.btn-agregar-tema') : e.target;
+        materiaParaNuevoTema = {
+            id: btn.getAttribute('data-materia-id'),
+            nombre: btn.getAttribute('data-materia')
+        };
+        inputNuevoTemaNombre.value = '';
+        inputNuevoTemaDesc.value = '';
+        inputNuevoTemaLink.value = '';
+        modalNuevoTema.showModal();
+    }
+
+    if (btnNuevoTemaGuardar) {
+        btnNuevoTemaGuardar.addEventListener('click', async () => {
+            if (!materiaParaNuevoTema) return;
+            const nombreTema = inputNuevoTemaNombre.value.trim();
+            if (!nombreTema) {
+                showNotification('warning', 'Escribí el nombre del tema.');
+                return;
+            }
+            document.getElementById('loader-title').textContent = "Guardando tema...";
+            document.getElementById('loader-title').nextElementSibling.textContent = "Agregando el tema a tu materia.";
+            modalLoader.showModal();
+            try {
+                const res = await callBackend('agregarTema', {
+                    token: sesionToken,
+                    materiaId: materiaParaNuevoTema.id,
+                    nombreTema: nombreTema,
+                    descripcion: inputNuevoTemaDesc.value.trim(),
+                    linkTeoria: inputNuevoTemaLink.value.trim()
+                });
+                modalLoader.close();
+                if (res.success) {
+                    modalNuevoTema.close();
+                    showNotification('success', res.mensaje || '¡Tema agregado!');
+                    // Refrescar dashboard
+                    const dash = await callBackend('revalidarSesionConDashboard', { token: sesionToken });
+                    if (dash.success) renderizarDashboard(dash.dashboard);
+                } else {
+                    showNotification('error', res.error || 'No se pudo agregar el tema.');
+                }
+            } catch (err) {
+                modalLoader.close();
+                showNotification('error', 'Error de conexión al guardar el tema.');
+            }
+        });
+    }
+    if (btnNuevoTemaCancelar) {
+        btnNuevoTemaCancelar.addEventListener('click', () => {
+            modalNuevoTema.close();
+            materiaParaNuevoTema = null;
         });
     }
 
@@ -473,6 +615,39 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Sync con la BD (Feedback #4): carga las plantillas guardadas en la hoja 'Plantillas'
+    async function sincronizarPlantillasDesdeBD() {
+        try {
+            const res = await callBackend('obtenerPlantillas', { token: sesionToken });
+            if (res.success && res.plantillas) {
+                guardarPlantillas(res.plantillas);
+                refrescarSelectorPlantillas();
+            }
+        } catch (e) { /* si no hay BD, seguimos con localStorage */ }
+    }
+
+    async function guardarPlantillaEnBD(nombre, configuracion) {
+        try {
+            const res = await callBackend('guardarPlantilla', {
+                token: sesionToken,
+                nombre,
+                configuracion
+            });
+            return res.success;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    async function borrarPlantillaEnBD(nombre) {
+        try {
+            const res = await callBackend('borrarPlantilla', { token: sesionToken, nombre });
+            return res.success;
+        } catch (e) {
+            return false;
+        }
+    }
+
     function recolectarConfiguracion() {
         const momentos = [];
         const mapaMomentos = [
@@ -525,13 +700,15 @@ document.addEventListener('DOMContentLoaded', () => {
         refrescarSelectorPlantillas();
         const inputNombre = document.getElementById('cfg-plantilla-nombre');
         if (inputNombre) inputNombre.value = '';
+        // Feedback #4: las plantillas viven en la cuenta del docente (BD)
+        sincronizarPlantillasDesdeBD();
     }
 
     const inputPlantillaNombre = document.getElementById('cfg-plantilla-nombre');
     const selectPlantilla = document.getElementById('cfg-plantilla-select');
 
     if (btnTemplateSave) {
-        btnTemplateSave.addEventListener('click', () => {
+        btnTemplateSave.addEventListener('click', async () => {
             const nombre = (inputPlantillaNombre.value || '').trim();
             if (!nombre) {
                 showNotification('warning', 'Escribí un nombre para tu plantilla.');
@@ -541,11 +718,12 @@ document.addEventListener('DOMContentLoaded', () => {
             plantillas[nombre] = recolectarConfiguracion();
             guardarPlantillas(plantillas);
             refrescarSelectorPlantillas();
-            showNotification('success', `Plantilla "${nombre}" guardada.`);
+            const enBD = await guardarPlantillaEnBD(nombre, plantillas[nombre]);
+            showNotification('success', enBD ? `Plantilla "${nombre}" guardada en tu cuenta.` : `Plantilla "${nombre}" guardada localmente (sin BD).`);
         });
     }
     if (btnTemplateLoad) {
-        btnTemplateLoad.addEventListener('click', () => {
+        btnTemplateLoad.addEventListener('click', async () => {
             const nombre = selectPlantilla.value;
             if (!nombre) {
                 showNotification('warning', 'Elegí una plantilla para cargar.');
@@ -556,13 +734,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 aplicarConfiguracionEnForm(plantillas[nombre]);
                 showNotification('success', `Plantilla "${nombre}" cargada.`);
             } else {
-                showNotification('error', 'Esa plantilla ya no existe.');
-                refrescarSelectorPlantillas();
+                // Reintento desde BD antes de dar error
+                await sincronizarPlantillasDesdeBD();
+                const plantillas2 = leerPlantillas();
+                if (plantillas2[nombre]) {
+                    aplicarConfiguracionEnForm(plantillas2[nombre]);
+                    showNotification('success', `Plantilla "${nombre}" cargada desde tu cuenta.`);
+                } else {
+                    showNotification('error', 'Esa plantilla ya no existe.');
+                    refrescarSelectorPlantillas();
+                }
             }
         });
     }
     if (btnTemplateClear) {
-        btnTemplateClear.addEventListener('click', () => {
+        btnTemplateClear.addEventListener('click', async () => {
             const nombre = selectPlantilla.value;
             if (!nombre) {
                 showNotification('warning', 'Elegí una plantilla para borrar.');
@@ -571,6 +757,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const plantillas = leerPlantillas();
             delete plantillas[nombre];
             guardarPlantillas(plantillas);
+            await borrarPlantillaEnBD(nombre);
             refrescarSelectorPlantillas();
             showNotification('success', `Plantilla "${nombre}" borrada.`);
         });
@@ -842,6 +1029,57 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- 6. ASISTENTE INTELIGENTE: CREACIÓN DE CONTENIDO ---
+    // Renderiza secciones A/B/C/D del generador (reutilizable para reabrir clases)
+    function renderizarContenidoGenerado(respuesta) {
+        if (!respuesta) return;
+        const codeBlocksContainer = document.querySelector('#view-generator .code-blocks');
+        if (codeBlocksContainer && respuesta.busqueda) {
+            codeBlocksContainer.innerHTML = respuesta.busqueda.map((idea, index) => `
+                <pre><code><span class="prompt-label">Idea de enfoque ${index + 1}:</span>&quot;${sanitizeHTML(idea)}&quot;</code></pre>
+            `).join('');
+        }
+
+        const planDetails = document.querySelector('#view-generator .plan-details');
+        if (planDetails && respuesta.plan) {
+            const durationEl = planDetails.querySelector('p');
+            if (durationEl) {
+                durationEl.innerHTML = `<strong>Tiempo de clase estimado:</strong> ${sanitizeHTML(respuesta.plan.duracion)}`;
+            }
+            const objetivosList = planDetails.querySelector('ul');
+            if (objetivosList && respuesta.plan.objetivos) {
+                objetivosList.innerHTML = respuesta.plan.objetivos.map(obj => `<li>${sanitizeHTML(obj)}</li>`).join('');
+            }
+            const tableBody = planDetails.querySelector('.table-plan tbody');
+            if (tableBody && respuesta.plan.estructura) {
+                tableBody.innerHTML = respuesta.plan.estructura.map(item => `
+                    <tr>
+                        <td data-label="Momento"><strong>${sanitizeHTML(item.fase)}</strong></td>
+                        <td data-label="Duración">${sanitizeHTML(item.duracion)}</td>
+                        <td data-label="¿Qué hacemos en clase?">${sanitizeHTML(item.actividad)}</td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        renderizarSlidesGrid(respuesta.slides);
+
+        const promptList = document.querySelector('#view-generator .prompt-list');
+        if (promptList && respuesta.promptsImagenes) {
+            const labels = ["Para la Portada", "Para el Esquema explicativo", "Para el Ejemplo práctico", "Apoyo General"];
+            promptList.innerHTML = respuesta.promptsImagenes.map((prompt, index) => {
+                const label = labels[index] || `Ilustración sugerida ${index + 1}`;
+                return `
+                    <div>
+                        <p><strong>${sanitizeHTML(label)}:</strong></p>
+                        <blockquote>
+                            &quot;${sanitizeHTML(prompt)}&quot;
+                        </blockquote>
+                    </div>
+                `;
+            }).join('');
+        }
+    }
+
     // Renderiza las tarjetas de diapositivas (reutilizable tras regenerar una slide)
     function renderizarSlidesGrid(slides) {
         const slidesGrid = document.querySelector('#view-generator .slides-grid');
@@ -995,59 +1233,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 breadcrumbSubject.textContent = materiaNombre;
                 breadcrumbTopic.textContent = temaNombre;
 
-                // A. Enfoques sugeridos
-                const codeBlocksContainer = document.querySelector('#view-generator .code-blocks');
-                if (codeBlocksContainer && respuesta.busqueda) {
-                    codeBlocksContainer.innerHTML = respuesta.busqueda.map((idea, index) => `
-                        <pre><code><span class="prompt-label">Idea de enfoque ${index + 1}:</span>&quot;${sanitizeHTML(idea)}&quot;</code></pre>
-                    `).join('');
-                }
-
-                // B. Plan de Trabajo (Duración y Objetivos)
-                const planDetails = document.querySelector('#view-generator .plan-details');
-                if (planDetails && respuesta.plan) {
-                    const durationEl = planDetails.querySelector('p');
-                    if (durationEl) {
-                        durationEl.innerHTML = `<strong>Tiempo de clase estimado:</strong> ${sanitizeHTML(respuesta.plan.duracion)}`;
-                    }
-
-                    const objetivosList = planDetails.querySelector('ul');
-                    if (objetivosList && respuesta.plan.objetivos) {
-                        objetivosList.innerHTML = respuesta.plan.objetivos.map(obj => `<li>${sanitizeHTML(obj)}</li>`).join('');
-                    }
-
-                    const tableBody = planDetails.querySelector('.table-plan tbody');
-                    if (tableBody && respuesta.plan.estructura) {
-                        tableBody.innerHTML = respuesta.plan.estructura.map(item => `
-                            <tr>
-                                <td data-label="Momento"><strong>${sanitizeHTML(item.fase)}</strong></td>
-                                <td data-label="Duración">${sanitizeHTML(item.duracion)}</td>
-                                <td data-label="¿Qué hacemos en clase?">${sanitizeHTML(item.actividad)}</td>
-                            </tr>
-                        `).join('');
-                    }
-                }
-
-                // C. Estructura de Diapositivas Sugerida (Diseño Universitario de Alto Impacto)
-                renderizarSlidesGrid(respuesta.slides);
-
-                // D. Ideas para imágenes de apoyo
-                const promptList = document.querySelector('#view-generator .prompt-list');
-                if (promptList && respuesta.promptsImagenes) {
-                    const labels = ["Para la Portada", "Para el Esquema explicativo", "Para el Ejemplo práctico", "Apoyo General"];
-                    promptList.innerHTML = respuesta.promptsImagenes.map((prompt, index) => {
-                        const label = labels[index] || `Ilustración sugerida ${index + 1}`;
-                        return `
-                            <div>
-                                <p><strong>${sanitizeHTML(label)}:</strong></p>
-                                <blockquote>
-                                    &quot;${sanitizeHTML(prompt)}&quot;
-                                </blockquote>
-                            </div>
-                        `;
-                    }).join('');
-                }
-
+                renderizarContenidoGenerado(respuesta);
                 navigateTo('view-generator');
             } else {
                 const errMsg = (respuesta && respuesta.error) ? respuesta.error : "Tuvimos un inconveniente al armar tu clase. Por favor, reintentá.";

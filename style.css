@@ -1297,64 +1297,163 @@ dialog::backdrop {
     box-shadow: var(--shadow-focus);
 }
 
-/* --- CONFIGURADOR DE CLASE (Sprint B) --- */
-.config-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 0.9rem 1rem;
+/* --- CONFIGURADOR DE CLASE iOS 27 MINIMAL (Sprint B + Feedback #6) --- */
+.ios27-seccion {
+    margin-bottom: 14px;
 }
 
-.config-group {
+.ios27-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-tertiary);
+    margin-bottom: 8px;
+}
+
+.ios27-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.ios27-pill {
+    flex: 1 1 45%;
+    min-width: 160px;
     display: flex;
     flex-direction: column;
-    gap: 0.45rem;
-}
-
-.config-group label,
-.config-group legend {
+    gap: 4px;
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid var(--border-glass-dark);
+    border-radius: 14px;
+    padding: 8px 12px;
     font-size: 0.82rem;
-    font-weight: 700;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-}
-
-.config-group select,
-.config-group input[type="url"],
-.config-group input[type="text"],
-.config-group input[type="range"] {
-    width: 100%;
-    padding: 0.6rem 0.9rem;
-    border: 1.5px solid var(--border-glass-dark);
-    border-radius: var(--radius-md);
-    font-size: 0.95rem;
-    background: rgba(255, 255, 255, 0.9);
+    font-weight: 600;
     color: var(--text-primary);
-    min-height: 44px;
+    cursor: pointer;
 }
 
-.config-group select:focus,
-.config-group input:focus {
-    outline: none;
-    border-color: var(--utn-green-primary);
-    box-shadow: var(--shadow-focus);
+.ios27-select {
+    width: 100%;
+    padding: 0.45rem 0.7rem;
+    border: none;
+    background: transparent;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    appearance: none;
+    border-bottom: 1.5px solid var(--border-glass-dark);
+    border-radius: 0;
 }
 
-.config-group input[type="range"] {
-    padding: 0;
+.ios27-slide-num {
+    display: inline-block;
+    min-width: 34px;
+    text-align: center;
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--utn-green-dark);
+}
+
+.ios27-range {
+    width: 100%;
     accent-color: var(--utn-green-primary);
 }
 
-.momentos-row {
+/* Chips de momentos (iOS 27) */
+.momentos-chips {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: 8px;
 }
 
-.momentos-row input[type="checkbox"] {
-    width: 20px;
-    height: 20px;
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid var(--border-glass-dark);
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.chip:has(input:checked) {
+    background: var(--utn-green-surface);
+    border-color: var(--utn-green-primary);
+    color: var(--utn-green-dark);
+}
+
+.chip input {
     accent-color: var(--utn-green-primary);
+    width: 18px;
+    height: 18px;
+}
+
+/* Detalles colapsables (iOS 27) */
+.ios27-details {
+    border: 1px solid var(--border-glass-dark);
+    border-radius: 14px;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.7);
+}
+
+.ios27-details summary {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    user-select: none;
+}
+
+.ios27-details[open] {
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.ios27-details[open] summary {
+    color: var(--utn-green-dark);
+}
+
+/* Plantillas (iOS 27) */
+.ios27-tpl-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.ios27-tpl .ios27-select {
+    flex: 1;
+    min-width: 130px;
+    padding: 0.5rem 0.7rem;
+    border: 1px solid var(--border-glass-dark);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.9);
+}
+
+/* Botón circular de cierre */
+.btn-icon-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid var(--border-glass-dark);
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--text-secondary);
+    font-size: 1.2rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: var(--btn-spring);
+}
+
+.btn-icon-close:hover {
+    color: var(--error);
+    border-color: var(--error);
 }
 
 /* Spinner animado institucional */

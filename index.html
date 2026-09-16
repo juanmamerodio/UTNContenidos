@@ -382,106 +382,114 @@
         </div>
     </dialog>
 
-    <!-- Ventana del Configurador de Clase (Personalización) -->
-    <dialog id="modal-contexto" aria-labelledby="contexto-title" style="max-width: 780px; width: 94%;">
+    <!-- Ventana del Configurador de Clase (iOS 27 Minimal) -->
+    <dialog id="modal-contexto" aria-labelledby="contexto-title" style="max-width: 680px; width: 92%;">
         <div class="dialog-content" style="text-align: left;">
-            <h2 id="contexto-title" style="margin-bottom: 6px;">⚙️ Personalizá tu clase</h2>
-            <p style="margin-bottom: 18px;">Todo es opcional: si no tocás nada, se genera con el formato predeterminado de la UTN.</p>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h2 id="contexto-title" style="margin-bottom:0; font-size:1.4rem;">Personalizá tu clase</h2>
+                <button type="button" id="btn-contexto-cancel" class="btn-icon-close" aria-label="Cerrar" style="width:40px; height:40px; border-radius:50%; border:1px solid var(--border-glass-dark); background:rgba(255,255,255,0.9); font-size:1.3rem; color:var(--text-secondary); cursor:pointer;">✕</button>
+            </div>
+            <p style="margin-bottom: 16px; color: var(--text-secondary); font-size:0.9rem;">Todo es opcional. Si no tocás nada, sale con el formato predeterminado de la UTN.</p>
 
-            <div class="config-grid">
-                <div class="config-group">
-                    <label for="cfg-duracion" title="¿Cuánto dura tu clase?">Duración de la clase</label>
-                    <select id="cfg-duracion">
-                        <option value="">Predeterminado (80–90 min)</option>
-                        <option value="40">40 minutos</option>
-                        <option value="60">60 minutos</option>
-                        <option value="120">120 minutos</option>
-                        <option value="bloque-doble">Bloque doble (3 horas)</option>
-                    </select>
+            <div class="ios27-seccion">
+                <div class="ios27-label">Presentación</div>
+                <div class="ios27-row">
+                    <label class="ios27-pill" for="cfg-duracion">Duración
+                        <select id="cfg-duracion" class="ios27-select">
+                            <option value="">80–90 min</option>
+                            <option value="40">40 min</option>
+                            <option value="60">60 min</option>
+                            <option value="120">120 min</option>
+                            <option value="bloque-doble">3 horas</option>
+                        </select>
+                    </label>
+                    <label class="ios27-pill" for="cfg-slides">Diapositivas <span id="cfg-slides-val" class="ios27-slide-num">7</span>
+                        <input type="range" id="cfg-slides" min="5" max="20" step="1" value="7" aria-describedby="cfg-slides-val" class="ios27-range">
+                    </label>
                 </div>
-                <div class="config-group">
-                    <label for="cfg-slides" title="Arrastrá para elegir cuántas diapositivas querés">Cantidad de diapositivas: <span id="cfg-slides-val" style="font-size: 1.4rem; font-weight: 800; color: var(--utn-green-dark); display:inline-block; min-width: 34px; text-align:center;">7</span></label>
-                    <input type="range" id="cfg-slides" min="5" max="20" step="1" value="7" aria-describedby="cfg-slides-val">
+                <div class="ios27-row">
+                    <label class="ios27-pill" for="cfg-estilo">Estilo
+                        <select id="cfg-estilo" class="ios27-select">
+                            <option value="">Clásica UTN</option>
+                            <option value="minimalista">Minimalista</option>
+                            <option value="contemporanea">Contemporánea</option>
+                            <option value="alta-carga">Alta carga</option>
+                        </select>
+                    </label>
+                    <label class="ios27-pill" for="cfg-nivel">Nivel
+                        <select id="cfg-nivel" class="ios27-select">
+                            <option value="">Intermedio</option>
+                            <option value="intro">Introductorio</option>
+                            <option value="avanzado">Avanzado</option>
+                            <option value="mixto">Teoría + debate</option>
+                        </select>
+                    </label>
                 </div>
-                <div class="config-group">
-                    <label for="cfg-estilo" title="Cómo se va a ver la presentación">Estilo visual</label>
-                    <select id="cfg-estilo">
-                        <option value="">Predeterminado (Clásica UTN)</option>
-                        <option value="minimalista">Minimalista</option>
-                        <option value="contemporanea">Contemporánea</option>
-                        <option value="alta-carga">Alta carga visual</option>
-                    </select>
-                </div>
-                <div class="config-group">
-                    <label for="cfg-nivel" title="Qué tan profundo va el contenido">Nivel de profundidad</label>
-                    <select id="cfg-nivel">
-                        <option value="">Predeterminado</option>
-                        <option value="intro">Introductorio</option>
-                        <option value="intermedio">Intermedio</option>
-                        <option value="avanzado">Avanzado</option>
-                        <option value="mixto">Mixto (teoría + debate)</option>
-                    </select>
-                </div>
-                <div class="config-group">
-                    <label for="cfg-ejemplos">Ejemplos</label>
-                    <select id="cfg-ejemplos">
-                        <option value="">Predeterminado</option>
-                        <option value="cotidianos">Cotidianos</option>
-                        <option value="industria">Casos de industria regional</option>
-                        <option value="ambos">Ambos</option>
-                        <option value="ninguno">Sin ejemplos</option>
-                    </select>
-                </div>
-                <div class="config-group">
-                    <label for="cfg-imagenes">Imágenes</label>
-                    <select id="cfg-imagenes">
-                        <option value="">Predeterminado (Fotos HD)</option>
-                        <option value="fotos">Fotos reales HD</option>
-                        <option value="ilustraciones">Ilustraciones planas</option>
-                        <option value="diagramas">Solo diagramas</option>
-                        <option value="ninguna">Sin imágenes</option>
-                    </select>
-                </div>
-                <div class="config-group">
-                    <label for="cfg-url-teoria">URL de teoría (reemplaza la del temario)</label>
-                    <input type="url" id="cfg-url-teoria" placeholder="https://docs.google.com/document/d/...">
-                </div>
-                <div class="config-group">
-                    <label for="cfg-temas-extra">Temas adicionales a abordar</label>
-                    <input type="text" id="cfg-temas-extra" placeholder="Ej: teorema de Rolle; optimización; ejemplos de aplicación">
+                <div class="ios27-row">
+                    <label class="ios27-pill" for="cfg-ejemplos">Ejemplos
+                        <select id="cfg-ejemplos" class="ios27-select">
+                            <option value="">Ambos</option>
+                            <option value="cotidianos">Cotidianos</option>
+                            <option value="industria">Industria regional</option>
+                            <option value="ninguno">Sin ejemplos</option>
+                        </select>
+                    </label>
+                    <label class="ios27-pill" for="cfg-imagenes">Imágenes
+                        <select id="cfg-imagenes" class="ios27-select">
+                            <option value="">Fotos HD</option>
+                            <option value="ilustraciones">Ilustraciones</option>
+                            <option value="diagramas">Solo diagramas</option>
+                            <option value="ninguna">Sin imágenes</option>
+                        </select>
+                    </label>
                 </div>
             </div>
 
-            <fieldset class="config-group" style="margin-top: 14px;">
-                <legend>Momentos de la clase a incluir</legend>
-                <div class="momentos-row">
-                    <label style="display:inline-flex; gap:6px; align-items:center;"><input type="checkbox" id="mom-hook" checked> Gancho</label>
-                    <label style="display:inline-flex; gap:6px; align-items:center;"><input type="checkbox" id="mom-concepto" checked> Concepto</label>
-                    <label style="display:inline-flex; gap:6px; align-items:center;"><input type="checkbox" id="mom-caso" checked> Caso aplicado</label>
-                    <label style="display:inline-flex; gap:6px; align-items:center;"><input type="checkbox" id="mom-esquema" checked> Esquema</label>
-                    <label style="display:inline-flex; gap:6px; align-items:center;"><input type="checkbox" id="mom-desafio" checked> Desafío</label>
+            <div class="ios27-seccion">
+                <div class="ios27-label">Momentos de la clase</div>
+                <div class="momentos-chips">
+                    <label class="chip"><input type="checkbox" id="mom-hook" checked> Gancho</label>
+                    <label class="chip"><input type="checkbox" id="mom-concepto" checked> Concepto</label>
+                    <label class="chip"><input type="checkbox" id="mom-caso" checked> Caso aplicado</label>
+                    <label class="chip"><input type="checkbox" id="mom-esquema" checked> Esquema</label>
+                    <label class="chip"><input type="checkbox" id="mom-desafio" checked> Desafío</label>
                 </div>
-            </fieldset>
-
-            <div class="config-group" style="margin-top: 14px;">
-                <label for="textarea-contexto">Instrucciones libres (opcional)</label>
-                <textarea id="textarea-contexto" placeholder="Ej: Quiero que las slides estén cargadas de información, con ejemplos cotidianos y muy explicativas..."></textarea>
             </div>
 
-            <div style="margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
-                <label for="cfg-plantilla-nombre" style="font-size: 0.82rem; font-weight: 700; color: var(--text-secondary);">Plantilla:</label>
-                <select id="cfg-plantilla-select" style="min-width: 200px; padding: 0.6rem 0.9rem; border: 1.5px solid var(--border-glass-dark); border-radius: var(--radius-md); font-size: 0.9rem; background: rgba(255,255,255,0.9); color: var(--text-primary);">
-                    <option value="">(Predeterminada)</option>
-                </select>
-                <input type="text" id="cfg-plantilla-nombre" placeholder="Nombre de la plantilla" maxlength="40" style="min-width: 180px; padding: 0.6rem 0.9rem; border: 1.5px solid var(--border-glass-dark); border-radius: var(--radius-md); font-size: 0.9rem;">
-                <button type="button" id="btn-template-save" class="btn-secondary">💾 Guardar como plantilla</button>
-                <button type="button" id="btn-template-load" class="btn-secondary">📂 Cargar</button>
-                <button type="button" id="btn-template-clear" class="btn-secondary">🗑️ Borrar</button>
+            <div class="ios27-seccion">
+                <div class="ios27-label">Opciones avanzadas</div>
+                <details class="ios27-details">
+                    <summary>URL de teoría y temas extra</summary>
+                    <div class="config-group" style="display:block; margin-bottom:10px;">
+                        <input type="url" id="cfg-url-teoria" placeholder="URL del apunte (reemplaza la del temario)" style="width:100%; padding:0.55rem 0.8rem; border:1px solid var(--border-glass-dark); border-radius:10px; font-size:0.9rem;">
+                    </div>
+                    <div class="config-group" style="display:block;">
+                        <input type="text" id="cfg-temas-extra" placeholder="Temas extra (separados por ;)" style="width:100%; padding:0.55rem 0.8rem; border:1px solid var(--border-glass-dark); border-radius:10px; font-size:0.9rem;">
+                    </div>
+                </details>
+                <details class="ios27-details">
+                    <summary>Instrucciones libres</summary>
+                    <textarea id="textarea-contexto" placeholder="Ej: Quiero slides cargadas de información, con ejemplos cotidianos..." style="width:100%; height:80px; padding:0.55rem 0.8rem; border:1px solid var(--border-glass-dark); border-radius:10px; font-size:0.9rem; resize:none;"></textarea>
+                </details>
+            </div>
+
+            <div class="ios27-seccion ios27-tpl">
+                <div class="ios27-label">Plantillas</div>
+                <div class="ios27-tpl-row">
+                    <select id="cfg-plantilla-select" class="ios27-select">
+                        <option value="">(Predeterminada)</option>
+                    </select>
+                    <input type="text" id="cfg-plantilla-nombre" placeholder="Nombre" maxlength="40" style="flex:1; min-width:90px; padding:0.5rem 0.7rem; border:1px solid var(--border-glass-dark); border-radius:10px; font-size:0.85rem;">
+                </div>
+                <div class="ios27-tpl-row">
+                    <button type="button" id="btn-template-save" class="btn-secondary" style="flex:1; font-size:0.8rem; padding:8px 10px;">Guardar</button>
+                    <button type="button" id="btn-template-load" class="btn-secondary" style="flex:1; font-size:0.8rem; padding:8px 10px;">Cargar</button>
+                    <button type="button" id="btn-template-clear" class="btn-secondary" style="flex:1; font-size:0.8rem; padding:8px 10px;">Borrar</button>
+                </div>
             </div>
 
             <div class="dialog-actions" style="flex-direction: row; justify-content: flex-end; gap: 10px; flex-wrap: wrap;">
-                <button id="btn-contexto-cancel" class="btn-secondary">Volver</button>
-                <button id="btn-contexto-confirm" class="btn-primary">Generar Clase</button>
+                <button id="btn-contexto-confirm" class="btn-primary" style="flex:1; min-height:52px;">Generar Clase</button>
             </div>
         </div>
     </dialog>
@@ -525,6 +533,30 @@
             <div class="dialog-actions" style="flex-direction: row; justify-content: flex-end; gap: 10px; flex-wrap: wrap;">
                 <button id="btn-editar-cancelar" class="btn-secondary">Cancelar</button>
                 <button id="btn-editar-guardar" class="btn-primary">Guardar cambios</button>
+            </div>
+        </div>
+    </dialog>
+
+    <!-- Ventana de Nuevo Tema (Feedback #1) -->
+    <dialog id="modal-nuevo-tema" aria-labelledby="nuevo-tema-title" style="max-width: 560px; width: 92%;">
+        <div class="dialog-content" style="text-align: left;">
+            <h2 id="nuevo-tema-title" style="margin-bottom: 6px;">＋ Agregar tema a la materia</h2>
+            <p style="margin-bottom: 16px;">Cargá un tema nuevo del programa. Si tenés el apunte oficial, pegá el link.</p>
+            <div class="config-group" style="display: block; margin-bottom: 12px;">
+                <label for="nuevo-tema-nombre" style="display:block; margin-bottom: 6px;">Nombre del tema *</label>
+                <input type="text" id="nuevo-tema-nombre" maxlength="200" placeholder="Ej: Integrales impropias">
+            </div>
+            <div class="config-group" style="display: block; margin-bottom: 12px;">
+                <label for="nuevo-tema-descripcion" style="display:block; margin-bottom: 6px;">Descripción (opcional)</label>
+                <input type="text" id="nuevo-tema-descripcion" maxlength="500" placeholder="Qué se aborda en este tema">
+            </div>
+            <div class="config-group" style="display: block; margin-bottom: 12px;">
+                <label for="nuevo-tema-link" style="display:block; margin-bottom: 6px;">Link al apunte de teoría (opcional)</label>
+                <input type="url" id="nuevo-tema-link" maxlength="500" placeholder="https://docs.google.com/document/d/...">
+            </div>
+            <div class="dialog-actions" style="flex-direction: row; justify-content: flex-end; gap: 10px; flex-wrap: wrap;">
+                <button id="btn-nuevo-tema-cancelar" class="btn-secondary">Cancelar</button>
+                <button id="btn-nuevo-tema-guardar" class="btn-primary">Guardar tema</button>
             </div>
         </div>
     </dialog>

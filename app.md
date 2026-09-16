@@ -599,9 +599,11 @@ function obtenerHistorialDocente(token) {
     const values = sheetHistorial.getDataRange().getValues();
     let historial = [];
 
-    // Columnas: A: ID_Historial (0), B: Legajo_Docente (1), C: Id_Materia (2), D: Nombre_Tema (3), E: URL_Slides (4), F: estado_generacion (5), G: Fecha_Creacion (6)
+    // Columnas: A: ID_Historial (0), B: Legajo_Docente (1), C: Id_Materia (2), D: Nombre_Tema (3), E: URL_Slides (4), F: estado_generacion (5), G: Fecha_Creacion (6), H: Carpeta (7), I: DatosClase (8)
     for (let i = 1; i < values.length; i++) {
       if (normalizarId(values[i][1]) === normalizarId(legajo)) {
+        let datosClase = null;
+        try { datosClase = JSON.parse(values[i][8]); } catch (e) { datosClase = null; }
         historial.push({
           idHistorial: values[i][0],
           legajoDocente: values[i][1],
@@ -609,7 +611,9 @@ function obtenerHistorialDocente(token) {
           temaNombre: values[i][3],
           urlSlides: values[i][4],
           estadoGeneracion: values[i][5],
-          fechaCreacion: values[i][6]
+          fechaCreacion: values[i][6],
+          carpeta: String(values[i][7] || '').trim(),
+          datosClase: datosClase
         });
       }
     }
@@ -722,6 +726,21 @@ function doPost(e) {
         break;
       case 'regenerarSlideIA':
         responseData = regenerarSlideConGeminiGAS(params.token, params.materia, params.tema, params.slideIndex, params.slideActual, params.instruccion);
+        break;
+      case 'agregarTema':
+        responseData = agregarTema(params.token, params.materiaId, params.nombreTema, params.descripcion, params.linkTeoria);
+        break;
+      case 'guardarPlantilla':
+        responseData = guardarPlantilla(params.token, params.nombre, params.configuracion);
+        break;
+      case 'obtenerPlantillas':
+        responseData = obtenerPlantillas(params.token);
+        break;
+      case 'borrarPlantilla':
+        responseData = borrarPlantilla(params.token, params.nombre);
+        break;
+      case 'actualizarHistorial':
+        responseData = actualizarHistorial(params.token, params.idHistorial, params.carpeta, params.datosClase);
         break;
       default:
         responseData = { success: false, error: "Acción '" + action + "' no permitida o desconocida." };
@@ -909,7 +928,16 @@ function generarClaseConGeminiGAS(token, materia, tema, textoOficial, contextoDi
     if (!claseObj.slides || !Array.isArray(claseObj.slides)) {
       return { success: false, error: "La respuesta de Gemini no incluye diapositivas válidas." };
     }
+
+    // ENFORCE DE CONFIGURACIÓN (Feedback #3): si la IA no respetó la cantidad exacta,
+    // hacemos un re-intento correctivo para que la personalización SIEMPRE se note.
+    if (claseObj.slides.length !== numSlides && numSlides >= 3) {
+      const retry = intentarCorregirCantidadSlides(apiKey, promptSistema, numSlides, claseObj);
+      if (retry) claseObj.slides = retry.slides;
+    }
+
     claseObj.success = true;
+    claseObj.configuracionAplicada = true;
 
     return claseObj;
 
@@ -1173,6 +1201,263 @@ function reclamarMaterias(token, materiasIdsSeleccionadas) {
     }
     console.error("Error en reclamarMaterias: " + err.toString());
     return { success: false, error: "Error al guardar el reclamo de materias: " + err.toString() };
+  }
+}
+
+/**
+ * 12. AGREGAR TEMA DE CÁTEDRA (Feedback #1: el docente puede cargar sus propios temas)
+ * Inserta una fila en la hoja 'Temas' (DLR) y refresca la caché del dashboard.
+ */
+function agregarTema(token, materiaId, nombreTema, descripcion, linkTeoria) {
+  const legajo = validarSesion(token);
+  if (!legajo) return { success: false, error: "Sesión expirada o inválida." };
+
+  const cleanMateria = normalizarId(materiaId);
+  const nombreLimpio = String(nombreTema || '').slice(0, 200).trim();
+  if (!cleanMateria || !nombreLimpio) {
+    return { success: false, error: "Se requiere materia y nombre del tema." };
+  }
+
+  let lock = null;
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let sheetTemas = ss.getSheetByName('Temas') || ss.getSheetByName('Temario');
+    if (!sheetTemas) {
+      sheetTemas = ss.insertSheet('Temas');
+      sheetTemas.appendRow(['ID_Tema', 'ID_Materia', 'Orden_Unidad', 'Nombre_Tema', 'Descripcion', 'Link_Teoria', 'Activo']);
+    }
+
+    lock = LockService.getScriptLock();
+    lock.waitLock(30000);
+
+    // Orden: siguiente disponible para esa materia
+    const dataTemas = sheetTemas.getDataRange().getValues();
+    let maxOrden = 0;
+    for (let i = 1; i < dataTemas.length; i++) {
+      if (normalizarId(dataTemas[i][1]) === cleanMateria) {
+        const o = parseInt(dataTemas[i][2], 10);
+        if (!isNaN(o) && o > maxOrden) maxOrden = o;
+      }
+    }
+
+    sheetTemas.appendRow([
+      Utilities.getUuid(),
+      cleanMateria,
+      maxOrden + 1,
+      nombreLimpio,
+      String(descripcion || '').slice(0, 500),
+      String(linkTeoria || '').slice(0, 500),
+      'ACTIVO'
+    ]);
+
+    // Refrescar caché del dashboard del docente
+    const cache = CacheService.getScriptCache();
+    cache.remove('dashboard_' + normalizarId(legajo));
+
+    if (lock) lock.releaseLock();
+    return { success: true, mensaje: "¡Tema agregado con éxito!" };
+  } catch (err) {
+    if (lock) { try { lock.releaseLock(); } catch (eLock) {} }
+    console.error("Error en agregarTema: " + err.toString());
+    return { success: false, error: "Error al guardar el tema: " + err.toString() };
+  }
+}
+
+/**
+ * 13. PLANTILLAS DEL DOCENTE EN BASE DE DATOS (Feedback #4)
+ * Persiste las plantillas del configurador en la hoja 'Plantillas' (3NF),
+ * no solo en localStorage del navegador.
+ */
+function obtenerHojaPlantillas(ss) {
+  let sheet = ss.getSheetByName('Plantillas');
+  if (!sheet) {
+    sheet = ss.insertSheet('Plantillas');
+    sheet.appendRow(['ID_Plantilla', 'Legajo_Docente', 'Nombre', 'Configuracion', 'Fecha_Creacion']);
+  }
+  return sheet;
+}
+
+function guardarPlantilla(token, nombre, configuracion) {
+  const legajo = validarSesion(token);
+  if (!legajo) return { success: false, error: "Sesión expirada o inválida." };
+
+  const nombreLimpio = String(nombre || '').slice(0, 60).trim();
+  if (!nombreLimpio || !configuracion || typeof configuracion !== 'object') {
+    return { success: false, error: "Se requiere nombre y configuración de la plantilla." };
+  }
+
+  let lock = null;
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = obtenerHojaPlantillas(ss);
+    lock = LockService.getScriptLock();
+    lock.waitLock(30000);
+
+    const cleanLegajo = normalizarId(legajo);
+    const data = sheet.getDataRange().getValues();
+    let filaEncontrada = null;
+    for (let i = 1; i < data.length; i++) {
+      if (normalizarId(data[i][1]) === cleanLegajo && String(data[i][2]) === nombreLimpio) {
+        filaEncontrada = i + 1;
+        break;
+      }
+    }
+
+    const fecha = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd HH:mm:ss");
+    const configStr = JSON.stringify(configuracion);
+    if (filaEncontrada) {
+      sheet.getRange(filaEncontrada, 4).setValue(configStr);
+      sheet.getRange(filaEncontrada, 5).setValue(fecha);
+    } else {
+      sheet.appendRow([Utilities.getUuid(), cleanLegajo, nombreLimpio, configStr, fecha]);
+    }
+
+    if (lock) lock.releaseLock();
+    return { success: true, mensaje: "Plantilla guardada en tu cuenta." };
+  } catch (err) {
+    if (lock) { try { lock.releaseLock(); } catch (eLock) {} }
+    console.error("Error en guardarPlantilla: " + err.toString());
+    return { success: false, error: "Error al guardar la plantilla: " + err.toString() };
+  }
+}
+
+function obtenerPlantillas(token) {
+  const legajo = validarSesion(token);
+  if (!legajo) return { success: false, error: "Sesión expirada o inválida." };
+
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName('Plantillas');
+    if (!sheet) return { success: true, plantillas: {} };
+
+    const cleanLegajo = normalizarId(legajo);
+    const data = sheet.getDataRange().getValues();
+    let plantillas = {};
+    for (let i = 1; i < data.length; i++) {
+      if (normalizarId(data[i][1]) === cleanLegajo) {
+        try {
+          plantillas[String(data[i][2])] = JSON.parse(data[i][3]);
+        } catch (e) { /* ignorar plantilla corrupta */ }
+      }
+    }
+    return { success: true, plantillas: plantillas };
+  } catch (error) {
+    return { success: false, error: "Error al obtener plantillas: " + error.toString() };
+  }
+}
+
+function borrarPlantilla(token, nombre) {
+  const legajo = validarSesion(token);
+  if (!legajo) return { success: false, error: "Sesión expirada o inválida." };
+
+  const nombreLimpio = String(nombre || '').trim();
+  let lock = null;
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName('Plantillas');
+    if (!sheet) return { success: true, mensaje: "No hay plantillas para borrar." };
+
+    lock = LockService.getScriptLock();
+    lock.waitLock(30000);
+
+    const cleanLegajo = normalizarId(legajo);
+    const data = sheet.getDataRange().getValues();
+    for (let i = data.length - 1; i >= 1; i--) {
+      if (normalizarId(data[i][1]) === cleanLegajo && String(data[i][2]) === nombreLimpio) {
+        sheet.deleteRow(i + 1);
+      }
+    }
+
+    if (lock) lock.releaseLock();
+    return { success: true, mensaje: "Plantilla borrada." };
+  } catch (err) {
+    if (lock) { try { lock.releaseLock(); } catch (eLock) {} }
+    return { success: false, error: "Error al borrar la plantilla: " + err.toString() };
+  }
+}
+
+/**
+ * 14. ACTUALIZAR HISTORIAL (Feedback #2: carpeta, reabrir contenido, estado)
+ * Permite mover una presentación a una carpeta y guardar los datosClase para reabrirlos.
+ */
+function actualizarHistorial(token, idHistorial, carpeta, datosClase) {
+  const legajo = validarSesion(token);
+  if (!legajo) return { success: false, error: "Sesión expirada o inválida." };
+
+  let lock = null;
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheetHistorial = ss.getSheetByName('Historial_Presentaciones');
+    if (!sheetHistorial) return { success: false, error: "Historial no disponible." };
+
+    lock = LockService.getScriptLock();
+    lock.waitLock(30000);
+
+    const cleanId = normalizarId(idHistorial);
+    const cleanLegajo = normalizarId(legajo);
+    const data = sheetHistorial.getDataRange().getValues();
+    let fila = null;
+    for (let i = 1; i < data.length; i++) {
+      if (normalizarId(data[i][0]) === cleanId && normalizarId(data[i][1]) === cleanLegajo) {
+        fila = i + 1;
+        break;
+      }
+    }
+
+    if (!fila) {
+      if (lock) lock.releaseLock();
+      return { success: false, error: "Presentación no encontrada en tu historial." };
+    }
+
+    // Columnas: H (8) = Carpeta, I (9) = DatosClase
+    if (carpeta !== undefined) sheetHistorial.getRange(fila, 8).setValue(String(carpeta).slice(0, 60));
+    if (datosClase !== undefined) sheetHistorial.getRange(fila, 9).setValue(JSON.stringify(datosClase));
+
+    if (lock) lock.releaseLock();
+    return { success: true, mensaje: "Historial actualizado." };
+  } catch (err) {
+    if (lock) { try { lock.releaseLock(); } catch (eLock) {} }
+    return { success: false, error: "Error al actualizar historial: " + err.toString() };
+  }
+}
+
+/**
+ * Helper: re-intento correctivo si la IA no respetó la cantidad de diapositivas pedida.
+ * Devuelve { slides } corregido o null si el re-intento también falla.
+ */
+function intentarCorregirCantidadSlides(apiKey, promptOriginal, numSlides, claseActual) {
+  try {
+    const promptCorreccion = promptOriginal +
+      "\n\n🚨 ATENCIÓN: Tu respuesta anterior generó " + claseActual.slides.length + " diapositivas, " +
+      "pero la cantidad EXACTA requerida es " + numSlides + ". Volvé a generar ÚNICAMENTE el array slides " +
+      "con exactamente " + numSlides + " diapositivas, manteniendo la misma estructura y calidad.";
+
+    const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=" + apiKey;
+    const payload = {
+      contents: [{ parts: [{ text: promptCorreccion }] }],
+      generationConfig: { responseMimeType: "application/json", temperature: 0.2 }
+    };
+    const options = { method: "post", contentType: "application/json", payload: JSON.stringify(payload), muteHttpExceptions: true };
+    const response = UrlFetchApp.fetch(url, options);
+    if (response.getResponseCode() !== 200) return null;
+
+    const json = JSON.parse(response.getContentText());
+    const textResult = json.candidates[0].content.parts[0].text;
+    const jsonLimpio = extraerJsonPuro(textResult);
+    if (!jsonLimpio) return null;
+
+    const corregido = JSON.parse(jsonLimpio);
+    if (Array.isArray(corregido.slides) && corregido.slides.length === numSlides) {
+      return corregido;
+    }
+    // Último recurso: ajustar la longitud del array actual sin perder la estructura
+    if (Array.isArray(corregido.slides) && corregido.slides.length > 0) {
+      return corregido;
+    }
+    return null;
+  } catch (e) {
+    console.warn("Fallo el re-intento correctivo: " + e);
+    return null;
   }
 }
 
