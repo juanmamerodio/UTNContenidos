@@ -10,6 +10,7 @@
 // guardada en localStorage (de un deployment anterior), la descartamos: cada
 // vez que se republica el Apps Script, las URLs viejas quedan desactivadas y
 // provocan "Failed to fetch" en el login.
+// ÚLTIMA URL FUNCIONAL (pendiente: el deploy nuevo dio 401 por acceso restringido)
 const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyCqWYhWMi5NOvjd120ToBoGyshdC54kTgdadgp9UAMaca1oQppuJfZqwrDZcFIhJOc/exec"
 
 /**
