@@ -390,7 +390,7 @@ function obtenerContextoTema(token, linkTeoria) {
  * 6. EXPORTACIÓN A GOOGLE SLIDES & HISTORIAL (DISEÑO INSTITUCIONAL UTN & NOTAS DE ORADOR)
  * Crea una presentación profesional en el Drive del profesor con diseño de cátedra y notas pedagógicas.
  */
-function exportarAGoogleSlides(token, materiaId, materiaNombre, temaNombre, datosClase) {
+function exportarAGoogleSlides(token, materiaId, materiaNombre, temaNombre, datosClase, configuracion) {
   // VALIDACIÓN DE SEGURIDAD EN EL SERVIDOR
   const legajo = validarSesion(token);
   if (!legajo) {
@@ -405,127 +405,148 @@ function exportarAGoogleSlides(token, materiaId, materiaNombre, temaNombre, dato
       return { success: false, error: "El máximo permitido de diapositivas por presentación es 30." };
     }
 
-    // 1. Crear la presentación en blanco
-    const tituloPresentacion = `UTN FRD - ${temaNombre || datosClase.slides[0].titulo}`;
-    const presentacion = SlidesApp.create(tituloPresentacion);
+    // ====== MOTOR VISUAL v5 (Feedback #7): tema institucional con identidad ======
+    const cfg = (configuracion && typeof configuracion === 'object') ? configuracion : {};
+    const estilo = String(cfg.estilo || 'clasica'); // clasica | minimalista | contemporanea | alta-carga
 
-    // 2. PORTADA ROBUSTA (Sprint C): construimos los shapes explícitamente
-    // para no depender de que la plantilla en blanco traiga placeholders.
-    const slides = presentacion.getSlides();
-    const portada = slides[0];
-    portada.getBackground().setSolidFill('#0A2540'); // Azul espacial profundo UTN
+    // Paleta institucional UTN según estilo
+    const TEMA = {
+      clasica:       { bg: '#FFFFFF',   acento: '#0055A6', primario: '#0A2540', resaltar: '#06A28A', texto: '#1E293B', suave: '#EAF1F9' },
+      minimalista:   { bg: '#F8FAFC',   acento: '#06A28A', primario: '#0F1F1C', resaltar: '#047A68', texto: '#334155', suave: '#F0F9F6' },
+      contemporanea: { bg: '#FFFFFF',   acento: '#2563EB', primario: '#111827', resaltar: '#F59E0B', texto: '#1F2937', suave: '#EFF6FF' },
+      alta_carga:    { bg: '#FFFDF8',   acento: '#7C3AED', primario: '#1E1B4B', resaltar: '#EF4444', texto: '#1E293B', suave: '#F5F3FF' }
+    }[estilo] || { bg: '#FFFFFF', acento: '#0055A6', primario: '#0A2540', resaltar: '#06A28A', texto: '#1E293B', suave: '#EAF1F9' };
 
-    // Limpiamos shapes previos (si la plantilla trajera alguno) para partir de cero
+    const presentacion = SlidesApp.create(`UTN FRD - ${temaNombre || datosClase.slides[0].titulo}`);
+
+    // --- 2. PORTADA CON BANDA INSTITUCIONAL ---
+    const portada = presentacion.getSlides()[0];
+    portada.getBackground().setSolidFill(TEMA.primario);
+
+    // Limpiar shapes por defecto
     portada.getShapes().forEach(s => s.remove());
 
     const portadaData = datosClase.slides[0] || {};
     const txtPortada = String(portadaData.titulo || temaNombre || 'Clase').slice(0, 120);
-    const subPortada = String(portadaData.subtitulo || `${materiaNombre || 'Cátedra UTN'} | Facultad Regional Delta`).slice(0, 200);
+    const subPortada = String(portadaData.subtitulo || (materiaNombre || 'Cátedra UTN')).slice(0, 160);
 
-    // Título principal (blanco, grande, centrado)
+    // Banda de acento superior
     try {
-      const tituloBox = portada.insertTextBox(txtPortada, 60, 150, 660, 140);
-      tituloBox.getText().getTextStyle()
-        .setForegroundColor('#FFFFFF')
-        .setFontSize(36)
-        .setBold(true);
-      tituloBox.setAutofit(SlidesApp.AutofitType.SHAPE); // autoajusta para títulos largos
-    } catch (ePortada) {
-      console.warn("No se pudo crear el título de portada: " + ePortada);
-    }
+      const banda = portada.insertShape(SlidesApp.ShapeType.RECTANGLE, 0, 0, 960, 12);
+      banda.getFill().setSolidFill(TEMA.resaltar);
+    } catch (eB) { }
 
-    // Subtítulo institucional (celeste/plata)
+    // Título grande
     try {
-      const subBox = portada.insertTextBox(subPortada, 60, 330, 660, 80);
-      subBox.getText().getTextStyle()
-        .setForegroundColor('#94A3B8')
-        .setFontSize(18);
-      subBox.setTextAlignment(SlidesApp.TextAlignment.START);
-    } catch (eSub) {
-      console.warn("No se pudo crear el subtítulo de portada: " + eSub);
-    }
+      const t = portada.insertTextBox(txtPortada, 60, 200, 660, 180);
+      t.getText().getTextStyle().setForegroundColor('#FFFFFF').setFontSize(44).setBold(true);
+      t.setAutofit(SlidesApp.AutofitType.SHAPE);
+    } catch (eT) { }
+
+    // Subtítulo institucional
+    try {
+      const s = portada.insertTextBox(subPortada, 60, 400, 660, 60);
+      s.getText().getTextStyle().setForegroundColor(TEMA.resaltar).setFontSize(20).setBold(true);
+    } catch (eS) { }
+
+    // Pie institucional
+    try {
+      const pie = portada.insertTextBox('UNIVERSIDAD TECNOLÓGICA NACIONAL · FACULTAD REGIONAL DELTA', 60, 480, 660, 40);
+      pie.getText().getTextStyle().setForegroundColor('#94A3B8').setFontSize(14);
+    } catch (eP) { }
 
     // Notas de orador de la portada
     if (portadaData.notasOrador) {
       try {
         portada.getNotesPage().getSpeakerNotesShape().getText().setText("🎙️ GUÍA DOCENTE:\n" + portadaData.notasOrador);
-      } catch (e) {
-        console.warn("No se pudo agregar nota de orador a portada: " + e);
-      }
+      } catch (e) { console.warn("nota portada: " + e); }
     }
 
-    // 3. Generar el resto de las Diapositivas Didácticas (con Imágenes HD y Widgets Visuales v4.0)
-    for (let i = 1; i < datosClase.slides.length; i++) {
+    // --- 3. DIAPOSITIVAS DE CONTENIDO CON JERARQUÍA VISUAL ---
+    const total = datosClase.slides.length;
+    for (let i = 1; i < total; i++) {
       let slideData = datosClase.slides[i];
-      let nuevaSlide = presentacion.appendSlide(SlidesApp.PredefinedLayout.TITLE_AND_BODY);
-      nuevaSlide.getBackground().setSolidFill('#F8FAFC'); // Fondo off-white limpio para proyector
+      let s = presentacion.appendSlide(SlidesApp.PredefinedLayout.BLANK);
+      s.getBackground().setSolidFill(TEMA.bg);
 
-      let slideShapes = nuevaSlide.getShapes();
-      if (slideShapes.length >= 2) {
-        // Título con Azul UTN (#0055A6)
-        let tituloShape = slideShapes[0];
-        let categoriaTxt = slideData.categoria ? `[${slideData.categoria.toUpperCase()}] ` : '';
-        tituloShape.getText().setText(categoriaTxt + (slideData.titulo || "Tema"));
-        tituloShape.getText().getTextStyle()
-          .setForegroundColor('#0055A6')
-          .setFontSize(26)
-          .setBold(true);
+      // Banda de acento superior (identidad)
+      try {
+        const banda = s.insertShape(SlidesApp.ShapeType.RECTANGLE, 0, 0, 960, 8);
+        banda.getFill().setSolidFill(TEMA.acento);
+      } catch (eB) { }
 
-        // Cuerpo de contenido ajustado
-        let cuerpoShape = slideShapes[1];
-        let textoContenido = slideData.contenido || '';
-        cuerpoShape.getText().setText(textoContenido);
-        cuerpoShape.getText().getTextStyle()
-          .setForegroundColor('#1E293B')
-          .setFontSize(16);
-        cuerpoShape.setWidth(400); // Dar espacio para la columna de imagen/widget a la derecha
+      // Cabecera: chip de categoría + título
+      try {
+        const catTxt = slideData.categoria ? String(slideData.categoria).toUpperCase() : 'CLASE';
+        const chip = s.insertShape(SlidesApp.ShapeType.ROUNDED_RECTANGLE, 40, 40, Math.min(320, 40 + catTxt.length * 9), 34);
+        chip.getFill().setSolidFill(TEMA.suave);
+        chip.getBorder().setTransparent();
+        chip.getText().setText(catTxt);
+        chip.getText().getTextStyle().setForegroundColor(TEMA.acento).setFontSize(13).setBold(true);
+      } catch (eC) { }
+
+      try {
+        const t = s.insertTextBox(String(slideData.titulo || 'Tema').slice(0, 90), 40, 90, 560, 70);
+        t.getText().getTextStyle().setForegroundColor(TEMA.primario).setFontSize(30).setBold(true);
+        t.setAutofit(SlidesApp.AutofitType.SHAPE);
+      } catch (eT) { }
+
+      // Cuerpo: bullets con marcador de color (en lugar de texto plano)
+      const lineas = String(slideData.contenido || '').split('\n').filter(l => l.trim()).slice(0, 6);
+      let topBody = 180;
+      lineas.forEach((linea, idx) => {
+        try {
+          const marcador = s.insertShape(SlidesApp.ShapeType.OVAL, 45, topBody + 10, 10, 10);
+          marcador.getFill().setSolidFill(TEMA.resaltar);
+          marcador.getBorder().setTransparent();
+          const txt = s.insertTextBox(linea.trim().replace(/^[•\-\*]\s*/, ''), 70, topBody, 520, 46);
+          txt.getText().getTextStyle().setForegroundColor(TEMA.texto).setFontSize(19);
+          txt.setAutofit(SlidesApp.AutofitType.SHAPE);
+        } catch (eL) { }
+        topBody += 62;
+      });
+
+      // Columna derecha: widget de métrica / destacado
+      if (slideData.destacado || slideData.visualWidget) {
+        try {
+          const destTxt = String(slideData.destacado || slideData.visualWidget.valorDestacado || '').slice(0, 140);
+          const box = s.insertShape(SlidesApp.ShapeType.ROUNDED_RECTANGLE, 640, 180, 280, 160);
+          box.getFill().setSolidFill(TEMA.suave);
+          box.getBorder().setTransparent();
+          const txt = box.getText();
+          txt.setText('💡 ' + destTxt);
+          txt.getTextStyle().setForegroundColor(TEMA.primario).setFontSize(16).setBold(true);
+        } catch (eW) { }
       }
 
-      // Inserción de Imagen HD de Cátedra mediante UrlFetchApp
-      // (Sprint C: timeout + fallback elegante si el servicio de imágenes está lento/caído)
+      // Imagen HD (si aplica y el servicio responde)
       if (slideData.imagenKeyword) {
         try {
           const kwClean = encodeURIComponent(slideData.imagenKeyword.trim());
           const imgUrl = "https://image.pollinations.ai/prompt/professional%20hd%20engineering%20photo%20" + kwClean + "?width=800&height=450&nologo=true&seed=" + (i + 100);
-          const responseImg = UrlFetchApp.fetch(imgUrl, {
-            muteHttpExceptions: true,
-            timeout: 6000 // máx 6 seg por imagen para no trabar todo el export
-          });
+          const responseImg = UrlFetchApp.fetch(imgUrl, { muteHttpExceptions: true, timeout: 6000 });
           if (responseImg.getResponseCode() === 200) {
             const blob = responseImg.getBlob();
-            const imgShape = nuevaSlide.insertImage(blob);
-            imgShape.setLeft(435);
-            imgShape.setTop(115);
-            imgShape.setWidth(260);
-            imgShape.setHeight(180);
-          } else {
-            console.warn("Imagen no disponible (HTTP " + responseImg.getResponseCode() + ") para slide " + i + ". Slide sin imagen.");
+            const imgShape = s.insertImage(blob);
+            imgShape.setLeft(640);
+            imgShape.setTop(360);
+            imgShape.setWidth(280);
+            imgShape.setHeight(170);
           }
-        } catch (eImg) {
-          console.warn("No se pudo descargar la imagen para la slide " + i + " (fallback: slide sin imagen): " + eImg);
-        }
+        } catch (eImg) { console.warn("img slide " + i + ": " + eImg); }
       }
 
-      // Inserción de Widget Visual (Caja de Métrica KPI / Destacado)
-      if (slideData.visualWidget && slideData.visualWidget.valorDestacado) {
-        try {
-          let widgetBox = nuevaSlide.insertShape(SlidesApp.ShapeType.ROUNDED_RECTANGLE, 435, 305, 260, 60);
-          widgetBox.getFill().setSolidFill('#0055A6');
-          let txt = widgetBox.getText();
-          txt.setText("💡 " + slideData.visualWidget.valorDestacado + "\n" + (slideData.visualWidget.etiqueta || "DATO DESTACADO"));
-          txt.getTextStyle().setForegroundColor('#FFFFFF').setFontSize(12).setBold(true);
-        } catch (eWidget) {
-          console.warn("No se pudo agregar widget a slide " + i + ": " + eWidget);
-        }
-      }
+      // Pie: número de página + materia
+      try {
+        const pie = s.insertTextBox(materiaNombre + '  ·  ' + (i + 1) + ' / ' + total, 40, 530, 320, 30);
+        pie.getText().getTextStyle().setForegroundColor('#64748B').setFontSize(11);
+      } catch (eP) { }
 
-      // Notas de orador (machete pedagógico del profesor)
+      // Notas de orador (guía docente)
       if (slideData.notasOrador) {
         try {
-          nuevaSlide.getNotesPage().getSpeakerNotesShape().getText().setText("🎙️ GUÍA DE AULA (CÁTEDRA UTN FRD):\n" + slideData.notasOrador);
-        } catch (eNotes) {
-          console.warn("Error al agregar nota de orador en slide " + i + ": " + eNotes);
-        }
+          s.getNotesPage().getSpeakerNotesShape().getText().setText("🎙️ GUÍA DE AULA (CÁTEDRA UTN FRD):\n" + slideData.notasOrador);
+        } catch (eNotes) { console.warn("nota slide " + i + ": " + eNotes); }
       }
     }
 
@@ -703,7 +724,8 @@ function doPost(e) {
           params.materiaId,
           params.materiaNombre,
           params.temaNombre,
-          params.datosClase
+          params.datosClase,
+          params.configuracion
         );
         break;
       case 'obtenerHistorialDocente':

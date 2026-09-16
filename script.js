@@ -174,6 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let contextoClaseActual = null;    // IDs relacionales del tema/materia en curso
     let sesionToken = null;            // Token efímero de sesión (sólo esto se persiste)
     let claseHistorialCache = null;    // Última respuesta del historial (para reabrir clases)
+    let configuracionGeneracion = {};  // Configuración elegida (para aplicar el estilo al exportar)
 
     // --- 2. CONTROLADOR DE VISTAS (SPA ROUTER) ---
     const navigateTo = (viewId) => {
@@ -1157,6 +1158,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function ejecutarGeneracionIA(materiaNombre, temaNombre, configuracion) {
         // Configuración opcional del configurador (Sprint B)
         configuracion = (configuracion && typeof configuracion === 'object') ? configuracion : {};
+        configuracionGeneracion = configuracion; // se reutiliza al exportar (estilo visual)
         const contextoDinamico = configuracion.instrucciones || '';
         // Si el docente no overrideó la URL de teoría, usamos la del temario
         const linkTeoria = configuracion.urlTeoria || temaSeleccionadoActual.linkTeoria;
@@ -1266,6 +1268,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 materiaId: (contextoClaseActual && contextoClaseActual.materiaId) || breadcrumbSubject.textContent,
                 materiaNombre: breadcrumbSubject.textContent,
                 temaNombre: breadcrumbTopic.textContent,
+                configuracion: configuracionGeneracion,
                 datosClase: claseGeneradaActual
             });
 
