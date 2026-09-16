@@ -10,7 +10,7 @@
 // guardada en localStorage (de un deployment anterior), la descartamos: cada
 // vez que se republica el Apps Script, las URLs viejas quedan desactivadas y
 // provocan "Failed to fetch" en el login.
-const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxZ_smpiPkuYUoumB4cWPHuzHICybGFhB8h8-X_3MSrMeThUD__vwvChrvyreU6JxF9/exec"
+const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyCqWYhWMi5NOvjd120ToBoGyshdC54kTgdadgp9UAMaca1oQppuJfZqwrDZcFIhJOc/exec"
 
 /**
  * Realiza llamadas HTTP POST al backend en Google Apps Script
