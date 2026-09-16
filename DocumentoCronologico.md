@@ -292,6 +292,21 @@ Después de la prueba de campo, llegaron las observaciones del usuario y se conv
 
 **Pendiente para el humano:** desplegar el backend actualizado en Google Apps Script (las nuevas acciones de temas, plantillas e historial) para que todo el flujo quede activo en producción.
 
+## **El 15 de septiembre (tercera parte) — "El Sprint D: el sistema que se vigila solo"**
+
+El último sprint de la Alpha puso el foco en la **distribución y la telemetría**: que el sistema pueda auditarse, que la cuota gratuita de IA no se malgaste y que cualquier persona pueda desplegarlo de nuevo sin depender de la memoria de nadie.
+
+| Cambio | Para qué |
+| :---- | :---- |
+| **Registro de eventos (audit log)** | Cada acción importante (ingreso, generación de clase, exportación, temas, plantillas) queda anotada en una hoja `Log_Eventos` con fecha, docente, acción y si salió bien o mal. Nunca rompe el flujo: si el registro falla, la app sigue andando. |
+| **Límite diario de generaciones** | Máximo 20 clases por día por docente. La IA gratuita tiene cuota y este tope protege el servicio para todos sin que nadie lo agote. |
+| **Transferencia de propiedad del Slides** | Con el deploy resuelto (Ejecutar como: Yo + acceso anónimo), el sistema ahora **mueve cada presentación al Drive del docente** que la generó. El profesor es dueño de su material, sin obligarlo a iniciar sesión con Google. |
+| **Checklist de despliegue** | Se documentó el paso a paso completo (backend, frontend, planilla y verificación) en `CHECKLIST_DEPLOY.md`, para que el sistema sea reproducible de punta a punta. |
+
+*Por qué cierra así la Alpha:* la seguridad (Sprint A), la personalización (Sprint B), la fiabilidad (Sprint C) y ahora la distribución (Sprint D) terminan de armar un ciclo completo. El sistema ya no solo genera buenas diapositivas: **sabe quién las usó, cuántas puede generar cada docente y quién es dueño de cada archivo**.
+
+**Lo que queda para adelante:** versionar el backend con `clasp` para que el código del repositorio y el de producción nunca se desincronicen, y la migración de autenticación a Microsoft Entra ID documentada en `WALKTHROUGH_FASE2.md`.
+
 ## **El 8 de septiembre (sexta parte) — "El Sprint B, Espiral 4: plantillas con nombre y cierre"**
 
 La cuarta y última vuelta del espiral cerró el Sprint B con el detalle que convierte al configurador en una herramienta personal: **plantillas con nombre**.

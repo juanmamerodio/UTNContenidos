@@ -20,6 +20,49 @@ function normalizarId(val) {
   return str;
 }
 
+/**
+ * 0b. AUDIT LOG (Sprint D): registra eventos en la hoja 'Log_Eventos'.
+ * Nunca rompe el flujo principal (try/catch silencioso).
+ */
+function registrarLog(legajo, accion, exito, detalle) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let sheet = ss.getSheetByName('Log_Eventos');
+    if (!sheet) {
+      sheet = ss.insertSheet('Log_Eventos');
+      sheet.appendRow(['Fecha', 'Legajo', 'Accion', 'Exito', 'Detalle']);
+    }
+    const fecha = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd HH:mm:ss");
+    sheet.appendRow([fecha, String(legajo || ''), String(accion || ''), exito ? 'OK' : 'ERROR', String(detalle || '').slice(0, 500)]);
+  } catch (e) { /* el log nunca debe tumbar el flujo */ }
+}
+
+/**
+ * 0c. TOPE DIARIO DE GENERACIONES IA (Sprint D)
+ * Máximo 20 generaciones por docente por día (protege la cuota gratuita de Gemini).
+ */
+var MAX_GENERACIONES_DIARIAS = 20;
+
+function superaLimiteGeneracionDiaria(legajo) {
+  try {
+    const cache = CacheService.getScriptCache();
+    const key = 'gen_diario_' + normalizarId(legajo);
+    const actual = parseInt(cache.get(key) || '0', 10) || 0;
+    return actual >= MAX_GENERACIONES_DIARIAS;
+  } catch (e) {
+    return false; // si el contador falla, permitir (fail-open)
+  }
+}
+
+function registrarGeneracionDiaria(legajo) {
+  try {
+    const cache = CacheService.getScriptCache();
+    const key = 'gen_diario_' + normalizarId(legajo);
+    const actual = parseInt(cache.get(key) || '0', 10) || 0;
+    cache.put(key, String(actual + 1), 86400); // TTL 24h
+  } catch (e) { /* no crítico */ }
+}
+
 
 /**
  * 0. WARMUP TRIGGER (Mantiene la instancia de GAS caliente y elimina Cold Starts)
@@ -139,6 +182,7 @@ function validarDocente(legajo, dni) {
 
         // Ingreso exitoso: limpiamos el contador de intentos fallidos
         limpiarIntentosFallidos(cleanLegajo);
+        registrarLog(cleanLegajo, 'LOGIN', true, 'Ingreso exitoso');
 
         return {
           success: true,
@@ -155,6 +199,7 @@ function validarDocente(legajo, dni) {
     // Registro del intento fallido con lockout progresivo
     try {
       const fallos = registrarIntentoFallido(cleanLegajo);
+      registrarLog(cleanLegajo, 'LOGIN', false, 'Credenciales inválidas (intento ' + fallos + ')');
       if (fallos >= MAX_INTENTOS_LOGIN) {
         return { success: false, error: "Credenciales inválidas bloqueadas temporalmente por intentos repetidos. Esperá 15 minutos o comunicate con sistemas." };
       }
@@ -580,6 +625,10 @@ function exportarAGoogleSlides(token, materiaId, materiaNombre, temaNombre, dato
       console.warn("No se pudo transferir la propiedad (queda en el Drive del dueño): " + eTrans);
     }
 
+    registrarLog(legajo, 'EXPORTAR_SLIDES', true, temaNombre + ' → propiedad transferida al docente');
+
+    registrarLog(legajo, "EXPORTAR_SLIDES", true, String(temaNombre || "").slice(0, 80));
+
     // 4. REGISTRAR EN EL HISTORIAL (Hoja: Historial_Presentaciones)
     try {
       const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -612,6 +661,7 @@ function exportarAGoogleSlides(token, materiaId, materiaNombre, temaNombre, dato
 
   } catch (error) {
     console.error("Error al exportar a Google Slides: " + error.toString());
+    registrarLog(legajo, 'EXPORTAR_SLIDES', false, String(error).slice(0, 300));
     return { success: false, error: error.toString() };
   }
 }
@@ -812,6 +862,12 @@ function generarClaseConGeminiGAS(token, materia, tema, textoOficial, contextoDi
   const legajo = validarSesion(token);
   if (!legajo) return { success: false, error: "Sesión expirada o inválida." };
 
+  // TOPE DIARIO DE GENERACIONES IA (Sprint D)
+  if (superaLimiteGeneracionDiaria(legajo)) {
+    registrarLog(legajo, 'GENERAR_CLASE', false, 'Límite diario alcanzado (20/día)');
+    return { success: false, error: "Alcanzaste el límite diario de 20 generaciones. Probá mañana o editá una clase existente." };
+  }
+
   // Topes de entrada para evitar abuso y saturación de contexto del modelo
   contextoDinamico = String(contextoDinamico || '').slice(0, 2000);
   textoOficial = String(textoOficial || '').slice(0, 15000);
@@ -972,10 +1028,12 @@ function generarClaseConGeminiGAS(token, materia, tema, textoOficial, contextoDi
     // Parse seguro: tolera cercos markdown accidentales y valida la estructura
     const jsonLimpio = extraerJsonPuro(textResult);
     if (!jsonLimpio) {
+      registrarLog(legajo, 'GENERAR_CLASE', false, 'JSON inválido de Gemini');
       return { success: false, error: "La respuesta de Gemini no contiene un JSON válido." };
     }
     const claseObj = JSON.parse(jsonLimpio);
     if (!claseObj.slides || !Array.isArray(claseObj.slides)) {
+      registrarLog(legajo, 'GENERAR_CLASE', false, 'Respuesta sin diapositivas');
       return { success: false, error: "La respuesta de Gemini no incluye diapositivas válidas." };
     }
 
@@ -985,6 +1043,10 @@ function generarClaseConGeminiGAS(token, materia, tema, textoOficial, contextoDi
       const retry = intentarCorregirCantidadSlides(apiKey, promptSistema, numSlides, claseObj);
       if (retry) claseObj.slides = retry.slides;
     }
+
+    // Contabilizamos la generación diaria + audit log
+    registrarGeneracionDiaria(legajo);
+    registrarLog(legajo, 'GENERAR_CLASE', true, numSlides + ' slides, tema: ' + String(tema).slice(0, 80));
 
     claseObj.success = true;
     claseObj.configuracionAplicada = true;
@@ -1305,6 +1367,7 @@ function agregarTema(token, materiaId, nombreTema, descripcion, linkTeoria) {
     cache.remove('dashboard_' + normalizarId(legajo));
 
     if (lock) lock.releaseLock();
+    registrarLog(legajo, "AGREGAR_TEMA", true, nombreLimpio);
     return { success: true, mensaje: "¡Tema agregado con éxito!" };
   } catch (err) {
     if (lock) { try { lock.releaseLock(); } catch (eLock) {} }
@@ -1363,6 +1426,7 @@ function guardarPlantilla(token, nombre, configuracion) {
     }
 
     if (lock) lock.releaseLock();
+    registrarLog(legajo, "GUARDAR_PLANTILLA", true, nombreLimpio);
     return { success: true, mensaje: "Plantilla guardada en tu cuenta." };
   } catch (err) {
     if (lock) { try { lock.releaseLock(); } catch (eLock) {} }
@@ -1419,6 +1483,7 @@ function borrarPlantilla(token, nombre) {
     }
 
     if (lock) lock.releaseLock();
+    registrarLog(legajo, "BORRAR_PLANTILLA", true, nombreLimpio);
     return { success: true, mensaje: "Plantilla borrada." };
   } catch (err) {
     if (lock) { try { lock.releaseLock(); } catch (eLock) {} }
@@ -1464,6 +1529,7 @@ function actualizarHistorial(token, idHistorial, carpeta, datosClase) {
     if (datosClase !== undefined) sheetHistorial.getRange(fila, 9).setValue(JSON.stringify(datosClase));
 
     if (lock) lock.releaseLock();
+    registrarLog(legajo, "ACTUALIZAR_HISTORIAL", true, String(carpeta || "datosClase").slice(0, 60));
     return { success: true, mensaje: "Historial actualizado." };
   } catch (err) {
     if (lock) { try { lock.releaseLock(); } catch (eLock) {} }
