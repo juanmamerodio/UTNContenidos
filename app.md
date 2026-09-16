@@ -552,6 +552,34 @@ function exportarAGoogleSlides(token, materiaId, materiaNombre, temaNombre, dato
 
     const urlPresentacion = presentacion.getUrl();
 
+    // 3b. TRANSFERENCIA DE PROPIEDAD AL DOCENTE (deploy "Ejecutar como: Yo")
+    // Google no permite "Usuario que accede + anónimo". La solución profesional:
+    // el script (dueño) crea el Slides y luego transfiere la propiedad al docente,
+    // para que la presentación viva en SU Drive. Usa el email de la hoja Docentes.
+    try {
+      const ss = SpreadsheetApp.getActiveSpreadsheet();
+      const sheetDocentes = ss.getSheetByName('Docentes');
+      let emailDocente = '';
+      if (sheetDocentes) {
+        const dataDoc = sheetDocentes.getDataRange().getValues();
+        for (let i = 1; i < dataDoc.length; i++) {
+          if (normalizarId(dataDoc[i][0]) === normalizarId(legajo)) {
+            emailDocente = String(dataDoc[i][3] || '').trim();
+            break;
+          }
+        }
+      }
+      if (emailDocente) {
+        const fileId = urlPresentacion.match(/\/d\/([^\/]+)/)[1];
+        DriveApp.getFileById(fileId).setOwner(emailDocente);
+        console.log("Propiedad del Slides transferida a: " + emailDocente);
+      } else {
+        console.warn("No se encontró email del docente para transferir la propiedad.");
+      }
+    } catch (eTrans) {
+      console.warn("No se pudo transferir la propiedad (queda en el Drive del dueño): " + eTrans);
+    }
+
     // 4. REGISTRAR EN EL HISTORIAL (Hoja: Historial_Presentaciones)
     try {
       const ss = SpreadsheetApp.getActiveSpreadsheet();
