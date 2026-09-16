@@ -7,9 +7,11 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="theme-color" content="#06a28a">
 
-    <!-- Política de Seguridad de Contenido (CSP): mitiga XSS y fuga de datos -->
+    <!-- Política de Seguridad de Contenido (CSP): mitiga XSS y fuga de datos
+     Nota: GAS responde con un 302 a script.googleusercontent.com (el "echo"
+     que ejecuta el doPost), por eso ese dominio está en connect-src. -->
     <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://image.pollinations.ai; connect-src 'self' https://script.google.com https://generativelanguage.googleapis.com https://cdnjs.cloudflare.com; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'">
+        content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://image.pollinations.ai; connect-src 'self' https://script.google.com https://script.googleusercontent.com https://generativelanguage.googleapis.com; base-uri 'self'; form-action 'self'; object-src 'none'">
 
     <!-- Favicon e Identidad Visual UTN -->
     <link rel="icon" type="image/jpeg" href="UTN.jpg">
@@ -36,8 +38,9 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
 
-    <!-- Generador de PDFs en el cliente (Costo $0) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Generador de PDFs en el cliente (Costo $0) — self-hosted local para
+         evitar bloqueos de Tracking Prevention de cdnjs de terceros -->
+    <script src="vendor/html2pdf.bundle.min.js"></script>
 </head>
 
 <body>
