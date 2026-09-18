@@ -11,7 +11,7 @@
 // vez que se republica el Apps Script, las URLs viejas quedan desactivadas y
 // provocan "Failed to fetch" en el login.
 // ÚLTIMA URL FUNCIONAL (pendiente: el deploy nuevo dio 401 por acceso restringido)
-const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzdUjB0eYlAckPjBwXWHHjdYKGdbx6HFF6LObDaffKFI7F0ZRcjRdwLpkmDWWAo6jp3/exec"
+const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzxYW5lF4oTdCDwrGEWq5hM6RqScPv5lhOAgbMLAeaFWPEDTPUaY9Le5u8kyLUGfLls/exec"
 
 /**
  * Realiza llamadas HTTP POST al backend en Google Apps Script
