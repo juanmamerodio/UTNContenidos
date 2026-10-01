@@ -19,12 +19,14 @@ export default function GeneradorClase({ materiaId, materiaNombre, temaId, temaN
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState('');
   const [clase, setClase] = useState<any>(null);
+  const [progreso, setProgreso] = useState('');
 
   async function generar() {
     setCargando(true);
     setError('');
+    setProgreso('Conectando con la IA...');
     try {
-      const r = await fetch('/api/ia', {
+      const r = await fetch('/api/ia?stream=1', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -33,11 +35,44 @@ export default function GeneradorClase({ materiaId, materiaNombre, temaId, temaN
           configuracion: { numSlides, estilo, nivel, ejemplos, instrucciones }
         })
       });
-      const json = await r.json();
-      if (!json.success) throw new Error(json.error || 'Error al generar');
-      setClase(json);
+
+      // B4-4: streaming SSE — el texto llega por partes y se muestra en vivo
+      if (r.headers.get('content-type')?.includes('text/event-stream')) {
+        const reader = r.body!.getReader();
+        const decoder = new TextDecoder();
+        let acumulado = '';
+        setProgreso('');
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value, { stream: true });
+
+          for (const linea of chunk.split('\n')) {
+            if (!linea.startsWith('data: ')) continue;
+            const dato = JSON.parse(linea.slice(6));
+            if (dato.tipo === 'progreso') {
+              setProgreso(dato.mensaje || '');
+            } else if (dato.tipo === 'chunk') {
+              acumulado += dato.texto || '';
+              setProgreso(acumulado.slice(-400)); // muestra el final del texto generado
+            } else if (dato.tipo === 'done') {
+              setClase(dato.clase);
+              setProgreso('');
+            } else if (dato.tipo === 'error') {
+              throw new Error(dato.error || 'Error al generar');
+            }
+          }
+        }
+      } else {
+        const json = await r.json();
+        if (!json.success) throw new Error(json.error || 'Error al generar');
+        setClase(json);
+        setProgreso('');
+      }
     } catch (e) {
       setError((e as Error).message);
+      setProgreso('');
     } finally {
       setCargando(false);
     }
@@ -111,6 +146,7 @@ export default function GeneradorClase({ materiaId, materiaNombre, temaId, temaN
         <button className="btn-primary gen-generar" onClick={generar} disabled={cargando}>
           {cargando ? 'Generando con IA...' : '⚡ Generar Clase'}
         </button>
+        {progreso && <p className="gen-progreso" aria-live="polite">{progreso}</p>}
         {error && <p className="login-error">{error}</p>}
       </section>
 

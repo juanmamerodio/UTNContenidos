@@ -9,6 +9,7 @@
     "start": "next start",
     "seed:root": "node scripts/seed_root.mjs",
     "seed:materias": "node scripts/seed_materias.mjs",
+    "seed:apuntes": "node scripts/seed_apuntes.mjs",
     "qa": "node scripts/qa.mjs"
   },
   "dependencies": {
