@@ -169,8 +169,16 @@ begin
   return new;
 end;
 $$;
-create trigger if not exists trg_pres_updated before update on public.presentaciones
-  for each row execute function public.set_updated_at();
+
+-- PostgreSQL NO soporta "CREATE TRIGGER IF NOT EXISTS" (solo TABLE/INDEX).
+-- Forma idempotente y compatible (PG 11-17): DO + chequeo del catálogo pg_trigger.
+do $$
+begin
+  if not exists (select 1 from pg_trigger where tgname = 'trg_pres_updated') then
+    execute 'create trigger trg_pres_updated before update on public.presentaciones
+             execute function public.set_updated_at()';
+  end if;
+end $$;
 
 -- ============ TRIGGER: evento genérico por sesión (log manual vía API) ============
 create or replace function public.registrar_evento(p_accion text, p_exito boolean, p_detalle text)
