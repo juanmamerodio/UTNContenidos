@@ -14,5 +14,11 @@ Thumbs.db
 .env.local
 .env.production
 
+# Datos locales de migración (PII: legajo/DNI) — nunca commitear
+data/*.csv
+
+# Dependencias (instaladas en deploy por Vercel)
+node_modules/
+
 # Carpetas del sistema
 .vercel/
