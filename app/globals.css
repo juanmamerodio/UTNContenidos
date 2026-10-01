@@ -1,0 +1,149 @@
+/* ==========================================================
+   UTNContenidos Beta — Sistema de diseño institucional (Next.js)
+   Tokens heredados de la Alpha, modernizados para React.
+   ========================================================== */
+
+:root {
+  --utn-green-primary: #06a28a;
+  --utn-green-dark: #047a68;
+  --utn-green-light: #1ec4a8;
+  --utn-green-surface: #ebf8f5;
+  --utn-accent: #035a4d;
+  --bg-base: #f3f7f6;
+  --bg-surface: #ffffff;
+  --border: rgba(6, 162, 138, 0.18);
+  --text-primary: #0f1f1c;
+  --text-secondary: #374b47;
+  --text-inverse: #ffffff;
+  --error: #c53030;
+  --success: #1b7a47;
+  --warning: #b45309;
+  --radius: 14px;
+  --radius-pill: 9999px;
+  --shadow: 0 10px 30px rgba(4, 122, 104, 0.09);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: clamp(15px, 1vw + 12px, 17px); }
+body {
+  font-family: 'Segoe UI', Roboto, -apple-system, sans-serif;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+:focus-visible { outline: 3px solid var(--utn-green-primary); outline-offset: 2px; }
+
+/* ---------- Login (vista pública) ---------- */
+.login-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  max-width: 440px;
+  width: 100%;
+  padding: 2.5rem 2rem;
+  margin-top: 4rem;
+}
+
+.login-brand { text-align: center; margin-bottom: 1.5rem; }
+.login-brand h1 {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--utn-green-dark);
+  letter-spacing: -0.03em;
+}
+.login-brand p { color: var(--text-secondary); font-size: 0.95rem; }
+
+.login-form label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  margin-bottom: 0.45rem;
+}
+
+.login-form input {
+  width: 100%;
+  padding: 0.9rem 1.1rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 1rem;
+  min-height: 50px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--text-primary);
+}
+.login-form input:focus { border-color: var(--utn-green-primary); outline: none; }
+
+.login-form .field { margin-bottom: 1.3rem; }
+
+.login-submit {
+  width: 100%;
+  min-height: 54px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(135deg, #06a28a, #047a68);
+  color: var(--text-inverse);
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.login-submit:hover { transform: translateY(-2px); }
+
+.login-error {
+  color: var(--error);
+  font-size: 0.9rem;
+  margin-top: 1rem;
+  font-weight: 600;
+}
+
+/* ---------- Dashboard (vista autenticada) ---------- */
+.dash-header {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  max-width: 1000px;
+  width: 100%;
+  padding: 1.5rem 2rem;
+  margin-top: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.dash-header h1 { font-size: 1.5rem; font-weight: 800; color: var(--utn-green-dark); }
+.dash-header p { color: var(--text-secondary); }
+
+.btn-secondary {
+  display: inline-block;
+  padding: 0.7rem 1.2rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--utn-green-dark);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.estado-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  max-width: 1000px;
+  width: 100%;
+  padding: 2rem;
+  margin-top: 1.5rem;
+}
+.estado-card h2 { font-size: 1.15rem; font-weight: 700; color: var(--utn-green-dark); }
+.estado-card ul { margin: 1rem 0 0 1.2rem; color: var(--text-secondary); line-height: 1.7; }
