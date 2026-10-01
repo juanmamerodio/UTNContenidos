@@ -111,6 +111,10 @@ create index if not exists idx_presentaciones_docente on public.presentaciones(d
 create index if not exists idx_eventos_docente on public.eventos(docente_id);
 create index if not exists idx_slides_presentacion on public.slides(presentacion_id);
 
+-- ============ UNIQUE (para UPSERT idempotente) ============
+alter table public.temas add constraint temas_materia_orden_unique unique (materia_id, orden);
+alter table public.asignaciones add constraint asign_docente_materia_unique unique (docente_id, materia_id);
+
 -- ============ ROW LEVEL SECURITY (seguridad por fila) ============
 alter table public.docentes enable row level security;
 alter table public.asignaciones enable row level security;

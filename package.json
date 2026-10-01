@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "seed:root": "node scripts/seed_root.mjs",
+    "seed:materias": "node scripts/seed_materias.mjs",
     "qa": "node scripts/qa.mjs"
   },
   "dependencies": {

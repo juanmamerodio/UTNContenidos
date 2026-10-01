@@ -147,3 +147,153 @@ body {
 }
 .estado-card h2 { font-size: 1.15rem; font-weight: 700; color: var(--utn-green-dark); }
 .estado-card ul { margin: 1rem 0 0 1.2rem; color: var(--text-secondary); line-height: 1.7; }
+
+/* ---------- Dashboard de materias (B2) ---------- */
+.dash-materias {
+  max-width: 1000px;
+  width: 100%;
+  margin-top: 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.2rem;
+}
+
+.materia-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.5rem;
+}
+
+.materia-head h2 { font-size: 1.25rem; font-weight: 800; color: var(--utn-green-dark); margin-top: 0.4rem; }
+.materia-desc { color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.3rem; }
+
+.badge {
+  display: inline-block;
+  background: var(--utn-green-surface);
+  color: var(--utn-green-dark);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.3rem 0.8rem;
+  border-radius: var(--radius-pill);
+}
+
+.tema-list { list-style: none; margin-top: 1rem; }
+.tema-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  margin-bottom: 0.6rem;
+  background: rgba(255, 255, 255, 0.8);
+  flex-wrap: wrap;
+}
+.tema-list span { font-weight: 600; color: var(--text-primary); }
+
+.btn-primary {
+  display: inline-block;
+  padding: 0.7rem 1.2rem;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(135deg, #06a28a, #047a68);
+  color: var(--text-inverse);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-decoration: none;
+}
+.btn-primary:hover { transform: translateY(-1px); }
+
+.nuevo-tema { margin-top: 0.8rem; }
+.nuevo-tema summary { cursor: pointer; font-weight: 600; color: var(--utn-green-dark); font-size: 0.9rem; }
+.nuevo-tema form {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 0.7rem;
+  padding: 1rem;
+  border-radius: 10px;
+  background: var(--utn-green-surface);
+}
+.nuevo-tema input {
+  width: 100%;
+  padding: 0.65rem 0.9rem;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-size: 0.95rem;
+}
+.nuevo-tema button { justify-self: start; }
+
+/* ---------- Generador de clase (B3) ---------- */
+.gen-wrap { max-width: 1100px; width: 100%; margin-top: 1.5rem; }
+.gen-breadcrumb { color: var(--text-secondary); margin-bottom: 1rem; }
+.gen-breadcrumb a { color: var(--utn-green-primary); font-weight: 700; }
+
+.gen-config {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.5rem 2rem;
+}
+.gen-config h1 { font-size: 1.4rem; font-weight: 800; color: var(--utn-green-dark); }
+.gen-config > p { color: var(--text-secondary); margin-bottom: 1.2rem; }
+
+.gen-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.8rem;
+}
+.gen-pill {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  background: var(--utn-green-surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.7rem 1rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+}
+.gen-pill b { color: var(--utn-green-dark); font-size: 1.2rem; }
+.gen-pill select, .gen-pill input, .gen-pill textarea {
+  width: 100%;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  background: var(--bg-surface);
+  font-family: inherit;
+}
+.gen-pill input[type="range"] { accent-color: var(--utn-green-primary); }
+.gen-full { grid-column: 1 / -1; }
+
+.gen-generar { margin-top: 1.2rem; min-height: 52px; font-size: 1rem; }
+.gen-generar:disabled { opacity: 0.6; cursor: wait; }
+
+.gen-resultado { margin-top: 1.5rem; }
+.gen-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-bottom: 0.8rem;
+}
+.gen-actions h2 { font-size: 1.2rem; font-weight: 800; color: var(--utn-green-dark); }
+.gen-botones { display: flex; gap: 0.6rem; }
+
+.gen-frame {
+  width: 100%;
+  height: 560px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #fff;
+  box-shadow: var(--shadow);
+}
