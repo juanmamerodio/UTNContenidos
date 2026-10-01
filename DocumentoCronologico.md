@@ -307,6 +307,35 @@ El último sprint de la Alpha puso el foco en la **distribución y la telemetrí
 
 **Lo que queda para adelante:** versionar el backend con `clasp` para que el código del repositorio y el de producción nunca se desincronicen, y la migración de autenticación a Microsoft Entra ID documentada en `WALKTHROUGH_FASE2.md`.
 
+---
+
+# **Beta 0.1.0 — La etapa final del desarrollo**
+
+## **El plan final: de prototipo a producto**
+
+La Alpha cumplió su ciclo con los cuatro sprints cerrados (blindaje, personalización, fiabilidad y distribución). Ahora comienza la **Beta 0.1.0**, documentada en `PLAN_BETA_FINAL.md`, con la decisión más importante de todo el proyecto:
+
+**El cambio de base tecnológica para salir del prototipo y convertirse en una plataforma real:**
+
+| Componente | Alpha (prototipo) | Beta 0.1.0 (producto) |
+| :---- | :---- | :---- |
+| **Base de datos** | Google Sheets (planilla) | **Supabase**: PostgreSQL serverless real, con seguridad por fila (cada docente ve solo lo suyo) |
+| **Backend** | Google Apps Script | **Funciones serverless en Vercel** (sin retardos, sin límites de 6 minutos, versionadas en Git) |
+| **Presentaciones** | Google Slides / PowerPoint (limitadas visualmente) | **HTML + Reveal.js**: presentaciones autocontenidas con identidad UTN, donde el usuario tiene control total de cada diapositiva |
+| **IA** | Gemini (directo) | **OpenRouter** como orquestador multi-modelo (con Gemini de respaldo) |
+
+*Por qué este cambio:* la Alpha demostró que la idea funciona y que los docentes la quieren. Lo que le falta para producción es lo que la arquitectura Atada Con Alambre no podía dar: una base de datos que aguante a todos los profesores, un backend sin retardos, y presentaciones con la calidad visual que el sistema merece.
+
+**El camino (seis sprints, modelo espiral):**
+1. **B1** — la base de datos real: Supabase con su esquema de datos, migración desde la planilla y respaldo.
+2. **B2** — despedida de AppScript: toda la lógica migrada a funciones Vercel.
+3. **B3** — las presentaciones HTML: el cambio visual más importante, donde el profesor tiene control total de su clase.
+4. **B4** — inteligencia artificial v2: OpenRouter, búsqueda semántica de apuntes y generación en vivo.
+5. **B5** — blindaje y calidad: auditoría de seguridad completa, pruebas con docentes reales y revisión legal.
+6. **B6** — apagado de la Alpha y entrega institucional de la Beta.
+
+Cada sprint se ejecuta con la misma disciplina de siempre: objetivos y metas primero, luego el algoritmo, el pseudocódigo, el código, las pruebas, la auditoría y la memoria actualizada. Y como todo el proyecto: **a costo cero, pensada para docentes de más de 50 años y con el sello de la UTN FRD**. El desarrollo arranca con el equipamiento de la base de datos.
+
 ## **El 8 de septiembre (sexta parte) — "El Sprint B, Espiral 4: plantillas con nombre y cierre"**
 
 La cuarta y última vuelta del espiral cerró el Sprint B con el detalle que convierte al configurador en una herramienta personal: **plantillas con nombre**.

@@ -16,7 +16,9 @@ Stack: Vanilla JS + `style.css` (frontend) · Vercel Serverless (`api/gemini.js`
 | `DocumentoCronologico.md` | Bitácora institucional de pasantía (tono formal) | ~200 |
 | `diagramas.html` | Diagramas Mermaid 11 (arquitectura, ER, flujo) | ~180 |
 | `UTNContenidos.md` | System Instructions del Escuadrón | 223 |
-| `PLAN_ALPHA_5.md` / `PLAN_ALPHA_5_SPRINT_B.md` | Auditoría + roadmap (modelo espiral) | — |
+| `PLAN_ALPHA_5.md` / `PLAN_ALPHA_5_SPRINT_B.md` | Auditoría + roadmap Alpha (modelo espiral) | — |
+| `PLAN_BETA_FINAL.md` | **Plan Beta 0.1.0: stack final (Supabase, Vercel Functions, OpenRouter, Reveal.js), ER Mermaid, sprints B1-B6** | — |
+| `CHECKLIST_DEPLOY.md` | Paso a paso de deploy | — |
 | `WALKTHROUGH_FASE2.md` | Migración futura a Microsoft Entra ID | — |
 
 ## Reglas no negociables
