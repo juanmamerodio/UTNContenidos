@@ -224,7 +224,36 @@ document.addEventListener('DOMContentLoaded', () => {
         modalLoader.showModal();
 
         try {
-            // LLAMADA AL BACKEND (HTTP POST)
+            // === BETA (Sprint B1): login root/root vía Supabase ===
+            if (legajo === 'root') {
+                const respBeta = await fetch('/api/auth', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ accion: 'login', legajo, dni })
+                });
+                const resBeta = await respBeta.json();
+                modalLoader.close();
+                if (resBeta.success) {
+                    sesionToken = resBeta.token;
+                    sessionStorage.setItem('utn_token', resBeta.token);
+                    sessionStorage.setItem('utn_nombre', resBeta.usuario.nombre);
+
+                    userNameDisplay.textContent = resBeta.usuario.nombre;
+                    mainNav.removeAttribute('hidden');
+                    userMenu.removeAttribute('hidden');
+
+                    renderizarDashboard(resBeta.dashboard || []);
+                    navigateTo('view-dashboard');
+                } else {
+                    errorDni.removeAttribute('hidden');
+                    errorDni.textContent = resBeta.error || 'Credenciales inválidas.';
+                    inputLegajo.style.borderColor = 'var(--error)';
+                    inputDni.style.borderColor = 'var(--error)';
+                }
+                return;
+            }
+
+            // LLAMADA AL BACKEND (HTTP POST) — flujo legacy GAS (transicional hasta B2)
             const respuesta = await callBackend('validarDocente', { legajo, dni });
             modalLoader.close();
 

@@ -7,6 +7,7 @@
     "dev": "vercel dev",
     "deploy": "vercel --prod",
     "migrar": "node scripts/migrar.mjs",
+    "seed:root": "node scripts/seed_root.mjs",
     "qa": "node scripts/qa.mjs"
   },
   "dependencies": {
