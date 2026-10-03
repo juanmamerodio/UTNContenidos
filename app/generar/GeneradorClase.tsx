@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from 'react';
 import { buildDeckHtml, nombreArchivoDeck } from '@/lib/deck';
+import GlassCard from '@/components/ui/GlassCard';
+import MaterialButton from '@/components/ui/MaterialButton';
 
 interface Props {
   materiaId: string;
@@ -143,26 +145,26 @@ export default function GeneradorClase({ materiaId, materiaNombre, temaId, temaN
           </label>
         </div>
 
-        <button className="btn-primary gen-generar" onClick={generar} disabled={cargando}>
+        <MaterialButton variante="primary" className="gen-generar" onClick={generar} disabled={cargando}>
           {cargando ? 'Generando con IA...' : '⚡ Generar Clase'}
-        </button>
+        </MaterialButton>
         {progreso && <p className="gen-progreso" aria-live="polite">{progreso}</p>}
         {error && <p className="login-error">{error}</p>}
       </section>
 
       {clase && (
-        <section className="gen-resultado">
+        <GlassCard className="gen-resultado">
           <div className="gen-actions">
             <h2>Tu presentación está lista</h2>
             <div className="gen-botones">
-              <button className="btn-primary" onClick={descargarHtml}>⬇ Descargar HTML</button>
-              <button className="btn-secondary" onClick={() => window.print()}>🖨 PDF</button>
+              <MaterialButton variante="primary" onClick={descargarHtml}>⬇ Descargar HTML</MaterialButton>
+              <MaterialButton variante="secondary" onClick={() => window.print()}>🖨 PDF</MaterialButton>
             </div>
           </div>
           {deckHtml && (
             <iframe className="gen-frame" title="Vista previa de la presentación" srcDoc={deckHtml} />
           )}
-        </section>
+        </GlassCard>
       )}
     </div>
   );

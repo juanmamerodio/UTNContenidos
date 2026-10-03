@@ -277,6 +277,10 @@ body {
   padding: 0.3rem 0.8rem;
   border-radius: var(--radius-pill);
 }
+.badge-archivo {
+  background: rgba(100, 116, 139, 0.14);
+  color: #475569;
+}
 
 .tema-list { list-style: none; margin-top: 1rem; }
 .tema-list li {

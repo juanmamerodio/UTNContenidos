@@ -3,6 +3,8 @@ import { getSesionUsuario } from '../helpers';
 import { logout } from '../actions';
 import { getDashboard } from '../datos';
 import { agregarTema } from '../datos';
+import GlassCard from '@/components/ui/GlassCard';
+import MaterialButton from '@/components/ui/MaterialButton';
 
 export default async function DashboardPage() {
   const usuario = await getSesionUsuario();
@@ -12,22 +14,25 @@ export default async function DashboardPage() {
 
   return (
     <>
-      <header className="dash-header">
+      <GlassCard className="dash-header">
         <div>
           <h1>¿Qué clase preparamos hoy?</h1>
           <p>Hola {usuario?.nombre} — elegí una materia y un tema.</p>
         </div>
-        <form action={logout}>
-          <button type="submit" className="btn-secondary">Cerrar Sesión</button>
-        </form>
-      </header>
+        <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+          <a href="/historial" className="btn-secondary">Historial</a>
+          <form action={logout}>
+            <MaterialButton type="submit" variante="secondary">Cerrar Sesión</MaterialButton>
+          </form>
+        </div>
+      </GlassCard>
 
       <section className="dash-materias">
         {materias.length === 0 ? (
-          <div className="estado-card">
+          <GlassCard className="estado-card">
             <h2>Sin materias asignadas</h2>
             <p>Todavía no tenés materias en tu perfil. Contactá a sistemas o probá el flujo con el usuario root.</p>
-          </div>
+          </GlassCard>
         ) : (
           materias.map((m: any) => (
             <article className="materia-card" key={m.id}>
@@ -53,7 +58,7 @@ export default async function DashboardPage() {
                   <input type="text" name="nombre" placeholder="Nombre del tema" required maxLength={200} />
                   <input type="text" name="descripcion" placeholder="Descripción (opcional)" maxLength={500} />
                   <input type="url" name="urlApunte" placeholder="URL del apunte (opcional)" maxLength={500} />
-                  <button type="submit" className="btn-primary">Guardar tema</button>
+                  <MaterialButton type="submit" variante="primary">Guardar tema</MaterialButton>
                 </form>
               </details>
             </article>
