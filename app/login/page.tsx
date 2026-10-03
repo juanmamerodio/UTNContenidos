@@ -1,4 +1,6 @@
 import { loginRoot } from '../actions';
+import GlassCard from '@/components/ui/GlassCard';
+import MaterialButton from '@/components/ui/MaterialButton';
 
 export default async function LoginPage({
   searchParams
@@ -12,7 +14,7 @@ export default async function LoginPage({
     : null;
 
   return (
-    <div className="login-card">
+    <GlassCard className="login-card">
       <div className="login-brand">
         <h1>UTN Contenidos</h1>
         <p>Beta 0.1.0 — Ingreso Docente · Facultad Regional Delta</p>
@@ -27,9 +29,9 @@ export default async function LoginPage({
           <label htmlFor="dni">DNI</label>
           <input id="dni" name="dni" type="password" autoComplete="current-password" required />
         </div>
-        <button type="submit" className="login-submit">Ingresar al Asistente</button>
+        <MaterialButton type="submit" variante="primary" className="login-submit">Ingresar al Asistente</MaterialButton>
         {errorMsg && <p className="login-error">{errorMsg}</p>}
       </form>
-    </div>
+    </GlassCard>
   );
 }
