@@ -5,6 +5,8 @@ import { getHistorial } from '../datos';
 import GlassCard from '@/components/ui/GlassCard';
 import MaterialButton from '@/components/ui/MaterialButton';
 
+import AppHeader from '@/components/layout/AppHeader';
+
 const BADGES: Record<string, { label: string; cls: string }> = {
   LISTA: { label: '● Reciente', cls: 'badge' },
   ARCHIVADO: { label: '● Archivado', cls: 'badge badge-archivo' }
@@ -24,15 +26,17 @@ export default async function HistorialPage() {
 
   return (
     <>
-      <GlassCard className="dash-header">
+      <AppHeader usuario={usuario} activePath="/historial" />
+
+      <section className="dash-header glass-panel">
         <div>
           <h1>Historial de Clases</h1>
-          <p>Hola {usuario?.nombre} — tus presentaciones generadas.</p>
+          <p>Hola <strong>{usuario?.nombre}</strong> — accedé a todas las presentaciones que preparaste.</p>
         </div>
-        <form action={logout}>
-          <MaterialButton type="submit" variante="secondary">Cerrar Sesión</MaterialButton>
-        </form>
-      </GlassCard>
+        <div>
+          <a href="/dashboard" className="btn-secondary">← Volver a Mis Materias</a>
+        </div>
+      </section>
 
       <section className="dash-materias">
         {historial.length === 0 ? (

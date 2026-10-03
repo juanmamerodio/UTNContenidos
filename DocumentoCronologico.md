@@ -356,3 +356,20 @@ Con esto quedó completo el recorrido que el docente hace en menos de seis clics
 **De paso, el futuro Microsoft:**
 
 Como la UTN tiene convenio con **Microsoft 365** (y no con Google), se documentó el camino de migración por capas en `WALKTHROUGH_FASE2.md`: la autenticación pasará a **Microsoft Entra ID** (cada docente entra con su cuenta institucional), y a futuro los archivos podrían generarse en OneDrive (PPTX) manteniendo Google como respaldo. La inteligencia artificial (Gemini) se mantiene igual en ambos mundos. Todo a costo $0 y sin tirar lo ya construido.  
+
+---
+
+## **El 3 de octubre — "Fusión Visual Definitiva: Experiencia 3D Glassmorphism 2026 (iOS 27 + Material 4)"**
+
+Se ejecutó de forma integral el plan maestro de fusión visual (`PLAN_FUSION_UI_2026.md`), elevando la plataforma Next.js 15 a los más altos estándares estéticos y pedagógicos inspirados en los mejores referentes de diseño interactivo de vanguardia (Apple, Google y Awwwards), adaptado al público docente 50+ de la UTN Facultad Regional Delta.
+
+| Cambio | Archivo | Para qué |
+| :---- | :---- | :---- |
+| **Atmósfera 3D Lumínica** | `components/layout/AmbientGlow.tsx` | Reincorporó las 3 esferas orbs reactivas con desenfoque 120px volumétrico y gradientes UTN esmeralda (`#06a28a`). |
+| **AppShell Institucional** | `components/layout/AppHeader.tsx` & `AppFooter.tsx` | Header flotante glass con logo oficial UTN, menú táctil, navegación activa y footer institucional con datos de sede Campana y links a Sysacad/Campus Virtual. |
+| **Guía y Stepper 3 Pasos** | `components/ui/StepperDidactico.tsx` | Stepper háptico elástico que orienta al docente en 3 pasos clave con alto contraste y claridad visual. |
+| **Login Institucional Fiel** | `app/login/page.tsx` | Reconstrucción idéntica y refinada de la pantalla de bienvenida con badge de Campus Docente, accesos directos y mensajes de error comprensibles. |
+| **Dashboard y Gestión** | `components/dashboard/MateriaCardPro.tsx` | Cards 3D con elevación táctil, chips de nivel de cátedra y modal para incorporar nuevos temas del programa. |
+| **4 Secciones Pedagógicas** | `components/generador/SeccionesPedagogicas.tsx` | Vista didáctica de entrega cuádruple: Plan de clase y cronograma, Enfoques sugeridos, Fichas de diapositivas y Esquemas de pizarra. |
+| **Modales Quirúrgicos** | `ModalEditarSlide.tsx` & `ModalReformular.tsx` | Permite al docente editar textos o regenerar con IA una diapositiva puntual antes de exportar, sin alterar el resto de la clase. |
+| **Tokens & Tipografía** | `app/globals.css` & `app/layout.tsx` | Integración de tipografías Google (Outfit, Montserrat, Inter), tokens `--utn-*` y compilación estricta verificada con Next.js 15. |

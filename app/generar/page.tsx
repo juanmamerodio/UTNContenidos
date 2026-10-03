@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getSesionUsuario } from '../helpers';
+import AppHeader from '@/components/layout/AppHeader';
 import GeneradorClase from './GeneradorClase';
 
 export default async function GenerarPage({
@@ -18,11 +19,14 @@ export default async function GenerarPage({
   if (!materiaId || !temaId) redirect('/dashboard');
 
   return (
-    <GeneradorClase
-      materiaId={materiaId}
-      materiaNombre={materiaId}
-      temaId={temaId}
-      temaNombre={temaNombre}
-    />
+    <>
+      <AppHeader usuario={usuario} activePath="/generar" />
+      <GeneradorClase
+        materiaId={materiaId}
+        materiaNombre={materiaId}
+        temaId={temaId}
+        temaNombre={temaNombre}
+      />
+    </>
   );
 }

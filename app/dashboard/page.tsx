@@ -1,10 +1,10 @@
 import { redirect } from 'next/navigation';
 import { getSesionUsuario } from '../helpers';
-import { logout } from '../actions';
 import { getDashboard } from '../datos';
-import { agregarTema } from '../datos';
-import GlassCard from '@/components/ui/GlassCard';
-import MaterialButton from '@/components/ui/MaterialButton';
+import AppHeader from '@/components/layout/AppHeader';
+import StepperDidactico from '@/components/ui/StepperDidactico';
+import MateriaCardPro from '@/components/dashboard/MateriaCardPro';
+import Link from 'next/link';
 
 export default async function DashboardPage() {
   const usuario = await getSesionUsuario();
@@ -14,54 +14,35 @@ export default async function DashboardPage() {
 
   return (
     <>
-      <GlassCard className="dash-header">
+      <AppHeader usuario={usuario} activePath="/dashboard" />
+
+      <StepperDidactico pasoActual={1} />
+
+      <section className="dash-header glass-panel">
         <div>
           <h1>¿Qué clase preparamos hoy?</h1>
-          <p>Hola {usuario?.nombre} — elegí una materia y un tema.</p>
+          <p>
+            Hola <strong>{usuario.nombre}</strong> — seleccioná un tema de tus cátedras para estructurar tu clase.
+          </p>
         </div>
-        <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
-          <a href="/historial" className="btn-secondary">Historial</a>
-          <form action={logout}>
-            <MaterialButton type="submit" variante="secondary">Cerrar Sesión</MaterialButton>
-          </form>
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <Link href="/historial" className="btn-secondary">
+            📚 Ver Historial
+          </Link>
         </div>
-      </GlassCard>
+      </section>
 
       <section className="dash-materias">
         {materias.length === 0 ? (
-          <GlassCard className="estado-card">
+          <div className="materia-card glass-panel" style={{ textAlign: 'center', padding: '3rem 2rem' }}>
             <h2>Sin materias asignadas</h2>
-            <p>Todavía no tenés materias en tu perfil. Contactá a sistemas o probá el flujo con el usuario root.</p>
-          </GlassCard>
+            <p style={{ marginTop: '0.6rem', color: 'var(--on-surface-2)' }}>
+              Todavía no tenés cátedras asignadas en tu perfil activo.
+            </p>
+          </div>
         ) : (
           materias.map((m: any) => (
-            <article className="materia-card" key={m.id}>
-              <div className="materia-head">
-                <span className="badge">{m.nivel}</span>
-                <h2>{m.nombre}</h2>
-                {m.descripcion && <p className="materia-desc">{m.descripcion}</p>}
-              </div>
-              <ul className="tema-list">
-                {m.temas.map((t: any) => (
-                  <li key={t.id}>
-                    <span>{t.nombre}</span>
-                    <a href={`/generar?materia=${encodeURIComponent(m.id)}&tema=${encodeURIComponent(t.id)}&nombre=${encodeURIComponent(t.nombre)}`} className="btn-primary">
-                      Preparar Clase
-                    </a>
-                  </li>
-                ))}
-              </ul>
-              <details className="nuevo-tema">
-                <summary>＋ Agregar tema</summary>
-                <form action={agregarTema}>
-                  <input type="hidden" name="materiaId" value={m.id} />
-                  <input type="text" name="nombre" placeholder="Nombre del tema" required maxLength={200} />
-                  <input type="text" name="descripcion" placeholder="Descripción (opcional)" maxLength={500} />
-                  <input type="url" name="urlApunte" placeholder="URL del apunte (opcional)" maxLength={500} />
-                  <MaterialButton type="submit" variante="primary">Guardar tema</MaterialButton>
-                </form>
-              </details>
-            </article>
+            <MateriaCardPro key={m.id} materia={m} />
           ))
         )}
       </section>
