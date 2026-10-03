@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { buildDeckHtml, nombreArchivoDeck } from '@/lib/deck';
 import GlassCard from '@/components/ui/GlassCard';
 import MaterialButton from '@/components/ui/MaterialButton';
+import BotonPptx from './BotonPptx';
 
 interface Props {
   materiaId: string;
@@ -157,7 +158,8 @@ export default function GeneradorClase({ materiaId, materiaNombre, temaId, temaN
           <div className="gen-actions">
             <h2>Tu presentación está lista</h2>
             <div className="gen-botones">
-              <MaterialButton variante="primary" onClick={descargarHtml}>⬇ Descargar HTML</MaterialButton>
+              <MaterialButton variante="primary" onClick={descargarHtml}>⬇ HTML</MaterialButton>
+              <BotonPptx clase={clase} materia={materiaNombre} tema={temaNombre} estilo={estilo} />
               <MaterialButton variante="secondary" onClick={() => window.print()}>🖨 PDF</MaterialButton>
             </div>
           </div>
