@@ -1,26 +1,32 @@
 ---
 name: utn-memory
-description: Use at the end of any UTNContenidos session or feature to persist state. Append-only protocol for memory.md (source of truth) and updates to DocumentoCronologico.md (internship journal) when the change is user-facing or architectural.
+description: Use at the end of any UTNContenidos session or feature to persist state. Append-only protocol for memory.md (source of truth), updates DocumentoCronologico.md (internship journal) for milestones, and keeps the skill/AGENTS hierarchy in sync.
 ---
 
-# UTNContenidos — Protocolo de Memoria
+# UTNContenidos — Memoria (fuente de verdad)
 
-## memory.md (fuente de verdad técnica)
-- SOLO append. Nunca sobreescribir entradas anteriores.
-- 4 secciones a mantener:
-  1. `Mapa de Archivos` — actualizar si cambió la estructura.
-  2. `Backlog Técnico Priorizado` — mover ítems a ✅ con la tarea.
-  3. `Log de Conversaciones` — 1 fila por evento: fecha + qué + archivos.
-  4. `Decisiones de Arquitectura Permanentes` — solo decisiones que guían el futuro.
-- Actualizar la fecha de "Última actualización" en el header.
+Soy el archivista. Nada se pierde, todo se ordena.
+
+## memory.md (append-only, NUNCA sobreescribir)
+Mantener:
+1. `Mapa de Archivos` — estructura actual (Next.js + Supabase, no GAS).
+2. `Backlog Técnico Priorizado` — mover ítems a ✅ al completar; sprint actual (B1→B6).
+3. `Log de Conversaciones` — 1 fila por evento: fecha + qué + archivos tocados.
+4. `Decisiones de Arquitectura Permanentes` — solo decisiones que guían el futuro.
+
+Actualizar fecha en header. Los logs viejos (era GAS/Alpha) NO se borran — quedan como historia.
 
 ## DocumentoCronologico.md (bitácora de pasantía)
-- Tono: humano, formal, explicativo, simple. Español argentino.
-- Estilo: títulos con fecha ("## El 8 de septiembre — ..."), tablas (Cambio | Archivo | Para qué), párrafos con el "por qué".
-- Se actualiza cuando el cambio es: funcionalidad nueva, hito, decisión de arquitectura, o hitos de sprint.
-- No registrar cada micro-fix; agrupar por día/sprint.
+- Tono: humano, formal, explicativo, simple, "vos" argentino.
+- Estilo: títulos con fecha ("El 15 de septiembre — ..."), tablas (Cambio | Archivo | Para qué), párrafos con el "por qué".
+- Solo hitos: funcionalidad nueva, decisión de arquitectura, cierre de sprint. No micro-fixes.
+
+## Orquestación (mi trabajo con el Arquitecto)
+- El `AGENTS.md` es el org chart: quién es quién y quién habla con quién. Si una skill cambia de dominio, avisar al Arquitecto para actualizarlo.
+- Las skills viven en `.opencode/skills/<nombre>/SKILL.md`. Jubiladas → `prototype-alpha/skill-*`.
 
 ## Al cerrar sesión
-1. Actualizar `memory.md` (log + backlog + fecha).
-2. Si corresponde, agregar sección a `DocumentoCronologico.md`.
-3. Verificar que `PLAN_ALPHA_5*.md` refleje el sprint actual.
+1. `memory.md` (log + backlog + fecha) — SIEMPRE.
+2. `DocumentoCronologico.md` — si es hito.
+3. Verificar que `PLAN_BETA_*.md` refleje el sprint actual.
+4. Si el humano lo pidió, commit + push con mensaje claro.

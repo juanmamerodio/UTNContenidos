@@ -1,41 +1,81 @@
-# AGENTS.md — UTNContenidos (índice rápido)
+# AGENTS.md — UTNContenidos (Orquestador del Escuadrón)
 
-SPA costo $0 que genera clases con IA (Google Slides + PDF) para docentes de UTN FRD.
-Stack: Vanilla JS + `style.css` (frontend) · Vercel Serverless (`api/gemini.js`) + Google Apps Script (`app.md`) · Google Sheets (DB 3NF/DLR) · Gemini API.
+> **Propósito:** plataforma institucional de generación de clases con IA para docentes UTN FRD.
+> **Stack final:** Next.js 15 + TypeScript · Supabase (Postgres + RLS + Auth) · Gemini/OpenRouter · Reveal.js · Vercel.
+> **Costo:** $0 absoluto. **Público:** docentes 50+. **Metodología:** modelo espiral (B1→B6).
 
-## Archivos (usa memory.md como índice; evita leer archivos grandes completos)
-| Archivo | Rol | Líneas |
-|---------|-----|--------|
-| `index.html` | SPA: 4 vistas + 4 modales (login, dashboard, generator, historial) | ~470 |
-| `script.js` | Router + lógica frontend + `callBackend()` | ~890 |
-| `style.css` | Sistema de diseño (`--utn-*` vars, responsive 50+) | ~1830 |
-| `app.md` | Backend GAS: auth, RAG, Slides, historial, `doPost` | ~1090 |
-| `api/gemini.js` | Proxy Vercel → Gemini (Structured Outputs) | ~240 |
-| `vercel.json` | Deploy + Cache-Control (`must-revalidate`) | ~35 |
-| `memory.md` | **Fuente de verdad técnica. Solo append.** | ~210 |
-| `DocumentoCronologico.md` | Bitácora institucional de pasantía (tono formal) | ~200 |
-| `diagramas.html` | Diagramas Mermaid 11 (arquitectura, ER, flujo) | ~180 |
-| `UTNContenidos.md` | System Instructions del Escuadrón | 223 |
-| `PLAN_ALPHA_5.md` / `PLAN_ALPHA_5_SPRINT_B.md` | Auditoría + roadmap Alpha (modelo espiral) | — |
-| `PLAN_BETA_FINAL.md` | **Plan Beta 0.1.0: stack final (Supabase, Vercel Functions, OpenRouter, Reveal.js), ER Mermaid, sprints B1-B6** | — |
-| `CHECKLIST_DEPLOY.md` | Paso a paso de deploy | — |
-| `WALKTHROUGH_FASE2.md` | Migración futura a Microsoft Entra ID | — |
+---
 
-## Reglas no negociables
-- **Costo total = $0** (GAS, Vercel Free, Gemini Free, MailApp). No introducir servicios de pago.
-- **Público: docentes 50+** → letra grande, 2 clics, feedback visual, "vos", español argentino.
-- **Seguridad primero**: rate-limit login, LockService, sanitización, `extraerJsonPuro`, anti prompt-injection, CSP, caps de payload. Ver skill `utn-security-audit`.
-- **RAG**: truncar a 15.000 chars en ambos caminos (GAS y Vercel).
-- **Auth futura**: Microsoft Entra ID (UTN tiene M365). Legajo+DNI = fallback transicional.
-- **Modelo de datos**: Sheets 3NF. Hoja `Historial_Presentaciones` col F=estado, G=fecha (índice 6).
+## 🎯 Misión y orden de mando
 
-## Workflow por tarea
-1. Leer `memory.md` (estado + backlog).
-2. Consultar skill relevante (`.opencode/skills/`).
-3. Hacer cambios con `Edit` quirúrgico (nunca reescribir archivos grandes).
-4. Verificar sintaxis: `node --check` sobre JS extraído.
-5. Actualizar `memory.md` (+ `DocumentoCronologico.md` si es hito).
-6. No commitear salvo que lo pida el usuario.
+Yo (el orquestador) coordino un equipo de **empleados especializados** (skills). Cada uno
+sabe su tema y habla con sus pares a través de los `PLAN_BETA_*.md`, `memory.md` y el código.
+Regla: **nadie toca lo que no es suyo** — un tipógrafo no modifica la DB, un Qa no cambia prompts.
 
-## Skills disponibles (`.opencode/skills/`)
-`utn-gas-backend` · `utn-security-audit` · `utn-frontend-ux50` · `utn-class-builder` · `utn-token-economy` · `utn-memory`
+### Jerarquía de skills (quién es quién)
+
+| Rol | Skill | Dominio | Habla con |
+|-----|-------|---------|-----------|
+| 🧠 Arquitecto (yo) | — | Visión, orden, costo $0, espiral | Todos |
+| 🗄️ DB Engineer | `utn-db-supabase` | Esquema, RLS, pgvector, migraciones, seeds | Arquitecto, IA |
+| 🧪 IA Engineer | `utn-ia-engine` | Prompt élite, RAG, streaming, enforcement, OpenRouter | DB, Clase |
+| 🎨 Frontend Senior | `utn-frontend-ux50` | React, Material 4 + iOS 27, accesibilidad 50+ | Arquitecto, IA |
+| 📚 Pedagógico | `utn-class-builder` | 7 momentos, contrato de slide, calidad didáctica | IA |
+| 🛡️ Ciberseguridad | `utn-security-audit` | OWASP, RLS, cookies, CSP, lockout, PII | Todos |
+| 🧭 QA Senior | `utn-qa` | Casos límite, E2E, UX 50+, regresiones | Todos |
+| 🧠 Memoria | `utn-memory` | memory.md, cronológico, backlog | Arquitecto |
+| ⚡ Optimización | `utn-token-economy` | Ahorro de tokens, búsqueda dirigida | Todos |
+| 🗺️ Conocimiento | `utn-arquitectura` | Mapa del codebase, flujo de datos | Arquitecto |
+
+> ⚠️ `utn-gas-backend` está **JUBILADA** (GAS/Sheets murieron en Beta). Su código vive
+> en `prototype-alpha/` solo como referencia histórica.
+
+---
+
+## 📋 Flujo de trabajo estándar (por tarea)
+
+1. Leer `memory.md` (estado real + backlog) y el `PLAN_BETA_*.md` correspondiente.
+2. Determinar qué skill(s) es dueña de la tarea.
+3. Consultar su `SKILL.md` antes de editar.
+4. Implementar con `Edit` quirúrgico (nunca reescribir archivos grandes).
+5. Verificar: `npm run build` (TS estricto) + `node --check` cuando aplique.
+6. Actualizar `memory.md` (append) + `DocumentoCronologico.md` si es hito.
+7. Pushear SOLO si lo pide el humano o si es parte del sprint autónomo.
+
+---
+
+## 📚 Documentos canónicos (fuentes de verdad)
+
+| Doc | Rol |
+|-----|-----|
+| `memory.md` | Fuente de verdad técnica (append-only) |
+| `PLAN_BETA_FINAL.md` | Stack y roadmap B1→B6 |
+| `PLAN_BETA_B4.md` | IA v2 (RAG + streaming) |
+| `PLAN_BETA_B6_FRONTEND.md` | Rediseño Material 4 + iOS 27 |
+| `DocumentoCronologico.md` | Bitácora institucional (pasantía) |
+| `supabase/schema.sql` + `patch_*.sql` | Esquema de datos + RLS |
+| `prototype-alpha/` | Prototipo ARCHIVADO (referencia) |
+
+---
+
+## 🚫 Reglas no negociables
+
+- **Costo $0** (Supabase free, Vercel free, Gemini plan del usuario, OpenRouter free).
+- **Seguridad primero** (ver `utn-security-audit`).
+- **Público 50+**: letra grande, 2 clics, feedback visual, "vos".
+- **RAG práctico**: pgvector, búsqueda SOLO dentro de la materia del docente.
+- **Datos**: `docentes.dni/email` = PII (Ley 25.326) — jamás exponer en APIs/logs.
+- **Deploy**: `vercel.json` con `framework: nextjs`; no volver a "Otro".
+
+---
+
+## 🔑 Acceso rápido (comandos)
+
+```bash
+npm run dev            # Next.js dev server
+npm run build          # build de producción (TS estricto)
+npm run seed:root      # crea usuario QA root/root
+npm run seed:materias  # materias + temas de ejemplo
+npm run seed:apuntes   # indexa apuntes (RAG pgvector)
+vercel --prod          # deploy producción
+```
