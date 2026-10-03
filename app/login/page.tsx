@@ -7,6 +7,7 @@ export default async function LoginPage({
 }) {
   const params = await searchParams;
   const errorMsg = params.error === 'servidor' ? 'Error del servidor. Intentá de nuevo.'
+    : params.error === 'bloqueado' ? 'Demasiados intentos fallidos. Esperá 15 minutos.'
     : params.error ? 'Credenciales inválidas. Verificá en Sysacad.'
     : null;
 

@@ -9,6 +9,21 @@ import { redirect } from 'next/navigation';
 import { getServiceClient } from '@/lib/supabase';
 
 const SESION_COOKIE = 'utn_sesion';
+const MAX_FALLOS = 5;
+const VENTANA_MIN = 15;
+
+/** B5: tasa de intentos fallidos en la ventana (lockout anti brute-force). */
+async function fallosRecientes(sb: any, legajo: string): Promise<number> {
+  const desde = new Date(Date.now() - VENTANA_MIN * 60000).toISOString();
+  const { data, error } = await sb
+    .from('eventos')
+    .select('id', { count: 'exact', head: true })
+    .eq('accion', 'LOGIN_FALLO')
+    .eq('detalle', legajo)
+    .gte('creado_en', desde);
+  if (error) return 0;
+  return data?.length ?? 0;
+}
 
 export async function loginRoot(formData: FormData): Promise<void> {
   const legajo = String(formData.get('legajo') || '').trim();
@@ -20,6 +35,12 @@ export async function loginRoot(formData: FormData): Promise<void> {
 
   const sb = getServiceClient();
   let token: string | null = null;
+
+  // B5: lockout — si hubo 5 fallos en 15 min, bloquear
+  if (await fallosRecientes(sb, legajo) >= MAX_FALLOS) {
+    redirect('/login?error=bloqueado');
+  }
+
   try {
     // 1. Buscar docente por legajo+dni (la autoridad la da la tabla, no el password)
     const { data: docente, error: errDoc } = await sb
@@ -30,6 +51,7 @@ export async function loginRoot(formData: FormData): Promise<void> {
       .maybeSingle();
 
     if (errDoc || !docente || !docente.activo) {
+      await sb.from('eventos').insert({ accion: 'LOGIN_FALLO', detalle: legajo, exito: false });
       redirect('/login?error=credenciales');
     }
 
@@ -67,9 +89,12 @@ export async function loginRoot(formData: FormData): Promise<void> {
     });
 
     if (errLogin || !sesion.session) {
+      await sb.from('eventos').insert({ accion: 'LOGIN_FALLO', detalle: legajo, exito: false });
       redirect('/login?error=credenciales');
     }
 
+    // Login exitoso: limpiar fallos previos + registrar éxito
+    await sb.from('eventos').delete().eq('accion', 'LOGIN_FALLO').eq('detalle', legajo);
     token = sesion.session.access_token;
   } catch (e) {
     // NEXT_REDIRECT se lanza como excepción controlada: NO debe caer en el catch de error.

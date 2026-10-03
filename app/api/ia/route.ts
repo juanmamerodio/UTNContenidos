@@ -6,11 +6,13 @@
  */
 import { NextResponse } from 'next/server';
 import { getServiceClient } from '@/lib/supabase';
+import { getDocenteSesion, esHoy } from '@/lib/auth';
 
 const MODELO = process.env.IA_MODEL || 'gemini-3.5-flash-lite';
 const API_KEY = process.env.GEMINI_API_KEY || '';
 const OPENROUTER_KEY = process.env.OPENROUTER_API_KEY || '';
 const OPENROUTER_MODELO = process.env.OPENROUTER_MODELO || 'google/gemini-3-flash-lite';
+const MAX_GEN_DIARIAS = 20;
 
 /** B4-2 RAG: embedding de la consulta + búsqueda semántica en apuntes. */
 async function buscarApuntesRAG(materiaId: string, consulta: string): Promise<string> {
@@ -110,6 +112,19 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: false, error: 'GEMINI_API_KEY no configurada.' }, { status: 500 });
   }
 
+  // B5: autenticación obligatoria — nadie sin sesión puede gastar la IA
+  const docente = await getDocenteSesion();
+  if (!docente) {
+    return NextResponse.json({ success: false, error: 'No autorizado. Iniciá sesión.' }, { status: 401 });
+  }
+
+  // B5: tope diario de generaciones
+  const vigentesHoy = esHoy(docente.ultimaGen);
+  const generaciones = vigentesHoy ? docente.generacionesDia : 0;
+  if (generaciones >= MAX_GEN_DIARIAS) {
+    return NextResponse.json({ success: false, error: 'Alcanzaste el límite diario de 20 generaciones. Probalo mañana.' }, { status: 429 });
+  }
+
   try {
     const { materia, tema, textoOficial, configuracion } = await req.json();
 
@@ -199,6 +214,7 @@ Respondé ÚNICAMENTE JSON:
             }
 
             emit('done', { clase: { success: true, ...clase, configuracionAplicada: true } });
+            registrarGeneracion(docente.id, vigentesHoy ? generaciones : 0);
           } catch (e) {
             emit('error', { error: (e as Error).message });
           } finally {
@@ -238,14 +254,28 @@ Respondé ÚNICAMENTE JSON:
         try {
           const rLimpio = retryText.replace(/^```(?:json)?/i, '').replace(/```$/i, '').trim();
           const rClase = JSON.parse(rLimpio.slice(rLimpio.indexOf('{'), rLimpio.lastIndexOf('}') + 1));
-          if (rClase.slides?.length === numSlides) return NextResponse.json({ success: true, ...rClase, configuracionAplicada: true });
+          if (rClase.slides?.length === numSlides) { registrarGeneracion(docente.id, vigentesHoy ? generaciones : 0); return NextResponse.json({ success: true, ...rClase, configuracionAplicada: true }); }
         } catch { /* fallback: usar original */ }
       }
     }
 
+    registrarGeneracion(docente.id, vigentesHoy ? generaciones : 0);
     return NextResponse.json({ success: true, ...clase, configuracionAplicada: true });
   } catch (e) {
     console.error('api/ia error:', e);
     return NextResponse.json({ success: false, error: 'Error interno: ' + (e as Error).message }, { status: 500 });
+  }
+}
+
+/** B5: registra la generación diaria (o resetea al cambiar de día). */
+async function registrarGeneracion(docenteId: string, previas: number) {
+  try {
+    const sb = getServiceClient();
+    await sb.from('docentes').update({
+      generaciones_dia: previas + 1,
+      ultima_gen: new Date().toISOString()
+    }).eq('id', docenteId);
+  } catch (e) {
+    console.error('registrarGeneracion:', e);
   }
 }
