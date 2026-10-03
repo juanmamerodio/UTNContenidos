@@ -1,6 +1,10 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { motion } from 'framer-motion';
+import { User, LogOut, BookOpen, History } from 'lucide-react';
 import { logout } from '@/app/actions';
 
 interface AppHeaderProps {
@@ -18,7 +22,14 @@ interface AppHeaderProps {
  */
 export default function AppHeader({ usuario, activePath = '/dashboard' }: AppHeaderProps) {
   return (
-    <header role="banner" id="main-header" className="main-header glass-panel">
+    <motion.header
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      role="banner"
+      id="main-header"
+      className="main-header glass-panel"
+    >
       <div className="header-container">
         <Link href={usuario ? "/dashboard" : "/login"} className="brand-logo-container">
           <Image
@@ -42,16 +53,20 @@ export default function AppHeader({ usuario, activePath = '/dashboard' }: AppHea
                 <Link
                   href="/dashboard"
                   className={activePath === '/dashboard' ? 'active' : ''}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                 >
-                  Mis Materias
+                  <BookOpen size={16} />
+                  <span>Mis Materias</span>
                 </Link>
               </li>
               <li>
                 <Link
                   href="/historial"
                   className={activePath === '/historial' ? 'active' : ''}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                 >
-                  Historial
+                  <History size={16} />
+                  <span>Historial</span>
                 </Link>
               </li>
             </ul>
@@ -61,26 +76,18 @@ export default function AppHeader({ usuario, activePath = '/dashboard' }: AppHea
         {usuario ? (
           <div className="user-profile">
             <div className="user-profile-badge">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
+              <User size={16} strokeWidth={2.5} />
               <span className="user-name-display">{usuario.nombre}</span>
             </div>
             <form action={logout}>
-              <button type="submit" className="btn-logout-header" title="Cerrar sesión institucional">
-                Salir
+              <button
+                type="submit"
+                className="btn-logout-header"
+                title="Cerrar sesión institucional"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+              >
+                <LogOut size={14} />
+                <span>Salir</span>
               </button>
             </form>
           </div>
@@ -90,6 +97,6 @@ export default function AppHeader({ usuario, activePath = '/dashboard' }: AppHea
           </div>
         )}
       </div>
-    </header>
+    </motion.header>
   );
 }

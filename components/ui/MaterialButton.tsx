@@ -1,9 +1,7 @@
-/**
- * components/ui/MaterialButton.tsx — Botón píldora Material 4 (ripple + estados)
- * Variantes: 'primary' (gradiente UTN) | 'secondary' (borde) | 'ghost'.
- * Accesible: min-height 48px, aria, focus ring, press scale.
- */
+'use client';
+
 import { ReactNode, ButtonHTMLAttributes } from 'react';
+import { motion, HTMLMotionProps } from 'framer-motion';
 
 type Variante = 'primary' | 'secondary';
 
@@ -17,10 +15,25 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
 }
 
-export default function MaterialButton({ variante = 'primary', children, className = '', ...rest }: Props) {
+/**
+ * components/ui/MaterialButton.tsx
+ * Botón píldora Material 4 con física elástica de resorte háptico Framer Motion.
+ * Escala sutil al presionar, elevación flotante al hover y accesibilidad para docentes 50+.
+ */
+export default function MaterialButton({
+  variante = 'primary',
+  children,
+  className = '',
+  ...rest
+}: Props) {
   return (
-    <button className={`${CLASES[variante]} ${className}`} {...rest}>
+    <motion.button
+      whileHover={{ y: -3, transition: { type: 'spring', stiffness: 450, damping: 25 } }}
+      whileTap={{ scale: 0.96, transition: { type: 'spring', stiffness: 600, damping: 20 } }}
+      className={`${CLASES[variante]} ${className}`}
+      {...(rest as any)}
+    >
       {children}
-    </button>
+    </motion.button>
   );
 }

@@ -1,9 +1,22 @@
-/**
- * components/ui/GlassCard.tsx — Panel con glassmorphism iOS 27 (fallback sólido gama baja).
- * El blur se habilita solo si el navegador lo soporta (CSS @supports en globals.css).
- */
-import { ReactNode, HTMLAttributes } from 'react';
+'use client';
 
-export default function GlassCard({ children, className = '', ...rest }: HTMLAttributes<HTMLDivElement> & { children: ReactNode }) {
-  return <div className={`glass ${className}`} {...rest}>{children}</div>;
+import { ReactNode, HTMLAttributes } from 'react';
+import { motion } from 'framer-motion';
+
+export default function GlassCard({
+  children,
+  className = '',
+  ...rest
+}: HTMLAttributes<HTMLDivElement> & { children: ReactNode }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 15, scale: 0.99 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+      className={`glass ${className}`}
+      {...(rest as any)}
+    >
+      {children}
+    </motion.div>
+  );
 }

@@ -2,6 +2,9 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
+import confetti from 'canvas-confetti';
+import { Sparkles, Download, Printer, ArrowLeft, Sliders, Clock, Layers, HelpCircle, CheckCircle2 } from 'lucide-react';
 import { buildDeckHtml, nombreArchivoDeck } from '@/lib/deck';
 import GlassCard from '@/components/ui/GlassCard';
 import MaterialButton from '@/components/ui/MaterialButton';
@@ -44,6 +47,19 @@ export default function GeneradorClase({ materiaId, materiaNombre, temaId, temaN
   // Modales interactivos quirúrgicos
   const [slideEnEdicion, setSlideEnEdicion] = useState<number | null>(null);
   const [slideEnReformulacion, setSlideEnReformulacion] = useState<number | null>(null);
+
+  function dispararConfetti() {
+    try {
+      confetti({
+        particleCount: 80,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#06a28a', '#1ec4a8', '#5adcc4', '#047a68'],
+      });
+    } catch {
+      // Ignorar si no está soportado en entorno específico
+    }
+  }
 
   function toggleMomento(id: string) {
     setMomentos((prev) =>
@@ -97,6 +113,7 @@ export default function GeneradorClase({ materiaId, materiaNombre, temaId, temaN
             } else if (dato.tipo === 'done') {
               setClase(dato.clase);
               setProgreso('');
+              dispararConfetti();
             } else if (dato.tipo === 'error') {
               throw new Error(dato.error || 'Error al generar la clase');
             }
@@ -107,6 +124,7 @@ export default function GeneradorClase({ materiaId, materiaNombre, temaId, temaN
         if (!json.success) throw new Error(json.error || 'Error al generar la clase');
         setClase(json);
         setProgreso('');
+        dispararConfetti();
       }
     } catch (e) {
       setError((e as Error).message);
@@ -142,19 +160,29 @@ export default function GeneradorClase({ materiaId, materiaNombre, temaId, temaN
       <StepperDidactico pasoActual={clase ? 3 : 2} />
 
       <nav className="gen-breadcrumb" aria-label="Ruta de navegación">
-        <Link href="/dashboard">← Mis Materias</Link> / <span>{materiaNombre}</span> /{' '}
-        <strong>{temaNombre}</strong>
+        <Link href="/dashboard" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+          <ArrowLeft size={16} />
+          <span>Mis Materias</span>
+        </Link>{' '}
+        / <span>{materiaNombre}</span> / <strong>{temaNombre}</strong>
       </nav>
 
       {/* CONFIGURADOR iOS 27 ELEVADO */}
-      <section className="gen-config glass-panel">
-        <h1>Personalizá tu clase universitaria</h1>
+      <motion.section
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="gen-config glass-panel"
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
+          <Sliders size={24} color="var(--utn-green-primary)" />
+          <h1>Personalizá tu clase universitaria</h1>
+        </div>
         <p>Todo es opcional: si no modificás nada, se aplica el formato pedagógico estándar de la UTN.</p>
 
         <div className="ios27-seccion">
           <div className="ios27-label">Parámetros de Presentación</div>
           <div className="gen-grid">
-            <label className="gen-pill">
+            <motion.label whileHover={{ scale: 1.01 }} className="gen-pill">
               Diapositivas <b>{numSlides}</b>
               <input
                 type="range"
@@ -163,9 +191,9 @@ export default function GeneradorClase({ materiaId, materiaNombre, temaId, temaN
                 value={numSlides}
                 onChange={(e) => setNumSlides(Number(e.target.value))}
               />
-            </label>
+            </motion.label>
 
-            <label className="gen-pill">
+            <motion.label whileHover={{ scale: 1.01 }} className="gen-pill">
               Duración estimada
               <select value={duracion} onChange={(e) => setDuracion(e.target.value)}>
                 <option value="80-90">80–90 min (2 hs cátedra)</option>
@@ -174,9 +202,9 @@ export default function GeneradorClase({ materiaId, materiaNombre, temaId, temaN
                 <option value="120">120 min</option>
                 <option value="180">Bloque triple (3 hs)</option>
               </select>
-            </label>
+            </motion.label>
 
-            <label className="gen-pill">
+            <motion.label whileHover={{ scale: 1.01 }} className="gen-pill">
               Estilo visual
               <select value={estilo} onChange={(e) => setEstilo(e.target.value)}>
                 <option value="">Clásica UTN (Esmeralda)</option>
@@ -184,9 +212,9 @@ export default function GeneradorClase({ materiaId, materiaNombre, temaId, temaN
                 <option value="contemporanea">Contemporánea Oscura</option>
                 <option value="alta_carga">Alta Carga Técnica</option>
               </select>
-            </label>
+            </motion.label>
 
-            <label className="gen-pill">
+            <motion.label whileHover={{ scale: 1.01 }} className="gen-pill">
               Nivel de audiencia
               <select value={nivel} onChange={(e) => setNivel(e.target.value)}>
                 <option value="">Intermedio (Nivel Cátedra)</option>
@@ -194,9 +222,9 @@ export default function GeneradorClase({ materiaId, materiaNombre, temaId, temaN
                 <option value="avanzado">Avanzado / Últimos años</option>
                 <option value="mixto">Teoría + Debate Práctico</option>
               </select>
-            </label>
+            </motion.label>
 
-            <label className="gen-pill">
+            <motion.label whileHover={{ scale: 1.01 }} className="gen-pill">
               Ejemplos didácticos
               <select value={ejemplos} onChange={(e) => setEjemplos(e.target.value)}>
                 <option value="">Equilibrados (Cotidiano + Industria)</option>
@@ -204,9 +232,9 @@ export default function GeneradorClase({ materiaId, materiaNombre, temaId, temaN
                 <option value="industria">Industria Regional (Campana/Zárate)</option>
                 <option value="ninguno">Sin ejemplos adicionales</option>
               </select>
-            </label>
+            </motion.label>
 
-            <label className="gen-pill">
+            <motion.label whileHover={{ scale: 1.01 }} className="gen-pill">
               Recursos visuales
               <select value={imagenes} onChange={(e) => setImagenes(e.target.value)}>
                 <option value="">Fotos y diagramas conceptuales</option>
@@ -214,7 +242,7 @@ export default function GeneradorClase({ materiaId, materiaNombre, temaId, temaN
                 <option value="ilustraciones">Ilustraciones didácticas</option>
                 <option value="ninguna">Solo tipografía y estructura</option>
               </select>
-            </label>
+            </motion.label>
           </div>
         </div>
 
@@ -228,14 +256,19 @@ export default function GeneradorClase({ materiaId, materiaNombre, temaId, temaN
               { id: 'esquema_proceso', label: 'Esquema de Proceso' },
               { id: 'desafio_aula', label: 'Desafío en el Aula' }
             ].map((m) => (
-              <label key={m.id} className={`chip ${momentos.includes(m.id) ? 'active' : ''}`}>
+              <motion.label
+                key={m.id}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className={`chip ${momentos.includes(m.id) ? 'active' : ''}`}
+              >
                 <input
                   type="checkbox"
                   checked={momentos.includes(m.id)}
                   onChange={() => toggleMomento(m.id)}
                 />
                 <span>{m.label}</span>
-              </label>
+              </motion.label>
             ))}
           </div>
         </div>
@@ -265,72 +298,95 @@ export default function GeneradorClase({ materiaId, materiaNombre, temaId, temaN
           disabled={cargando}
         >
           {cargando ? (
-            <span>Conectando con el motor pedagógico...</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+              <Sparkles size={20} className="animate-spin" />
+              <span>Conectando con el motor pedagógico...</span>
+            </span>
           ) : (
-            <span>⚡ Generar Clase Completa</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+              <Sparkles size={20} />
+              <span>Generar Clase Completa</span>
+            </span>
           )}
         </MaterialButton>
 
         {progreso && (
-          <div className="gen-progreso" aria-live="polite">
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            className="gen-progreso"
+            aria-live="polite"
+          >
             <div className="spinner-wrapper" style={{ width: '40px', height: '40px', marginBottom: '10px' }}>
               <svg className="spinner" viewBox="0 0 50 50">
                 <circle className="path" cx="25" cy="25" r="20" fill="none" strokeWidth="4.5" />
               </svg>
             </div>
             <span>{progreso}</span>
-          </div>
+          </motion.div>
         )}
 
         {error && <p className="login-error" role="alert">{error}</p>}
-      </section>
+      </motion.section>
 
       {/* RESULTADO Y VISTA DE ENTREGA DOBLE (PRESENTACIÓN + SECCIONES PEDAGÓGICAS) */}
-      {clase && (
-        <div style={{ marginTop: '2rem' }}>
-          <GlassCard className="gen-resultado glass-panel">
-            <div className="gen-actions">
-              <div>
-                <h2>Tu presentación Reveal.js está lista</h2>
-                <p style={{ color: 'var(--on-surface-2)', fontSize: '0.9rem' }}>
-                  Podés proyectarla de inmediato o descargarla para su uso sin conexión.
-                </p>
+      <AnimatePresence>
+        {clase && (
+          <motion.div
+            initial={{ opacity: 0, y: 25 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            style={{ marginTop: '2rem' }}
+          >
+            <GlassCard className="gen-resultado glass-panel">
+              <div className="gen-actions">
+                <div>
+                  <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <CheckCircle2 size={22} color="var(--success)" />
+                    <span>Tu presentación Reveal.js está lista</span>
+                  </h2>
+                  <p style={{ color: 'var(--on-surface-2)', fontSize: '0.9rem' }}>
+                    Podés proyectarla de inmediato o descargarla para su uso sin conexión.
+                  </p>
+                </div>
+                <div className="gen-botones">
+                  <MaterialButton variante="primary" onClick={descargarHtml}>
+                    <Download size={18} />
+                    <span>Descargar Reveal.js (HTML)</span>
+                  </MaterialButton>
+                  <BotonPptx
+                    clase={clase}
+                    materia={materiaNombre}
+                    tema={temaNombre}
+                    estilo={estilo}
+                  />
+                  <MaterialButton variante="secondary" onClick={() => window.print()}>
+                    <Printer size={18} />
+                    <span>Imprimir / PDF</span>
+                  </MaterialButton>
+                </div>
               </div>
-              <div className="gen-botones">
-                <MaterialButton variante="primary" onClick={descargarHtml}>
-                  ⬇ Descargar Reveal.js (HTML)
-                </MaterialButton>
-                <BotonPptx
-                  clase={clase}
-                  materia={materiaNombre}
-                  tema={temaNombre}
-                  estilo={estilo}
+
+              {deckHtml && (
+                <iframe
+                  className="gen-frame"
+                  title="Vista previa interactiva de la presentación Reveal.js"
+                  srcDoc={deckHtml}
                 />
-                <MaterialButton variante="secondary" onClick={() => window.print()}>
-                  🖨 Imprimir / PDF
-                </MaterialButton>
-              </div>
-            </div>
+              )}
+            </GlassCard>
 
-            {deckHtml && (
-              <iframe
-                className="gen-frame"
-                title="Vista previa interactiva de la presentación Reveal.js"
-                srcDoc={deckHtml}
-              />
-            )}
-          </GlassCard>
-
-          {/* 4 SECCIONES PEDAGÓGICAS (ENFOQUES, PLAN DE AULA, DIAPOSITIVAS Y PIZARRA) */}
-          <SeccionesPedagogicas
-            plan={clase.plan}
-            slides={clase.slides}
-            promptsImagenes={clase.promptsImagenes}
-            onEditarSlide={(idx) => setSlideEnEdicion(idx)}
-            onReformularSlide={(idx) => setSlideEnReformulacion(idx)}
-          />
-        </div>
-      )}
+            {/* 4 SECCIONES PEDAGÓGICAS (ENFOQUES, PLAN DE AULA, DIAPOSITIVAS Y PIZARRA) */}
+            <SeccionesPedagogicas
+              plan={clase.plan}
+              slides={clase.slides}
+              promptsImagenes={clase.promptsImagenes}
+              onEditarSlide={(idx) => setSlideEnEdicion(idx)}
+              onReformularSlide={(idx) => setSlideEnReformulacion(idx)}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* MODAL DE EDICIÓN QUIRÚRGICA DE SLIDE */}
       {slideEnEdicion !== null && clase?.slides?.[slideEnEdicion] && (
