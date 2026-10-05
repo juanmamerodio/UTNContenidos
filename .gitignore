@@ -1,25 +1,37 @@
-# Dependencias y builds
+# Dependencies and builds
 node_modules/
 dist/
 .next/
 out/
+build/
+coverage/
+*.tsbuildinfo
 
-# Cachés y logs
+# Caches and logs
 *.log
+npm-debug.log*
 .DS_Store
 Thumbs.db
+.cache/
+.turbo/
 
-# Variables de entorno / secretos
+# Secrets / environment
 .env
-.env.local
-.env.production
+.env.*
+!.env.example
 
-# Datos locales de migración (PII: legajo/DNI) — nunca commitear
+# Local migration data (PII: legajo/DNI) - never commit
 data/*.csv
 
-# Dependencias (instaladas en deploy por Vercel)
-node_modules/
-
-# Carpetas del sistema
+# Deploy tooling
 .vercel/
-.vercel
+
+# Agentic run temporaries
+.opencode/sessions/
+.claude/settings.local.json
+.claude/scratch/
+.agents/scratch/
+*.agent.tmp
+*.tmp
+tmp/
+scratch/

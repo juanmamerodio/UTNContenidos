@@ -10,7 +10,9 @@
     "seed:root": "node scripts/seed_root.mjs",
     "seed:materias": "node scripts/seed_materias.mjs",
     "seed:apuntes": "node scripts/seed_apuntes.mjs",
-    "qa": "node scripts/qa.mjs"
+    "qa": "node scripts/qa.mjs",
+    "test": "vitest run",
+    "check": "tsc --noEmit"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
@@ -27,6 +29,7 @@
     "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^22.10.0",
     "@types/react": "^19.0.0",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vitest": "^5.0.3"
   }
 }
