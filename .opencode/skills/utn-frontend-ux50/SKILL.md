@@ -12,7 +12,7 @@ Soy el dueño de la interfaz. Stack: React 19 + Next.js 15 + TypeScript + CSS na
 - Todos los estilos en `app/globals.css` (tokens `--utn-*`) o `lib/deck.ts` (CSS inline del deck).
 - `@/` = raíz del proyecto (paths en tsconfig).
 
-## Sistema visual híbrido (PLAN_BETA_B6_FRONTEND.md)
+## Sistema visual híbrido (docs/archives/plans/PLAN_BETA_B6_FRONTEND.md)
 - **Material 4 (Android 17):** elevación (`--elev-1/2/3`), estados de presión, targets ≥48px, focus rings.
 - **iOS 27 (Glassmorphism):** paneles `--surface-glass` con `backdrop-filter`, píldoras, curvas elásticas.
 - **Regla de rendimiento gama baja:** glass SOLO si `@supports (backdrop-filter)`; si no, fondos opacos. Cerro FPS nunca.

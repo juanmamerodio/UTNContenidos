@@ -372,4 +372,24 @@ Se ejecutó de forma integral el plan maestro de fusión visual (`PLAN_FUSION_UI
 | **Dashboard y Gestión** | `components/dashboard/MateriaCardPro.tsx` | Cards 3D con elevación táctil, chips de nivel de cátedra y modal para incorporar nuevos temas del programa. |
 | **4 Secciones Pedagógicas** | `components/generador/SeccionesPedagogicas.tsx` | Vista didáctica de entrega cuádruple: Plan de clase y cronograma, Enfoques sugeridos, Fichas de diapositivas y Esquemas de pizarra. |
 | **Modales Quirúrgicos** | `ModalEditarSlide.tsx` & `ModalReformular.tsx` | Permite al docente editar textos o regenerar con IA una diapositiva puntual antes de exportar, sin alterar el resto de la clase. |
-| **Tokens & Tipografía** | `app/globals.css` & `app/layout.tsx` | Integración de tipografías Google (Outfit, Montserrat, Inter), tokens `--utn-*` y compilación estricta verificada con Next.js 15. |
+| **Tokens & Tipografía** | `app/globals.css` & `app/layout.tsx` | Integración de tipografías Google (Outfit, Montserrat, Inter), tokens `--utn-*` y compilación estricta verificada con Next.js 15. |
+
+---
+
+## **El 5 de octubre — "Gobernanza y Saneamiento Final del Repositorio (Repository Brain)"**
+
+Se aplicó el manual maestro `repository-brain` para auditar, reorganizar y optimizar el contexto agéntico del repositorio, dejando la raíz limpia y una única fuente de verdad. La Beta (Next.js 15 + Supabase + Reveal.js) queda como único estado activo; todo el material Alpha/GAS y los planes completados pasan a archivo.
+
+| Cambio | Archivo | Para qué |
+| :---- | :---- | :---- |
+| **Flush de memoria** | `memory.md` | Reducida de 289 líneas a una caché de <300 palabras con el estado Beta activo (System Status, Feature, Decisiones, Blockers). |
+| **Archivado de planes** | `docs/archives/plans/` | `PLAN_BETA_FINAL`, `PLAN_BETA_B4`, `PLAN_BETA_B6_FRONTEND`, `PLAN_FUSION_UI_2026`, `PLAN_PRESENTACIONES_NOTEBOOKLM` y `ROADMAP_CIERRE_BETA` movidos fuera del contexto de lectura activa. |
+| **Alpha archivada** | `docs/archives/prototype-alpha/` | Prototipo GAS/Sheets movido a archivo definitivo (solo referencia histórica). |
+| **Unicidad de fuente de verdad** | `AGENTS.md` | Fusión con `CLAUDE.md` (eliminado): un único orquestador + ruteador con reglas de desarrollo, ruteo de docs, idiomas y layout. |
+| **Spec única** | `docs/specs/001-mvp/spec.md` | `docs/spec.md` (borrador) archivada; el spec 001-mvp queda como única fuente de producto. |
+| **Retiro de PPTX (T2)** | `lib/pptx.ts`, `app/api/pptx/`, `BotonPptx.tsx`, `package.json` | Eliminado el exportador PowerPoint y la dependencia `pptxgenjs`; la salida oficial es HTML + PDF. |
+| **Skill de gobernanza** | `.opencode/skills/repository-brain/SKILL.md` | El manual maestro registrado como skill invocable del escuadrón. |
+| **Punteros corregidos** | skills `utn-memory/utn-arquitectura/utn-frontend-ux50/utn-security-audit` | Rutas a `PLAN_BETA_*`, `prototype-alpha/` y `.claude/skills/` actualizadas al nuevo árbol. |
+| **Script `qa` reparado** | `package.json` | `node scripts/qa.mjs` (inexistente) reemplazado por `npm run check && npm test`. |
+
+Verificación: `npm run check` (exit 0), `npm test` (1/1), `npm run build` (10 rutas, 103 kB) y runtime `curl` (`/login` 200, `/api/health` 200, `/dashboard` 307→login).

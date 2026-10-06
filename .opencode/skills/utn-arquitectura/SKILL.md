@@ -7,7 +7,7 @@ description: Use when someone needs to understand how the UTNContenidos Beta cod
 
 "Gráficos que enseñan > gráficos que impresionan." Este skill es el grafo de
 conocimiento en texto plano del proyecto. El codebase real vive en: `memory.md`
-(fuente de verdad), `diagramas.html` y `PLAN_BETA_*.md`.
+(fuente de verdad), `docs/specs/001-mvp/spec.md` y `docs/archives/plans/` (histórico).
 
 ## Stack (quiénes son los actores)
 - **Frontend:** Next.js 15 (App Router) + React 19 + TypeScript. Vanilla CSS con tokens `--utn-*` (sin Tailwind).
@@ -37,7 +37,7 @@ lib/
 └── deck.ts             → buildDeckHtml (Reveal autocontenido) + paletas por estilo
 scripts/                → seed_root, seed_materias, seed_apuntes (.mjs, idempotentes)
 supabase/               → schema.sql + patch_b4.sql (aplicar por SQL Editor)
-prototype-alpha/        → SPA legacy (GAS/Sheets) ARCHIVADA — referencia histórica
+docs/archives/prototype-alpha/ → SPA legacy (GAS/Sheets) ARCHIVADA — referencia histórica
 ```
 
 ## Flujo de datos (el camino de una clase)

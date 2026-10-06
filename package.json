@@ -10,7 +10,7 @@
     "seed:root": "node scripts/seed_root.mjs",
     "seed:materias": "node scripts/seed_materias.mjs",
     "seed:apuntes": "node scripts/seed_apuntes.mjs",
-    "qa": "node scripts/qa.mjs",
+    "qa": "npm run check && npm test",
     "test": "vitest run",
     "check": "tsc --noEmit"
   },
@@ -21,7 +21,6 @@
     "framer-motion": "^14.0.0",
     "lucide-react": "^1.50.0",
     "next": "^15.1.0",
-    "pptxgenjs": "^4.0.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

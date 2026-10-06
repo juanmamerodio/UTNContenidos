@@ -8,7 +8,6 @@ import { Sparkles, Download, Printer, ArrowLeft, Sliders, Clock, Layers, HelpCir
 import { buildDeckHtml, nombreArchivoDeck } from '@/lib/deck';
 import GlassCard from '@/components/ui/GlassCard';
 import MaterialButton from '@/components/ui/MaterialButton';
-import BotonPptx from './BotonPptx';
 import StepperDidactico from '@/components/ui/StepperDidactico';
 import SeccionesPedagogicas from '@/components/generador/SeccionesPedagogicas';
 import ModalEditarSlide from '@/components/generador/ModalEditarSlide';
@@ -354,12 +353,6 @@ export default function GeneradorClase({ materiaId, materiaNombre, temaId, temaN
                     <Download size={18} />
                     <span>Descargar Reveal.js (HTML)</span>
                   </MaterialButton>
-                  <BotonPptx
-                    clase={clase}
-                    materia={materiaNombre}
-                    tema={temaNombre}
-                    estilo={estilo}
-                  />
                   <MaterialButton variante="secondary" onClick={() => window.print()}>
                     <Printer size={18} />
                     <span>Imprimir / PDF</span>

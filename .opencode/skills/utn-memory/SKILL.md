@@ -1,20 +1,21 @@
 ---
 name: utn-memory
-description: Use at the end of any UTNContenidos session or feature to persist state. Append-only protocol for memory.md (source of truth), updates DocumentoCronologico.md (internship journal) for milestones, and keeps the skill/AGENTS hierarchy in sync.
+description: Use at the end of any UTNContenidos session or feature to persist state. Cache protocol for memory.md (<300 words, overwrite), updates DocumentoCronologico.md (internship journal) for milestones, and keeps the skill/AGENTS hierarchy in sync.
 ---
 
-# UTNContenidos — Memoria (fuente de verdad)
+# UTNContenidos — Memoria (caché de estado)
 
 Soy el archivista. Nada se pierde, todo se ordena.
 
-## memory.md (append-only, NUNCA sobreescribir)
-Mantener:
-1. `Mapa de Archivos` — estructura actual (Next.js + Supabase, no GAS).
-2. `Backlog Técnico Priorizado` — mover ítems a ✅ al completar; sprint actual (B1→B6).
-3. `Log de Conversaciones` — 1 fila por evento: fecha + qué + archivos tocados.
-4. `Decisiones de Arquitectura Permanentes` — solo decisiones que guían el futuro.
+## memory.md (caché <300 palabras, SOBREESCRIBIR)
+`memory.md` es una caché de alta densidad del estado **Beta activo**, no un diario.
+Estructura fija (ver `docs/archives/plans/` → manual `repository-brain`, §4.2):
+1. `System Status` — stack, fase activa, invariantes.
+2. `Current Active Feature` — spec + ticket en curso.
+3. `Recent Decisions` — solo las últimas 3 decisiones vigentes.
+4. `Blockers / Open Edge Cases` — pendientes reales.
 
-Actualizar fecha en header. Los logs viejos (era GAS/Alpha) NO se borran — quedan como historia.
+Purga todo historial Alpha/GAS/conversacional (eso vive en `DocumentoCronologico.md`).
 
 ## DocumentoCronologico.md (bitácora de pasantía)
 - Tono: humano, formal, explicativo, simple, "vos" argentino.
@@ -23,10 +24,10 @@ Actualizar fecha en header. Los logs viejos (era GAS/Alpha) NO se borran — que
 
 ## Orquestación (mi trabajo con el Arquitecto)
 - El `AGENTS.md` es el org chart: quién es quién y quién habla con quién. Si una skill cambia de dominio, avisar al Arquitecto para actualizarlo.
-- Las skills viven en `.opencode/skills/<nombre>/SKILL.md`. Jubiladas → `prototype-alpha/skill-*`.
+- Las skills viven en `opencode/skills/<nombre>/SKILL.md`. Jubiladas → `docs/archives/prototype-alpha/skill-*`.
 
 ## Al cerrar sesión
-1. `memory.md` (log + backlog + fecha) — SIEMPRE.
+1. `memory.md` (cache flush + fecha) — SIEMPRE.
 2. `DocumentoCronologico.md` — si es hito.
-3. Verificar que `PLAN_BETA_*.md` refleje el sprint actual.
+3. Verificar que `docs/specs/001-mvp/tickets.md` refleje el ticket activo.
 4. Si el humano lo pidió, commit + push con mensaje claro.

@@ -26,7 +26,7 @@ Todo ítem fuera de alcance requiere enmendar este documento antes de especifica
 4. **Secretos fuera del repo:** solo `.env.example` con valores vacíos.
 5. **Accesibilidad 50+:** letra grande, máximo 2 clics por acción principal, feedback visual en cada acción.
 6. **Contrato de slide estable:** toda salida de IA se valida contra el esquema antes de renderizarse.
-7. **Tests primero:** ningún código fuente sin test rojo previo (ver `CLAUDE.md`).
+7. **Tests primero:** ningún código fuente sin test rojo previo (ver `AGENTS.md`).
 
 ## 5. Proceso
 - Specs en `docs/specs/`, una por vertical slice.

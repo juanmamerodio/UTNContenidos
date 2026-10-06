@@ -6,7 +6,7 @@ description: Use when auditing security of the UTNContenidos Beta (Next.js + Sup
 # UTNContenidos Beta — Auditoría de Seguridad (checklist)
 
 Stack target: Next.js 15 + Supabase (Postgres/RLS/Auth) + Serverless Vercel.
-(El checklist legacy para GAS/Sheets está en `prototype-alpha/`.)
+(El checklist legacy para GAS/Sheets está en `docs/archives/prototype-alpha/`.)
 
 ## Checklist
 - [ ] Login con rate-limit + lockout (5 fallos → 15 min, tabla `eventos` acción LOGIN_FALLO)

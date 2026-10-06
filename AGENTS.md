@@ -1,81 +1,80 @@
-# AGENTS.md — UTNContenidos (Orquestador del Escuadrón)
+# AGENTS.md — UTNContenidos (Ruteador Global)
 
-> **Propósito:** plataforma institucional de generación de clases con IA para docentes UTN FRD.
-> **Stack final:** Next.js 15 + TypeScript · Supabase (Postgres + RLS + Auth) · Gemini/OpenRouter · Reveal.js · Vercel.
-> **Costo:** $0 absoluto. **Público:** docentes 50+. **Metodología:** modelo espiral (B1→B6).
+> Plataforma de generación de clases con IA para docentes UTN FRD.
+> Stack: Next.js 15 + TypeScript · Supabase (Postgres + RLS + Auth + pgvector) · Gemini/OpenRouter · Reveal.js · Vercel.
+> Metodología: modelo espiral (B1→B6).
 
----
+## Flujo estándar (por tarea)
 
-## 🎯 Misión y orden de mando
-
-Yo (el orquestador) coordino un equipo de **empleados especializados** (skills). Cada uno
-sabe su tema y habla con sus pares a través de los `PLAN_BETA_*.md`, `memory.md` y el código.
-Regla: **nadie toca lo que no es suyo** — un tipógrafo no modifica la DB, un Qa no cambia prompts.
-
-### Jerarquía de skills (quién es quién)
-
-| Rol | Skill | Dominio | Habla con |
-|-----|-------|---------|-----------|
-| 🧠 Arquitecto (yo) | — | Visión, orden, costo $0, espiral | Todos |
-| 🗄️ DB Engineer | `utn-db-supabase` | Esquema, RLS, pgvector, migraciones, seeds | Arquitecto, IA |
-| 🧪 IA Engineer | `utn-ia-engine` | Prompt élite, RAG, streaming, enforcement, OpenRouter | DB, Clase |
-| 🎨 Frontend Senior | `utn-frontend-ux50` | React, Material 4 + iOS 27, accesibilidad 50+ | Arquitecto, IA |
-| 📚 Pedagógico | `utn-class-builder` | 7 momentos, contrato de slide, calidad didáctica | IA |
-| 🛡️ Ciberseguridad | `utn-security-audit` | OWASP, RLS, cookies, CSP, lockout, PII | Todos |
-| 🧭 QA Senior | `utn-qa` | Casos límite, E2E, UX 50+, regresiones | Todos |
-| 🧠 Memoria | `utn-memory` | memory.md, cronológico, backlog | Arquitecto |
-| ⚡ Optimización | `utn-token-economy` | Ahorro de tokens, búsqueda dirigida | Todos |
-| 🗺️ Conocimiento | `utn-arquitectura` | Mapa del codebase, flujo de datos | Arquitecto |
-
-> ⚠️ `utn-gas-backend` está **JUBILADA** (GAS/Sheets murieron en Beta). Su código vive
-> en `prototype-alpha/` solo como referencia histórica.
-
----
-
-## 📋 Flujo de trabajo estándar (por tarea)
-
-1. Leer `memory.md` (estado real + backlog) y el `PLAN_BETA_*.md` correspondiente.
-2. Determinar qué skill(s) es dueña de la tarea.
-3. Consultar su `SKILL.md` antes de editar.
+1. Leer `memory.md` (estado Beta + próximo ticket) y `docs/specs/001-mvp/tickets.md`.
+2. Identificar skill(s) según la tabla de ruteo y leer su `SKILL.md` antes de editar.
+3. Un solo agente ejecuta el ticket vertical completo (DB → API → UI), consultando las skills que necesite.
 4. Implementar con `Edit` quirúrgico (nunca reescribir archivos grandes).
-5. Verificar: `npm run build` (TS estricto) + `node --check` cuando aplique.
-6. Actualizar `memory.md` (append) + `DocumentoCronologico.md` si es hito.
-7. Pushear SOLO si lo pide el humano o si es parte del sprint autónomo.
+5. Verificar (escalonado, ver abajo).
+6. Actualizar `memory.md` (<300 palabras, sobreescribir) y `DocumentoCronologico.md` si es hito.
+7. Pushear SOLO si lo pide el humano o es parte del sprint autónomo.
 
----
+## Ruteo por tema / archivo (skills en `opencode/skills/<nombre>/SKILL.md`)
 
-## 📚 Documentos canónicos (fuentes de verdad)
+| Si tocás… | Skill |
+|-----------|-------|
+| `supabase/*.sql`, `lib/supabase.ts`, `lib/auth.ts`, `scripts/seed_*` | `utn-db-supabase` |
+| `app/api/ia/**`, prompts, RAG, streaming | `utn-ia-engine` |
+| Contenido pedagógico, 7 momentos, contrato de slide | `utn-class-builder` |
+| `app/`, `components/`, `lib/deck.ts`, `globals.css` | `utn-frontend-ux50` |
+| Auth, endpoints, cookies, CSP, PII | `utn-security-audit` (+ `supabase-auth` en `.agents/skills/`) |
+| Pruebas pre-deploy, E2E, regresiones | `utn-qa` |
+| Mapa del codebase / flujo de datos | `utn-arquitectura` |
+| Auditoría de docs, archivado, SDD | `repository-brain` |
+| Cierre de sesión, `memory.md` | `utn-memory` |
+| Ahorro de tokens, búsqueda dirigida | `utn-token-economy` |
+
+Las skills genéricas (`tdd`, `code-review`, `diagnosing-bugs`, etc.) viven en `.agents/skills/`.
+`utn-gas-backend` está jubilada: ver `docs/archives/prototype-alpha/`.
+
+## Reglas de desarrollo (innegociables)
+
+1. **TDD Red-Green:** no escribir código fuente sin un test que falle antes (verificar el log RED).
+2. **Vertical Slices:** cada ticket conecta persistencia/API → UI. Prohibidas las capas horizontales aisladas.
+3. **Módulos profundos:** interfaces públicas pequeñas, lógica densa encapsulada.
+4. **Cambios quirúrgicos:** editar, no reescribir. Commits convencionales (`feat:`, `fix:`, `chore:`…).
+5. **Verificación escalonada:**
+   - Siempre: `npm run check` + `npm test`.
+   - Si cambia una ruta, la DB o el deploy: además `npm run build` + `npm run dev` y `curl -i http://localhost:3000/api/...` pegando evidencia.
+6. **Contexto:** al acercarse a ~100k tokens, hacer handoff (volcar estado a `memory.md`) y `/clear`.
+
+## Reglas no negociables
+
+- **Costo $0** (Supabase free, Vercel free, Gemini del usuario, OpenRouter free).
+- **Seguridad/PII:** `docentes.dni/email` (Ley 25.326) jamás en APIs ni logs. Nunca commitear secretos.
+- **Público 50+:** letra grande, 2 clics, feedback visual, "vos".
+- **RAG:** pgvector, búsqueda SOLO dentro de la materia del docente.
+- **Deploy:** `vercel.json` con `framework: nextjs`; no volver a "Otro".
+- **Escalabilidad:** borrar documentos desactualizados que no afecten la funcionalidad y achicar el contexto.
+
+## Documentos canónicos
 
 | Doc | Rol |
 |-----|-----|
-| `memory.md` | Fuente de verdad técnica (append-only) |
-| `PLAN_BETA_FINAL.md` | Stack y roadmap B1→B6 |
-| `PLAN_BETA_B4.md` | IA v2 (RAG + streaming) |
-| `PLAN_BETA_B6_FRONTEND.md` | Rediseño Material 4 + iOS 27 |
+| `docs/constitution.md` | Principios, invariantes, alcance MVP |
+| `docs/specs/001-mvp/spec.md` | Spec de producto activa |
+| `docs/specs/001-mvp/tickets.md` | Tickets verticales en curso |
+| `memory.md` | Caché de estado Beta |
 | `DocumentoCronologico.md` | Bitácora institucional (pasantía) |
 | `supabase/schema.sql` + `patch_*.sql` | Esquema de datos + RLS |
-| `prototype-alpha/` | Prototipo ARCHIVADO (referencia) |
+| `docs/archives/` | Planes completados + Alpha archivada |
 
----
+## Idiomas
 
-## 🚫 Reglas no negociables
+- Código, identificadores, commits: **inglés**.
+- Interfaz y mensajes al usuario: **español rioplatense ("vos")**.
 
-- **Costo $0** (Supabase free, Vercel free, Gemini plan del usuario, OpenRouter free).
-- **Seguridad primero** (ver `utn-security-audit`).
-- **Público 50+**: letra grande, 2 clics, feedback visual, "vos".
-- **RAG práctico**: pgvector, búsqueda SOLO dentro de la materia del docente.
-- **Datos**: `docentes.dni/email` = PII (Ley 25.326) — jamás exponer en APIs/logs.
-- **Deploy**: `vercel.json` con `framework: nextjs`; no volver a "Otro".
+## Layout y comandos
 
----
-
-## 🔑 Acceso rápido (comandos)
+- `app/` (rutas + server actions), `components/` (UI), `lib/` (auth, supabase, deck), `scripts/` (seeds `.mjs`), `tests/` (Vitest), `supabase/` (SQL versionado).
 
 ```bash
-npm run dev            # Next.js dev server
-npm run build          # build de producción (TS estricto)
-npm run seed:root      # crea usuario QA root/root
-npm run seed:materias  # materias + temas de ejemplo
-npm run seed:apuntes   # indexa apuntes (RAG pgvector)
-vercel --prod          # deploy producción
+npm run dev | build | check | test
+npm run seed:root | seed:materias | seed:apuntes
+vercel --prod
 ```
