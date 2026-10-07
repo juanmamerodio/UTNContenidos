@@ -11,7 +11,6 @@ export const SESION_COOKIE = 'utn_sesion';
 
 export interface DocenteSesion {
   id: string;
-  email: string;
   nombre: string;
   generacionesDia: number;
   ultimaGen: string | null;
@@ -34,14 +33,13 @@ export async function getDocenteSesion(): Promise<DocenteSesion | null> {
 
     const { data: docente } = await sb
       .from('docentes')
-      .select('id, email, nombre, generaciones_dia, ultima_gen')
+      .select('id, nombre, generaciones_dia, ultima_gen')
       .eq('auth_uid', auth.user.id)
       .maybeSingle();
 
     if (!docente) return null;
     return {
       id: docente.id,
-      email: docente.email,
       nombre: docente.nombre,
       generacionesDia: docente.generaciones_dia || 0,
       ultimaGen: docente.ultima_gen || null

@@ -2,7 +2,6 @@ import { redirect } from 'next/navigation';
 import { getSesionUsuario } from '../helpers';
 import { getDashboard } from '../datos';
 import AppHeader from '@/components/layout/AppHeader';
-import StepperDidactico from '@/components/ui/StepperDidactico';
 import MateriaCardPro from '@/components/dashboard/MateriaCardPro';
 import Link from 'next/link';
 
@@ -16,8 +15,6 @@ export default async function DashboardPage() {
     <>
       <AppHeader usuario={usuario} activePath="/dashboard" />
 
-      <StepperDidactico pasoActual={1} />
-
       <section className="dash-header glass-panel">
         <div>
           <h1>¿Qué clase preparamos hoy?</h1>
@@ -25,7 +22,7 @@ export default async function DashboardPage() {
             Hola <strong>{usuario.nombre}</strong> — seleccioná un tema de tus cátedras para estructurar tu clase.
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+        <div className="dash-header-actions">
           <Link href="/historial" className="btn-secondary">
             📚 Ver Historial
           </Link>
@@ -34,11 +31,14 @@ export default async function DashboardPage() {
 
       <section className="dash-materias">
         {materias.length === 0 ? (
-          <div className="materia-card glass-panel" style={{ textAlign: 'center', padding: '3rem 2rem' }}>
+          <div className="materia-card glass-panel materia-card-empty">
             <h2>Sin materias asignadas</h2>
-            <p style={{ marginTop: '0.6rem', color: 'var(--on-surface-2)' }}>
-              Todavía no tenés cátedras asignadas en tu perfil activo.
+            <p className="materia-empty-desc">
+              Contactá a la secretaría académica para vincular tus cátedras. Apenas estén asignadas, vas a poder preparar tu clase desde acá.
             </p>
+            <a href="mailto:sistemas@frd.utn.edu.ar" className="btn-primary">
+              Escribir a la secretaría
+            </a>
           </div>
         ) : (
           materias.map((m: any) => (

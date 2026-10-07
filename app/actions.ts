@@ -108,8 +108,8 @@ export async function loginRoot(formData: FormData): Promise<void> {
     // Login exitoso: limpiar fallos previos
     await sb.from('eventos').delete().eq('accion', 'LOGIN_FALLO').eq('detalle', legajo);
   } catch (e) {
-    // NEXT_REDIRECT se lanza como excepción controlada: NO debe caer en el catch de error.
-    if (e instanceof Error && e.message.includes('NEXT_REDIRECT')) throw e;
+    if (e instanceof Error && (e.message.includes('NEXT_REDIRECT') || e.message === 'NEXT_REDIRECT')) throw e;
+    if (typeof e === 'object' && e !== null && 'digest' in e && String((e as any).digest).startsWith('NEXT_REDIRECT')) throw e;
     console.error('loginRoot error:', e);
     redirect('/login?error=servidor');
   }
@@ -131,6 +131,11 @@ export async function loginRoot(formData: FormData): Promise<void> {
 
 export async function logout() {
   const store = await cookies();
+  const token = store.get(SESION_COOKIE)?.value;
+  if (token) {
+    const sb = getServiceClient();
+    await sb.auth.admin.signOut(token);
+  }
   store.delete(SESION_COOKIE);
   redirect('/');
 }

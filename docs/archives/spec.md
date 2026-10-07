@@ -17,7 +17,7 @@ Un docente UTN FRD genera, edita y proyecta una clase completa (7 momentos) con 
 1. **Auth:** registro/login docente.
 2. **Materias y apuntes:** el docente define sus materias y agrega apuntes **por URL** (principal) o **texto pegado** (fallback). PDF: posterior.
 3. **Generación:** elige materia + tema, indicaciones libres opcionales → clase de 7 momentos usando RAG (pgvector) **solo sobre sus apuntes de esa materia**.
-4. **Historial y edición:** la clase se guarda; el docente edita el texto de cada slide o regenera una slide con una indicación.
+4. **Historial y edición:** la clase se guarda automáticamente tras generarse. El docente posee una vista de Historial y puede entrar a cualquier clase para editar el texto de una slide o regenerarla, con guardado manual explícito.
 5. **Salida:** modo presentación en navegador (con notas de orador) y **PDF vía impresión del navegador**.
 
 ## 5. Ingesta por URL (requisitos de seguridad)

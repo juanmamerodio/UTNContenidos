@@ -33,20 +33,29 @@ export default function MateriaCardPro({ materia }: { materia: Materia }) {
       key={materia.id}
     >
       <div className="materia-head">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span className="badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+        <div className="materia-badge-group">
+          <span className="badge badge-with-icon">
             <Layers size={13} />
             {materia.nivel}
           </span>
+          <span className="materia-tema-count">
+            {materia.temas.length} {materia.temas.length === 1 ? 'tema' : 'temas'}
+          </span>
         </div>
         <h2>{materia.nombre}</h2>
-        {materia.descripcion && <p className="materia-desc">{materia.descripcion}</p>}
+        {materia.descripcion ? (
+          <p className="materia-desc">{materia.descripcion}</p>
+        ) : (
+          <p className="materia-guia-pedagogica">
+            Cátedra oficial de la Facultad Regional Delta. Seleccioná un tema para generar tu clase estructurada.
+          </p>
+        )}
       </div>
 
       <ul className="tema-list">
         {materia.temas.length === 0 ? (
-          <li style={{ color: 'var(--on-surface-3)', fontStyle: 'italic' }}>
-            No hay temas registrados en esta cátedra. Podés agregar uno con el botón inferior.
+          <li className="tema-empty">
+            No hay temas registrados en esta cátedra todavía. Podés incorporar el primer tema con el botón de abajo.
           </li>
         ) : (
           materia.temas.map((t, index) => (
@@ -57,7 +66,7 @@ export default function MateriaCardPro({ materia }: { materia: Materia }) {
               transition={{ delay: index * 0.05, duration: 0.2 }}
               whileHover={{ x: 4, transition: { duration: 0.15 } }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div className="tema-info">
                 <BookOpen size={16} color="var(--utn-green-primary)" />
                 <span>{t.nombre}</span>
               </div>
@@ -75,15 +84,18 @@ export default function MateriaCardPro({ materia }: { materia: Materia }) {
         )}
       </ul>
 
-      <div style={{ marginTop: '1.2rem' }}>
+      <div className="materia-actions">
+        <Link href={`/materias/${materia.id}/apuntes`} className="btn-secondary">
+          <BookOpen size={16} />
+          <span>Ver Apuntes</span>
+        </Link>
         <button
           type="button"
           onClick={() => setModalAbierto(true)}
-          className="btn-secondary"
-          style={{ fontSize: '0.88rem', padding: '0.5rem 1rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+          className="btn-secondary btn-agregar-tema"
         >
           <Plus size={16} />
-          <span>Agregar tema a la materia</span>
+          <span>Agregar tema</span>
         </button>
       </div>
 
@@ -91,7 +103,7 @@ export default function MateriaCardPro({ materia }: { materia: Materia }) {
         {modalAbierto && (
           <dialog
             open
-            style={{ display: 'block', position: 'fixed', inset: 0, zIndex: 200 }}
+            className="dialog-overlay"
             aria-labelledby={`nuevo-tema-title-${materia.id}`}
           >
             <motion.div
@@ -99,25 +111,24 @@ export default function MateriaCardPro({ materia }: { materia: Materia }) {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
               transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              className="dialog-content glass-panel"
-              style={{ background: '#ffffff' }}
+              className="dialog-content glass-panel dialog-modal-card"
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <h2 id={`nuevo-tema-title-${materia.id}`} style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div className="dialog-header">
+                <h2 id={`nuevo-tema-title-${materia.id}`} className="dialog-title">
                   <Plus size={22} color="var(--utn-green-primary)" />
                   <span>Agregar tema a {materia.nombre}</span>
                 </h2>
                 <button
                   type="button"
                   onClick={() => setModalAbierto(false)}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}
+                  className="dialog-close-btn"
                   aria-label="Cerrar"
                 >
                   <X size={20} color="var(--on-surface-3)" />
                 </button>
               </div>
 
-              <p style={{ marginBottom: '16px', color: 'var(--on-surface-2)', fontSize: '0.9rem' }}>
+              <p className="dialog-desc">
                 Cargá un tema nuevo del programa oficial. Si tenés el apunte de cátedra, pegá el link.
               </p>
 

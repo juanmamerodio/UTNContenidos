@@ -1,25 +1,20 @@
 # Current Technical Memory (Beta Active State)
 
-> Última actualización: 2026-10-05 · Caché de alta densidad (<300 palabras). Histórico: `DocumentoCronologico.md`.
+> Última actualización: 2026-10-07 · Caché de alta densidad (<300 palabras). Histórico: `DocumentoCronologico.md`.
 
 ## System Status
-- **Architecture:** Next.js 15 (App Router) + TypeScript estricto + React 19.
-- **Persistence:** Supabase (Postgres + RLS + Auth + pgvector). Sin ORM — `@supabase/supabase-js` con SQL versionado en `supabase/`.
-- **IA:** Gemini primario (`IA_MODEL`) / OpenRouter fallback. Embeddings `gemini-embedding-2` (3072d).
-- **Presentación:** Reveal.js 5 self-hosted (HTML autocontenido + PDF). **PPTX retirado.**
-- **Deploy:** Vercel (`framework: nextjs`), costo $0. Prod: `utncontenidos.vercel.app`.
-- **Fase activa:** Beta. Alpha/GAS/Sheets deprecados, purgados y archivados en `docs/archives/`.
-
-## Current Active Feature
-- **Feature:** `docs/specs/001-mvp/spec.md` (apuntes privados por docente, 7 momentos, RAG aislado).
-- **Active Ticket:** T1 (apuntes owner-only + RLS) en `docs/specs/001-mvp/tickets.md`.
-
-## Recent Decisions (Last 3)
-1. **Apuntes privados por docente** — RLS por `docente_id` + `materia_id`; el RAG solo busca en apuntes propios de la materia seleccionada.
-2. **Login root/root** — autoridad = tabla `docentes`; sesión JWT Supabase en cookie HttpOnly `utn_sesion`; lockout 5 fallos/15 min.
-3. **Salida = HTML + PDF** — `docs/specs/001-mvp/spec.md` supersede a `docs/spec.md` y a los `PLAN_BETA_*` (archivados).
+- **Stack:** Next.js 15.5 (App Router) + TS estricto + React 19 · Supabase (Postgres + RLS + Auth + pgvector, sin ORM) · Gemini (`IA_MODEL`) / OpenRouter fallback · embeddings `gemini-embedding-2` (3072d) · Reveal.js (HTML + PDF).
+- **Deploy:** Vercel (`framework: nextjs`), $0. Prod: `utncontenidos.vercel.app`.
+- **Estado MVP Tickets:**
+  - T1 Schema: ✅ Preparado (Falta aplicación en Supabase por humano).
+  - T2 Retirar PPTX: ✅
+  - T3 Auth slice: ✅ (Verificado E2E. PII purgado, token revocado).
+  - T4 Materias slice: ✅ (Dashboard funcional con RLS manual. Botones "Preparar clase" agregados).
+  - T5 Apuntes slice: ✅ (CRUD y Server Actions con ingesta por URL + texto pegado implementado. Embeddings con gemini-embedding-2 funcionando. Bloqueo de URLs internas y límite de caracteres operativos).
+  - Próximo: **T6 Generación slice (RAG + 7 momentos + streaming)**. Ajustar prompt, validar schema y streaming SSE en generador.
 
 ## Blockers / Open Edge Cases
-- QA real con docente 50+ (pendiente humano).
-- Confirmar cron keep-alive activo (`/api/health`, `vercel.json` `0 12 * * *`).
-- Lighthouse gama baja (validación manual opcional).
+- **Pendiente humano:** Aplicar `supabase/patch_mvp.sql` en el SQL Editor de Supabase y luego ejecutar `node scripts/test_rls.mjs`.
+- **H1 lockout:** `fallosRecientes` (`app/actions.ts`) usa `head:true` y lee `data.length`.
+- `guardarPresentacion` sin llamador en generación (historial vacío).
+- QA manual a 360px, contrastes, docente 50+, cron keep-alive.

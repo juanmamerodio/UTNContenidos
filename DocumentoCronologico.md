@@ -392,4 +392,22 @@ Se aplicó el manual maestro `repository-brain` para auditar, reorganizar y opti
 | **Punteros corregidos** | skills `utn-memory/utn-arquitectura/utn-frontend-ux50/utn-security-audit` | Rutas a `PLAN_BETA_*`, `prototype-alpha/` y `.claude/skills/` actualizadas al nuevo árbol. |
 | **Script `qa` reparado** | `package.json` | `node scripts/qa.mjs` (inexistente) reemplazado por `npm run check && npm test`. |
 
-Verificación: `npm run check` (exit 0), `npm test` (1/1), `npm run build` (10 rutas, 103 kB) y runtime `curl` (`/login` 200, `/api/health` 200, `/dashboard` 307→login).
+Verificación: `npm run check` (exit 0), `npm test` (1/1), `npm run build` (10 rutas, 103 kB) y runtime `curl` (`/login` 200, `/api/health` 200, `/dashboard` 307→login).
+
+---
+
+## **El 6 de octubre — "Sprint S2: Evolución del Design System Mobile-First y Accesibilidad 50+"**
+
+Se completó de punta a punta el plan ejecutivo **S2 Design System v2**, resolviendo la deuda técnica de responsive y accesibilidad visual detectada en la auditoría técnica.
+
+| Cambio | Archivo | Para qué |
+| :---- | :---- | :---- |
+| **Breakpoints Mobile-First** | `app/globals.css` | Se incorporaron media queries formales (400px, 640px, 768px, 1024px, 1280px) resolviendo todo desborde en móviles compactos (360px). |
+| **Barra de Navegación Móvil** | `components/layout/AppHeader.tsx` & `app/globals.css` | Se implementó una barra inferior (`.mobile-bottom-nav`) ergonómica para pulgares en `<768px`, colapsando el header superior y eliminando el desborde a 731px. |
+| **Tipografía Base Accesible** | `app/globals.css` | Escalado `clamp(17px, 0.75vw + 16px, 18.5px)` garantizando un mínimo de 17-18px para comodidad de lectura en docentes de más de 50 años. |
+| **Contraste WCAG AAA en CTAs** | `app/globals.css` | Paleta de verdes institucionales refinada (`--utn-green-dark: #025a4d`, degradado `#036b5c` a `#024e43`) con ratios de contraste superiores a 5.9:1 y 9.1:1 contra blanco. |
+| **Optimización de Fondo GPU** | `components/layout/AmbientGlow.tsx` & `app/globals.css` | Se eliminó el `blur(120px)` y los loops infinitos de Framer Motion en 3 orbs gigantes; se reemplazó por gradientes radiales acelerados por hardware (`transform: translateZ(0)`). |
+| **Des-inlinado de Componentes** | `MateriaCardPro.tsx`, `AppHeader.tsx`, `SeccionesPedagogicas.tsx`, `dashboard`, `historial` | Extracción de estilos inline a clases CSS semánticas reutilizables. |
+| **Suite TDD de Diseño** | `tests/design-system.test.ts` | Tests automatizados de contrastes, tipografía, breakpoints y limpieza de estilos inline (7/7 tests pasando en Vitest). |
+
+Verificación: `npm run check` (exit 0), `npm test` (7/7 pasando), `npm run build` (10/10 rutas optimizadas, 103 kB First Load JS) y runtime `curl.exe` (`/login` 200, `/api/health` 200, `/dashboard` 307→login).

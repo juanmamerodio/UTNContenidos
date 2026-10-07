@@ -26,8 +26,12 @@ async function embedding(texto) {
   return j.embedding.values;
 }
 
+const { data: asig, error: errAsig } = await sb.from('asignaciones').select('docente_id').eq('materia_id', 'AM1').limit(1).maybeSingle();
+if (!asig) { console.error('✗ No hay docentes asignados a AM1. Corre seed:root y seed:materias primero.'); process.exit(1); }
+
 const apunte = {
   materia_id: 'AM1',
+  docente_id: asig.docente_id,
   titulo: 'Límites y Continuidad — Apunte de Cátedra',
   contenido: `Concepto de límite: decimos que f(x) tiende a L cuando x tiende a a si los valores de f(x) se aproximan arbitrariamente a L conforme x se acerca a a.
 Propiedades: el límite de una suma es la suma de los límites; el límite de un producto es el producto de los límites.
@@ -39,7 +43,7 @@ Teorema de Weierstrass: toda función continua en un intervalo cerrado alcanza m
 };
 
 // 1. Insertar/actualizar apunte
-const { data: existente } = await sb.from('apuntes').select('id').eq('titulo', apunte.titulo).maybeSingle();
+const { data: existente } = await sb.from('apuntes').select('id').eq('titulo', apunte.titulo).eq('docente_id', asig.docente_id).maybeSingle();
 const id = existente?.id || undefined;
 const { error: errUpsert } = await sb.from('apuntes').upsert({ id, ...apunte }, { onConflict: 'id' }).select('id').single();
 if (errUpsert) { console.error('✗ upsert apunte:', errUpsert.message); process.exit(1); }

@@ -11,13 +11,13 @@ interface StepperProps {
 /**
  * components/ui/StepperDidactico.tsx
  * Stepper animado con física elástica de resorte háptico Framer Motion para docentes 50+.
- * Guía clara en 3 pasos: Materia y Tema -> Revisión Didáctica -> Exportación.
+ * Guía clara en 3 pasos sincronizados con la fase del wizard: Configurar -> Generando -> Lista.
  */
 export default function StepperDidactico({ pasoActual }: StepperProps) {
   const pasos = [
-    { num: 1, label: 'Elegí tu Materia y Tema' },
-    { num: 2, label: 'Revisá el Plan Pedagógico' },
-    { num: 3, label: 'Exportá a Slides / PDF' },
+    { num: 1, label: 'Configurar' },
+    { num: 2, label: 'Generando' },
+    { num: 3, label: 'Lista' },
   ];
 
   return (

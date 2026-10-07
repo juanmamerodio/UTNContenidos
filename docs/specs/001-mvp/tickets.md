@@ -21,55 +21,55 @@
 
 ---
 
-## T2 — Retirar PPTX
+## T2 — Retirar PPTX ✅ (verificado en S0, 2026-10-06)
 
 **Spec refs:** §5, §11
 **Skill owner:** `utn-frontend-ux50` + arquitecto
 
-- [ ] Eliminar `app/api/pptx/route.ts`, `lib/pptx.ts`, `app/generar/BotonPptx.tsx`.
-- [ ] Quitar la dependencia `pptxgenjs` de `package.json`.
-- [ ] Quitar el botón/import de PPTX de la UI del generador.
-- [ ] Verificar build sin referencias rotas (`rg -i pptx`).
+- [x] Eliminar `app/api/pptx/route.ts`, `lib/pptx.ts`, `app/generar/BotonPptx.tsx`.
+- [x] Quitar la dependencia `pptxgenjs` de `package.json`.
+- [x] Quitar el botón/import de PPTX de la UI del generador.
+- [x] Verificar build sin referencias rotas (`rg -i pptx`).
 - **DoD:** `rg pptx` sin resultados en `app/`, `lib/`, `components/`.
 
 ---
 
-## T3 — Auth slice (vertical)
+## T3 — Auth slice (vertical) ✅ (verificado)
 
 **Spec refs:** §4, §5.1
 **Skill owner:** `utn-security-audit` + `utn-db-supabase`
 
-- [ ] Revisar/endurecer `app/actions.ts` `loginRoot`: mantener lockout 5/15min, mensajes en español, redirects correctos.
-- [ ] Asegurar que `lib/auth.ts` `getDocenteSesion()` no exponga `dni`/`email` a clientes (solo lo necesario).
-- [ ] Logout: limpiar cookie `utn_sesion` + `getUser` revocado.
-- [ ] Prueba E2E `curl -i` de login/logout contra runtime.
+- [x] Revisar/endurecer `app/actions.ts` `loginRoot`: mantener lockout 5/15min, mensajes en español, redirects correctos.
+- [x] Asegurar que `lib/auth.ts` `getDocenteSesion()` no exponga `dni`/`email` a clientes (solo lo necesario).
+- [x] Logout: limpiar cookie `utn_sesion` + `getUser` revocado.
+- [x] Prueba E2E `curl -i` de login/logout contra runtime.
 - **DoD:** login OK, fallo ×5 bloquea, logout limpia cookie, sin PII en respuestas.
 
 ---
 
-## T4 — Materias slice (dashboard)
+## T4 — Materias slice (dashboard) ✅ (verificado)
 
 **Spec refs:** §5.2
 **Skill owner:** `utn-frontend-ux50` + `utn-db-supabase`
 
-- [ ] `app/datos.ts` `getDashboard`: materias asignadas vía `asignaciones` con RLS (ya existe; verificar).
-- [ ] UI dashboard (Material 4 + iOS 27, accesible 50+): tarjetas de materia, botón "Preparar Clase" siempre visible.
-- [ ] Vista de apuntes por materia (entrar desde la materia).
+- [x] `app/datos.ts` `getDashboard`: materias asignadas vía `asignaciones` con RLS (ya existe; verificar).
+- [x] UI dashboard (Material 4 + iOS 27, accesible 50+): tarjetas de materia, botón "Preparar Clase" siempre visible.
+- [x] Vista de apuntes por materia (entrar desde la materia).
 - **DoD:** dashboard muestra SOLO las materias del docente logueado; 2 clics hasta "Preparar Clase".
 
 ---
 
-## T5 — Apuntes slice (CRUD + ingesta por URL)
+## T5 — Apuntes slice (CRUD + ingesta por URL) ✅ (verificado)
 
 **Spec refs:** §5.3, §7
 **Skill owner:** `utn-ia-engine` (extracción) + `utn-db-supabase`
 
-- [ ] Server action/route `agregarApunte(materia_id, { url | texto })`:
+- [x] Server action/route `agregarApunte(materia_id, { url | texto })`:
   - URL: fetch server-side con timeout 10s, tope 2MB, anti-SSRF (bloquear localhost/privadas/link-local + redirects hacia ellas).
   - Texto pegado: cap 100.000 chars.
   - Extraer texto (si falla/requiere JS → error en español ofreciendo texto pegado).
-- [ ] Chunking ~1.500 chars, máx 50 fragmentos/apunte; embeddings `gemini-embedding-2` (3072d); guardar chunks en `apuntes`.
-- [ ] UI: listar/borrar apuntes propios de la materia (RLS owner-only).
+- [x] Chunking ~1.500 chars, máx 50 fragmentos/apunte; embeddings `gemini-embedding-2` (3072d); guardar chunks en `apuntes`.
+- [x] UI: listar/borrar apuntes propios de la materia (RLS owner-only).
 - **DoD:** apunte por URL indexado y buscable; URL maliciosa bloqueada; texto pegado guardado.
 
 ---
@@ -93,10 +93,11 @@
 **Spec refs:** §5.5
 **Skill owner:** `utn-frontend-ux50` + `utn-class-builder`
 
-- [ ] Guardar clase generada en `presentaciones` (contenido + config) al finalizar generación.
-- [ ] Historial: lista con distintivo (reciente/usado/archivado >15 días), reabrir, "Agregar a carpeta", eliminar (derecho de supresión — Ley 25.326).
-- [ ] Editar texto de una slide (`ModalEditarSlide`) + regenerar una slide con indicación (`ModalReformular`).
-- **DoD:** editar/regenerar muta la clase; historial persiste; eliminar borra.
+- [ ] `app/datos.ts`: `guardarPresentacion` debe retornar ID; agregar `actualizarPresentacion` y `borrarPresentacion`.
+- [ ] Guardar clase en BD automáticamente al finalizar generación y **redirigir** a `/historial/[id]`.
+- [ ] Ruta `/historial`: lista de tarjetas dividida en Recientes (≤ 15 días) y Antiguas (> 15 días). Sin carpetas. Botón eliminar (derecho a supresión).
+- [ ] Ruta `/historial/[id]`: reutiliza `VisorResultado`. Permite edición de texto y regeneración de slide, con **botón "Guardar Cambios"** explícito.
+- **DoD:** la generación redirige; editar/regenerar y guardar muta la clase; historial persiste y separa por fecha; eliminar borra.
 
 ---
 

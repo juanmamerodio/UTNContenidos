@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation';
 import { getSesionUsuario } from '../helpers';
 import AppHeader from '@/components/layout/AppHeader';
+import { getServiceClient } from '@/lib/supabase';
+import { resolverNombreMateria } from '@/lib/materia';
 import GeneradorClase from './GeneradorClase';
 
 export default async function GenerarPage({
@@ -18,12 +20,15 @@ export default async function GenerarPage({
 
   if (!materiaId || !temaId) redirect('/dashboard');
 
+  const materiaNombre = await resolverNombreMateria(getServiceClient(), usuario.email, materiaId);
+  if (!materiaNombre) redirect('/dashboard');
+
   return (
     <>
       <AppHeader usuario={usuario} activePath="/generar" />
       <GeneradorClase
         materiaId={materiaId}
-        materiaNombre={materiaId}
+        materiaNombre={materiaNombre}
         temaId={temaId}
         temaNombre={temaNombre}
       />

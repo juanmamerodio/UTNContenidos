@@ -43,7 +43,7 @@ export default async function HistorialPage() {
           <GlassCard className="estado-card">
             <h2>No hay presentaciones todavía</h2>
             <p>Generá tu primera clase desde «Mis Materias».</p>
-            <a href="/dashboard" className="btn-primary" style={{ marginTop: '1rem', display: 'inline-block' }}>Ir a Mis Materias</a>
+            <a href="/dashboard" className="btn-primary historial-btn-link">Ir a Mis Materias</a>
           </GlassCard>
         ) : (
           historial.map((h: any) => {

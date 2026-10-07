@@ -1,5 +1,6 @@
 import { loginRoot } from '../actions';
 import Image from 'next/image';
+import { Zap, Lock, FileCheck, Clock } from 'lucide-react';
 import AppHeader from '@/components/layout/AppHeader';
 
 export default async function LoginPage({
@@ -17,12 +18,32 @@ export default async function LoginPage({
       ? 'Credenciales inválidas. Verificá tu Legajo y DNI en Sysacad.'
       : null;
 
+  const bloqueado = params.error === 'bloqueado';
+
   return (
     <>
       <AppHeader usuario={null} />
 
-      <section id="view-login" className="login-wrapper glass-panel" aria-labelledby="login-title">
+      <section id="view-login" className="login-wrapper login-split glass-panel" aria-labelledby="login-title">
+        <aside className="login-beneficios" aria-label="Qué ganás con el asistente">
+          <h2>Tu clase lista en minutos</h2>
+          <ul>
+            <li>
+              <Zap size={28} aria-hidden="true" />
+              <span><strong>Clases en 3 clics</strong> Elegí el tema y generá.</span>
+            </li>
+            <li>
+              <Lock size={28} aria-hidden="true" />
+              <span><strong>Buscá en tu propia bibliografía</strong> Tus apuntes son privados.</span>
+            </li>
+            <li>
+              <FileCheck size={28} aria-hidden="true" />
+              <span><strong>Formato oficial UTN</strong> Presentación lista para proyectar.</span>
+            </li>
+          </ul>
+        </aside>
         <div className="login-form-panel">
+
           <div className="login-brand-header">
             <div className="login-logo-wrapper">
               <Image
@@ -89,7 +110,16 @@ export default async function LoginPage({
               </button>
             </div>
 
-            {errorMsg && <p className="login-error" role="alert">{errorMsg}</p>}
+            {bloqueado ? (
+              <div className="login-lockout" role="alert">
+                <Clock size={32} aria-hidden="true" />
+                <p>
+                  Demasiados intentos fallidos. Por seguridad esperá <strong>15 minutos</strong> antes de volver a intentar.
+                </p>
+              </div>
+            ) : (
+              errorMsg && <p className="login-error" role="alert">{errorMsg}</p>
+            )}
 
             <div className="form-help">
               <a href="mailto:sistemas@frd.utn.edu.ar">

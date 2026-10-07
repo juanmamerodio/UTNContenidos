@@ -38,12 +38,11 @@ export default function SeccionesPedagogicas({
   return (
     <div className="generator-content-grid">
       {/* Selector de pestañas pedagógicas táctiles */}
-      <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+      <div className="pedagogicas-tabs">
         <button
           type="button"
           onClick={() => setTabActiva('slides')}
-          className={tabActiva === 'slides' ? 'btn-primary' : 'btn-secondary'}
-          style={{ minHeight: '44px', padding: '0.5rem 1.2rem' }}
+          className={`${tabActiva === 'slides' ? 'btn-primary' : 'btn-secondary'} btn-tab`}
         >
           📑 Tarjetas de Diapositivas ({slides.length})
         </button>
@@ -51,8 +50,7 @@ export default function SeccionesPedagogicas({
           <button
             type="button"
             onClick={() => setTabActiva('plan')}
-            className={tabActiva === 'plan' ? 'btn-primary' : 'btn-secondary'}
-            style={{ minHeight: '44px', padding: '0.5rem 1.2rem' }}
+            className={`${tabActiva === 'plan' ? 'btn-primary' : 'btn-secondary'} btn-tab`}
           >
             📋 Organización de Aula & Momentos
           </button>
@@ -61,8 +59,7 @@ export default function SeccionesPedagogicas({
           <button
             type="button"
             onClick={() => setTabActiva('imagenes')}
-            className={tabActiva === 'imagenes' ? 'btn-primary' : 'btn-secondary'}
-            style={{ minHeight: '44px', padding: '0.5rem 1.2rem' }}
+            className={`${tabActiva === 'imagenes' ? 'btn-primary' : 'btn-secondary'} btn-tab`}
           >
             🎨 Sugerencias Visuales & Pizarra ({promptsImagenes.length})
           </button>
