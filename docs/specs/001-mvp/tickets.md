@@ -101,14 +101,14 @@
 
 ---
 
-## T8 — Salida slice (deck + PDF)
+## T8 — Salida slice (deck + PDF) ✅
 
 **Spec refs:** §5.6, §6
 **Skill owner:** `utn-frontend-ux50` + `utn-class-builder`
 
-- [ ] `lib/deck.ts` (existe): render Reveal.js de las slides en orden pedagógico, notas de orador, tema UTN por estilo.
-- [ ] Página de presentación en navegador + botón "Descargar HTML" (autocontenido) + PDF vía impresión.
-- [ ] Verificar que la salida valida contra el contrato de slide (invariante #3).
+- [x] `lib/deck.ts` (existe): render Reveal.js de las slides en orden pedagógico, notas de orador, tema UTN por estilo.
+- [x] Página de presentación en navegador + botón "Descargar HTML" (autocontenido) + PDF vía impresión.
+- [x] Verificar que la salida valida contra el contrato de slide (invariante #3).
 - **DoD:** profesor descarga HTML autocontenido y lo abre en cualquier navegador; PDF imprimible.
 
 ---

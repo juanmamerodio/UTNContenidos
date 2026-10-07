@@ -2,13 +2,14 @@
 
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Download, Printer, CheckCircle2, RefreshCw } from 'lucide-react';
+import { Download, Printer, CheckCircle2, RefreshCw, MonitorPlay } from 'lucide-react';
 import { buildDeckHtml, nombreArchivoDeck } from '@/lib/deck';
 import GlassCard from '@/components/ui/GlassCard';
 import MaterialButton from '@/components/ui/MaterialButton';
 import SeccionesPedagogicas from '@/components/generador/SeccionesPedagogicas';
 
 interface Props {
+  presentacionId?: string;
   clase: any;
   materiaNombre: string;
   temaNombre: string;
@@ -20,6 +21,7 @@ interface Props {
 
 /** Paso 3: vista previa, descargas, secciones pedagógicas y "Generar otra versión". */
 export default function VisorResultado({
+  presentacionId,
   clase,
   materiaNombre,
   temaNombre,
@@ -65,11 +67,17 @@ export default function VisorResultado({
             </p>
           </div>
           <div className="gen-botones">
-            <MaterialButton variante="primary" onClick={descargarHtml}>
+            {presentacionId && (
+              <MaterialButton variante="primary" onClick={() => window.open(`/api/presentacion/${presentacionId}`, '_blank')}>
+                <MonitorPlay size={18} />
+                <span>Proyectar</span>
+              </MaterialButton>
+            )}
+            <MaterialButton variante={presentacionId ? "secondary" : "primary"} onClick={descargarHtml}>
               <Download size={18} />
-              <span>Descargar Reveal.js (HTML)</span>
+              <span>Descargar HTML</span>
             </MaterialButton>
-            <MaterialButton variante="secondary" onClick={() => window.print()}>
+            <MaterialButton variante="secondary" onClick={() => presentacionId ? window.open(`/api/presentacion/${presentacionId}?print-pdf`, '_blank') : window.print()}>
               <Printer size={18} />
               <span>Imprimir / PDF</span>
             </MaterialButton>

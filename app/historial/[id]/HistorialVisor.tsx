@@ -49,6 +49,7 @@ export default function HistorialVisor({ presentacion, id }: { presentacion: any
       </nav>
 
       <VisorResultado
+        presentacionId={id}
         clase={clase}
         materiaNombre={materiaNombre}
         temaNombre={temaNombre}

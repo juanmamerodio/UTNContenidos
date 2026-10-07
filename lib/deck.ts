@@ -273,8 +273,8 @@ export function buildDeckHtml(clase: Clase, materia: string, tema: string, estil
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>UTN FRD — ${escapeHtml(tema)}</title>
-<link rel="stylesheet" href="/reveal/reset.min.css">
-<link rel="stylesheet" href="/reveal/reveal.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reset.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -557,7 +557,7 @@ export function buildDeckHtml(clase: Clase, materia: string, tema: string, estil
 <div class="reveal"><div class="slides">
 ${slidesHtml}
 </div></div>
-<script src="/reveal/reveal.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
 <script>
   Reveal.initialize({
     hash: true,
