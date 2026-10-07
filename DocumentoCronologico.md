@@ -410,4 +410,17 @@ Se completó de punta a punta el plan ejecutivo **S2 Design System v2**, resolvi
 | **Des-inlinado de Componentes** | `MateriaCardPro.tsx`, `AppHeader.tsx`, `SeccionesPedagogicas.tsx`, `dashboard`, `historial` | Extracción de estilos inline a clases CSS semánticas reutilizables. |
 | **Suite TDD de Diseño** | `tests/design-system.test.ts` | Tests automatizados de contrastes, tipografía, breakpoints y limpieza de estilos inline (7/7 tests pasando en Vitest). |
 
-Verificación: `npm run check` (exit 0), `npm test` (7/7 pasando), `npm run build` (10/10 rutas optimizadas, 103 kB First Load JS) y runtime `curl.exe` (`/login` 200, `/api/health` 200, `/dashboard` 307→login).
+Verificación: `npm run check` (exit 0), `npm test` (7/7 pasando), `npm run build` (10/10 rutas optimizadas, 103 kB First Load JS) y runtime `curl.exe` (`/login` 200, `/api/health` 200, `/dashboard` 307→login).
+
+## **El 7 de octubre — "T6 Generación Slice: RAG Seguro, Streaming en Vivo y Fallback validado"**
+
+Se completó exitosamente el ticket T6 del MVP, cerrando el ciclo de generación de clases con IA de punta a punta, priorizando el rendimiento, la seguridad y la experiencia del usuario (docentes 50+).
+
+| Cambio | Archivo | Para qué |
+| :---- | :---- | :---- |
+| **Aislamiento RAG por Docente** | `supabase/patch_mvp.sql` y `app/api/ia/route.ts` | Se corrigió una falla en la función `match_apuntes` (bypass RLS) añadiendo el filtro `p_docente_id`. Ahora los apuntes están estrictamente aislados y los embeddings RAG consultan únicamente la bibliografía del docente actual. |
+| **Validación Estricta de Schema** | `app/api/ia/route.ts` | En el fallback y durante el stream, se valida no solo la cantidad solicitada de slides, sino que cumplan con la estructura requerida (título, layout y tipo). Si falla, la IA se auto-corrige. |
+| **Telemetría de Modelo Utilizado** | `app/api/ia/route.ts` | La respuesta JSON final (y los eventos) devuelven el campo `modeloUsado` para registrar de manera transparente qué modelo generó la clase. |
+| **Streaming SSE en Tiempo Real** | `app/generar/GeneradorClase.tsx` y `PantallaProcesando.tsx` | La UI de procesamiento (PantallaProcesando) fue rediseñada. En vez de mostrar mensajes aleatorios y skeletons estáticos, procesa los eventos SSE `chunk` de la API y muestra una vista previa en vivo del texto generado a medida que llega, optimizando la espera y brindando confianza al docente sobre el avance. |
+
+Verificación: Build limpio con Next.js, comprobación estricta de tipos de TypeScript (TS2322 solucionado en fallbacks SSE) y tests automatizados. La clase se genera ahora de manera segura y controlada con RAG real filtrado.

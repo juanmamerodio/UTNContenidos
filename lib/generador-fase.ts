@@ -9,6 +9,8 @@ export interface EstadoFase<C = any> {
   fase: Fase;
   error: string;
   clase: C | null;
+  streamText?: string;
+  progresoMsg?: string;
 }
 
 export type AccionFase<C = any> =
@@ -17,7 +19,9 @@ export type AccionFase<C = any> =
   | { tipo: 'fallo'; error: string }
   | { tipo: 'cancelar' }
   | { tipo: 'reiniciar' }
-  | { tipo: 'actualizar'; clase: C };
+  | { tipo: 'actualizar'; clase: C }
+  | { tipo: 'chunk'; texto: string }
+  | { tipo: 'progreso'; mensaje: string };
 
 export const faseInicial: EstadoFase = { fase: 'config', error: '', clase: null };
 
@@ -41,6 +45,12 @@ export function faseReducer<C = any>(estado: EstadoFase<C>, accion: AccionFase<C
     case 'actualizar':
       if (estado.fase !== 'resultado') return estado;
       return { ...estado, clase: accion.clase };
+    case 'chunk':
+      if (estado.fase !== 'procesando') return estado;
+      return { ...estado, streamText: (estado.streamText || '') + accion.texto };
+    case 'progreso':
+      if (estado.fase !== 'procesando') return estado;
+      return { ...estado, progresoMsg: accion.mensaje };
   }
 }
 

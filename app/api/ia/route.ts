@@ -14,8 +14,7 @@ const OPENROUTER_KEY = process.env.OPENROUTER_API_KEY || '';
 const OPENROUTER_MODELO = process.env.OPENROUTER_MODELO || 'google/gemini-3-flash-lite';
 const MAX_GEN_DIARIAS = 20;
 
-/** B4-2 RAG: embedding de la consulta + búsqueda semántica en apuntes. */
-async function buscarApuntesRAG(materiaId: string, consulta: string): Promise<string> {
+async function buscarApuntesRAG(materiaId: string, consulta: string, docenteId: string): Promise<string> {
   try {
     if (!API_KEY) return '';
     // 1. Embedding de la consulta (gemini-embedding-2, 3072 dims)
@@ -32,9 +31,9 @@ async function buscarApuntesRAG(materiaId: string, consulta: string): Promise<st
     const vec = j?.embedding?.values;
     if (!vec || vec.length !== 3072) return '';
 
-    // 2. Búsqueda semántica por materia
+    // 2. Búsqueda semántica por materia (RAG)
     const sb = getServiceClient();
-    const { data, error } = await sb.rpc('match_apuntes', { p_materia_id: materiaId, p_consulta: vec, p_limite: 3 });
+    const { data, error } = await sb.rpc('match_apuntes', { p_materia_id: materiaId, p_consulta: vec, p_limite: 3, p_docente_id: docenteId });
     if (error) return '';
 
     const fragmentos = (data || [])
@@ -149,7 +148,7 @@ export async function POST(req: Request) {
     // B4-2: RAG — buscar apuntes de la cátedra por similitud semántica
     let materialRAG = String(textoOficial || '').slice(0, 15000);
     if (!materialRAG || materialRAG.length < 200) {
-      const rag = await buscarApuntesRAG(String(materia), String(tema));
+      const rag = await buscarApuntesRAG(String(materia), String(tema), docente.id);
       if (rag) materialRAG = rag;
     }
 
@@ -221,9 +220,10 @@ Respondé ÚNICAMENTE JSON con este esquema enriquecido:
             const fin = limpio.lastIndexOf('}');
             let clase = JSON.parse(inicio >= 0 && fin > inicio ? limpio.slice(inicio, fin + 1) : limpio);
 
-            if (clase.slides?.length !== numSlides && numSlides >= 3) {
+            const isValid = clase.slides?.every((s: any) => s.titulo && s.layout && s.tipo);
+            if ((clase.slides?.length !== numSlides && numSlides >= 3) || !isValid) {
               const retryText = await llamarModelo(
-                `Tu respuesta anterior generó ${clase.slides.length} slides pero deben ser EXACTAMENTE ${numSlides}. Respondé solo el JSON completo corregido con ${numSlides} slides: ${text}`
+                `Tu respuesta anterior generó ${clase.slides?.length || 0} slides (se esperaban ${numSlides}) o falló la estructura. Respondé solo el JSON completo corregido con EXACTAMENTE ${numSlides} slides, respetando el schema: ${text}`
               );
               if (retryText) {
                 try {
@@ -234,7 +234,7 @@ Respondé ÚNICAMENTE JSON con este esquema enriquecido:
               }
             }
 
-            emit('done', { clase: { success: true, ...clase, configuracionAplicada: true } });
+            emit('done', { clase: { success: true, ...clase, configuracionAplicada: true, modeloUsado: MODELO } });
             registrarGeneracion(docente.id, vigentesHoy ? generaciones : 0);
           } catch (e) {
             emit('error', { error: (e as Error).message });
@@ -267,21 +267,22 @@ Respondé ÚNICAMENTE JSON con este esquema enriquecido:
     const clase = JSON.parse(inicio >= 0 && fin > inicio ? limpio.slice(inicio, fin + 1) : limpio);
 
     // Enforcement: si la cantidad no coincide, intento correctivo una vez
-    if (clase.slides?.length !== numSlides && numSlides >= 3) {
+    const isValid = clase.slides?.every((s: any) => s.titulo && s.layout && s.tipo);
+    if ((clase.slides?.length !== numSlides && numSlides >= 3) || !isValid) {
       const retryText = await llamarModelo(
-        `Tu respuesta anterior generó ${clase.slides.length} slides pero deben ser EXACTAMENTE ${numSlides}. Respondé solo el JSON completo corregido con ${numSlides} slides: ${text}`
+        `Tu respuesta anterior generó ${clase.slides?.length || 0} slides (se esperaban ${numSlides}) o falló la estructura. Respondé solo el JSON completo corregido con EXACTAMENTE ${numSlides} slides, respetando el schema: ${text}`
       );
       if (retryText) {
         try {
           const rLimpio = retryText.replace(/^```(?:json)?/i, '').replace(/```$/i, '').trim();
           const rClase = JSON.parse(rLimpio.slice(rLimpio.indexOf('{'), rLimpio.lastIndexOf('}') + 1));
-          if (rClase.slides?.length === numSlides) { registrarGeneracion(docente.id, vigentesHoy ? generaciones : 0); return NextResponse.json({ success: true, ...rClase, configuracionAplicada: true }); }
+          if (rClase.slides?.length === numSlides) { registrarGeneracion(docente.id, vigentesHoy ? generaciones : 0); return NextResponse.json({ success: true, ...rClase, configuracionAplicada: true, modeloUsado: MODELO }); }
         } catch { /* fallback: usar original */ }
       }
     }
 
     registrarGeneracion(docente.id, vigentesHoy ? generaciones : 0);
-    return NextResponse.json({ success: true, ...clase, configuracionAplicada: true });
+    return NextResponse.json({ success: true, ...clase, configuracionAplicada: true, modeloUsado: MODELO });
   } catch (e) {
     console.error('api/ia error:', e);
     return NextResponse.json({ success: false, error: 'Error interno: ' + (e as Error).message }, { status: 500 });

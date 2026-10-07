@@ -55,3 +55,25 @@ begin
   return coalesce(v_dia, 0) < p_limite;
 end;
 $$;
+
+-- 6. Actualizar match_apuntes para considerar docente_id (T6)
+create or replace function public.match_apuntes(
+  p_materia_id text,
+  p_consulta vector(3072),
+  p_limite int default 3,
+  p_docente_id uuid default null
+) returns table (
+  id uuid, materia_id text, titulo text, contenido text, similitud float8
+) language plpgsql security definer as $$
+begin
+  return query
+    select a.id, a.materia_id, a.titulo, a.contenido,
+           1 - (a.embedding::halfvec(3072) <=> p_consulta::halfvec(3072)) as similitud
+    from public.apuntes a
+    where a.materia_id = p_materia_id
+      and (p_docente_id is null or a.docente_id = p_docente_id)
+      and a.embedding is not null
+    order by a.embedding::halfvec(3072) <=> p_consulta::halfvec(3072)
+    limit p_limite;
+end;
+$$;

@@ -11,7 +11,8 @@
   - T3 Auth slice: ✅ (Verificado E2E. PII purgado, token revocado).
   - T4 Materias slice: ✅ (Dashboard funcional con RLS manual. Botones "Preparar clase" agregados).
   - T5 Apuntes slice: ✅ (CRUD y Server Actions con ingesta por URL + texto pegado implementado. Embeddings con gemini-embedding-2 funcionando. Bloqueo de URLs internas y límite de caracteres operativos).
-  - Próximo: **T6 Generación slice (RAG + 7 momentos + streaming)**. Ajustar prompt, validar schema y streaming SSE en generador.
+  - T6 Generación slice: ✅ (RAG filtrado estricto por docente, validación de schema en fallback y stream, vista previa en vivo implementada).
+  - Próximo: **T7 Historial y edición slice**. Guardar y persistir la presentación generada.
 
 ## Blockers / Open Edge Cases
 - **Pendiente humano:** Aplicar `supabase/patch_mvp.sql` en el SQL Editor de Supabase y luego ejecutar `node scripts/test_rls.mjs`.

@@ -70,7 +70,8 @@ export default function GeneradorClase({ materiaNombre, temaNombre }: Props) {
           for (const ev of eventos) {
             if (ev.tipo === 'done') resultado = ev.clase;
             else if (ev.tipo === 'error') throw new Error(ev.error || 'Error al generar la clase');
-            // progreso/chunk: se acumulan internamente, no se muestran
+            else if (ev.tipo === 'chunk') dispatch({ tipo: 'chunk', texto: ev.texto || '' });
+            else if (ev.tipo === 'progreso') dispatch({ tipo: 'progreso', mensaje: ev.mensaje || '' });
           }
         };
         while (true) {
@@ -120,7 +121,13 @@ export default function GeneradorClase({ materiaNombre, temaNombre }: Props) {
         />
       )}
 
-      {fase === 'procesando' && <PantallaProcesando onCancelar={cancelar} />}
+      {fase === 'procesando' && (
+        <PantallaProcesando 
+          onCancelar={cancelar} 
+          streamText={estado.streamText} 
+          progresoMsg={estado.progresoMsg} 
+        />
+      )}
 
       {fase === 'resultado' && clase && (
         <VisorResultado
