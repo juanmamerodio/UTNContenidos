@@ -145,22 +145,59 @@ export async function getHistorial() {
   return data || [];
 }
 
-/** Guardar una presentación generada (B3). */
 export async function guardarPresentacion(
   temaId: string,
   temaNombre: string,
   configuracion: object,
   contenido: object
-): Promise<{ error?: string }> {
+): Promise<{ error?: string, id?: string }> {
   const sb = getServiceClient();
   const docenteId = await requireDocenteId();
-  const { error } = await sb.from('presentaciones').insert({
+  const { data, error } = await sb.from('presentaciones').insert({
     docente_id: docenteId,
     tema_id: temaId || null,
     configuracion,
     contenido,
     estado: 'LISTA'
-  });
+  }).select('id').single();
+  if (error) return { error: error.message };
+  return { id: data.id };
+}
+
+export async function actualizarPresentacion(
+  id: string,
+  contenido: object
+): Promise<{ error?: string }> {
+  const sb = getServiceClient();
+  const docenteId = await requireDocenteId();
+  const { error } = await sb.from('presentaciones')
+    .update({ contenido, actualizada_en: new Date().toISOString() })
+    .eq('id', id)
+    .eq('docente_id', docenteId);
+  if (error) return { error: error.message };
+  return {};
+}
+
+export async function getPresentacion(id: string) {
+  const sb = getServiceClient();
+  const docenteId = await requireDocenteId();
+  const { data, error } = await sb.from('presentaciones')
+    .select('*')
+    .eq('id', id)
+    .eq('docente_id', docenteId)
+    .single();
+  if (error) return null;
+  return data;
+}
+
+// Nota: borrarPresentacion ya existe para plantillas, pero necesito borrar la presentacion
+export async function borrarPresentacion(id: string): Promise<{ error?: string }> {
+  const sb = getServiceClient();
+  const docenteId = await requireDocenteId();
+  const { error } = await sb.from('presentaciones')
+    .delete()
+    .eq('id', id)
+    .eq('docente_id', docenteId);
   if (error) return { error: error.message };
   return {};
 }

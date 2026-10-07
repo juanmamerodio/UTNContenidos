@@ -2,6 +2,8 @@
 
 import { useReducer, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { guardarPresentacion } from '@/app/datos';
 import confetti from 'canvas-confetti';
 import { ArrowLeft } from 'lucide-react';
 import { faseInicial, faseReducer, pasoDeFase } from '@/lib/generador-fase';
@@ -36,7 +38,8 @@ function dispararConfetti() {
   }
 }
 
-export default function GeneradorClase({ materiaNombre, temaNombre }: Props) {
+export default function GeneradorClase({ materiaNombre, temaNombre, temaId }: Props) {
+  const router = useRouter();
   const [config, setConfig] = useState<Configuracion>(configInicial);
   const [estado, dispatch] = useReducer(faseReducer<any>, faseInicial);
   const [slideEnEdicion, setSlideEnEdicion] = useState<number | null>(null);
@@ -88,7 +91,13 @@ export default function GeneradorClase({ materiaNombre, temaNombre }: Props) {
 
       if (!resultado) throw new Error('La generación terminó sin resultado.');
       dispatch({ tipo: 'exito', clase: resultado });
-      dispararConfetti();
+      
+      const { id, error: errGuardar } = await guardarPresentacion(temaId, temaNombre, config, resultado);
+      if (!errGuardar && id) {
+        router.push(`/historial/${id}`);
+      } else {
+        dispararConfetti();
+      }
     } catch (e) {
       if ((e as Error).name === 'AbortError') return; // ya se despachó "cancelar"
       dispatch({ tipo: 'fallo', error: (e as Error).message });

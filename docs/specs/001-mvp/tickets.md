@@ -88,15 +88,15 @@
 
 ---
 
-## T7 — Historial y edición slice
+## T7 — Historial y edición slice ✅
 
 **Spec refs:** §5.5
 **Skill owner:** `utn-frontend-ux50` + `utn-class-builder`
 
-- [ ] `app/datos.ts`: `guardarPresentacion` debe retornar ID; agregar `actualizarPresentacion` y `borrarPresentacion`.
-- [ ] Guardar clase en BD automáticamente al finalizar generación y **redirigir** a `/historial/[id]`.
-- [ ] Ruta `/historial`: lista de tarjetas dividida en Recientes (≤ 15 días) y Antiguas (> 15 días). Sin carpetas. Botón eliminar (derecho a supresión).
-- [ ] Ruta `/historial/[id]`: reutiliza `VisorResultado`. Permite edición de texto y regeneración de slide, con **botón "Guardar Cambios"** explícito.
+- [x] `app/datos.ts`: `guardarPresentacion` debe retornar ID; agregar `actualizarPresentacion` y `borrarPresentacion`.
+- [x] Guardar clase en BD automáticamente al finalizar generación y **redirigir** a `/historial/[id]`.
+- [x] Ruta `/historial`: lista de tarjetas dividida en Recientes (≤ 15 días) y Antiguas (> 15 días). Sin carpetas. Botón eliminar (derecho a supresión).
+- [x] Ruta `/historial/[id]`: reutiliza `VisorResultado`. Permite edición de texto y regeneración de slide, con **botón "Guardar Cambios"** explícito.
 - **DoD:** la generación redirige; editar/regenerar y guardar muta la clase; historial persiste y separa por fecha; eliminar borra.
 
 ---

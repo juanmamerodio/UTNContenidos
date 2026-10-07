@@ -12,7 +12,8 @@
   - T4 Materias slice: ✅ (Dashboard funcional con RLS manual. Botones "Preparar clase" agregados).
   - T5 Apuntes slice: ✅ (CRUD y Server Actions con ingesta por URL + texto pegado implementado. Embeddings con gemini-embedding-2 funcionando. Bloqueo de URLs internas y límite de caracteres operativos).
   - T6 Generación slice: ✅ (RAG filtrado estricto por docente, validación de schema en fallback y stream, vista previa en vivo implementada).
-  - Próximo: **T7 Historial y edición slice**. Guardar y persistir la presentación generada.
+  - T7 Historial y edición slice: ✅ (Guardado de presentación automático tras generación y redirección. Historial con filtros recientes/antiguas y botones de eliminar/ver. Edición y regeración soportadas vía `HistorialVisor`).
+  - Próximo: **T8 Salida slice (deck + PDF)**. Render Reveal.js, visor web y PDF de presentación.
 
 ## Blockers / Open Edge Cases
 - **Pendiente humano:** Aplicar `supabase/patch_mvp.sql` en el SQL Editor de Supabase y luego ejecutar `node scripts/test_rls.mjs`.
