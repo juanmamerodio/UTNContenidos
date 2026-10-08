@@ -14,7 +14,7 @@
 6. Actualizar `memory.md` (<300 palabras, sobreescribir) y `DocumentoCronologico.md` si es hito.
 7. Pushear SOLO si lo pide el humano o es parte del sprint autónomo.
 
-## Ruteo por tema / archivo (skills en `opencode/skills/<nombre>/SKILL.md`)
+## Ruteo por tema / archivo (skills en `.agents/skills/<nombre>/SKILL.md`)
 
 | Si tocás… | Skill |
 |-----------|-------|
@@ -22,14 +22,14 @@
 | `app/api/ia/**`, prompts, RAG, streaming | `utn-ia-engine` |
 | Contenido pedagógico, 7 momentos, contrato de slide | `utn-class-builder` |
 | `app/`, `components/`, `lib/deck.ts`, `globals.css` | `utn-frontend-ux50` |
-| Auth, endpoints, cookies, CSP, PII | `utn-security-audit` (+ `supabase-auth` en `.agents/skills/`) |
+| Auth, endpoints, cookies, CSP, PII | `utn-security-audit` (+ `supabase-auth`) |
 | Pruebas pre-deploy, E2E, regresiones | `utn-qa` |
 | Mapa del codebase / flujo de datos | `utn-arquitectura` |
 | Auditoría de docs, archivado, SDD | `repository-brain` |
 | Cierre de sesión, `memory.md` | `utn-memory` |
 | Ahorro de tokens, búsqueda dirigida | `utn-token-economy` |
 
-Las skills genéricas (`tdd`, `code-review`, `diagnosing-bugs`, etc.) viven en `.agents/skills/`.
+Las skills genéricas (`tdd`, `code-review`, `diagnosing-bugs`, etc.) también viven en `.agents/skills/`.
 `utn-gas-backend` está jubilada: ver `docs/archives/prototype-alpha/`.
 
 ## Reglas de desarrollo (innegociables)
