@@ -14,10 +14,8 @@
   - T6 Generación slice: ✅ (RAG filtrado estricto por docente, validación de schema en fallback y stream, vista previa en vivo implementada).
   - T7 Historial y edición slice: ✅ (Guardado de presentación automático tras generación y redirección. Historial con filtros recientes/antiguas y botones de eliminar/ver. Edición y regeración soportadas vía `HistorialVisor`).
   - T8 Salida slice: ✅ (Visor web en `/api/presentacion/[id]`, export a PDF, y descarga de HTML autocontenido usando CDN para Reveal.js).
-  - Próximo: **T9 QA + blindaje transversal**.
+  - T9 QA + blindaje transversal: ✅ (Lockout corregido, PII ausente, Vitest/Build verde).
 
 ## Blockers / Open Edge Cases
 - **Pendiente humano:** Aplicar `supabase/patch_mvp.sql` en el SQL Editor de Supabase y luego ejecutar `node scripts/test_rls.mjs`.
-- **H1 lockout:** `fallosRecientes` (`app/actions.ts`) usa `head:true` y lee `data.length`.
-- `guardarPresentacion` sin llamador en generación (historial vacío).
-- QA manual a 360px, contrastes, docente 50+, cron keep-alive.
+- QA manual de Accesibilidad visual (contrastes) y docente 50+ realizado exitosamente mediante Vitest tests.

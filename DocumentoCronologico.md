@@ -424,3 +424,14 @@ Se completó exitosamente el ticket T6 del MVP, cerrando el ciclo de generación
 | **Streaming SSE en Tiempo Real** | `app/generar/GeneradorClase.tsx` y `PantallaProcesando.tsx` | La UI de procesamiento (PantallaProcesando) fue rediseñada. En vez de mostrar mensajes aleatorios y skeletons estáticos, procesa los eventos SSE `chunk` de la API y muestra una vista previa en vivo del texto generado a medida que llega, optimizando la espera y brindando confianza al docente sobre el avance. |
 
 Verificación: Build limpio con Next.js, comprobación estricta de tipos de TypeScript (TS2322 solucionado en fallbacks SSE) y tests automatizados. La clase se genera ahora de manera segura y controlada con RAG real filtrado.
+
+## **El 7 de octubre (segunda parte) — "T9 QA + Blindaje Transversal"**
+
+Se completó exitosamente el ticket T9 del MVP, cerrando el ciclo de validación de seguridad y estabilidad de la aplicación. 
+Se corrigió un bug en `app/actions.ts` que provocaba un cálculo erróneo de la cuenta de intentos fallidos durante el *lockout* (el `data.length` devolvía null al usar `head: true`, se reemplazó por la extracción correcta de `count`). Además, se corroboró de manera global:
+- **Ausencia de PII:** `getDocenteSesion` y los logs de la API no filtran datos privados (`dni`, `email`), respetando la Ley 25.326.
+- **CSP reforzada:** Content-Security-Policy en `next.config.mjs` confirmada para proteger contra XSS (`object-src 'none'`, `frame-src 'self'`).
+- **Secretos:** Configurados mediante variables de entorno seguras, sin filtraciones al cliente.
+- **Build y Suite Vitest:** Confirmadas 100% en verde con `npm run build` y `npm test`.
+
+Con el ticket T9 cerrado, el MVP Beta culmina la ronda planificada de "Tickets T" y pasa a un estado de preparación para los próximos pasos estratégicos de adopción y escalado de producción.

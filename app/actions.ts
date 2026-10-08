@@ -22,7 +22,7 @@ async function fallosRecientes(sb: any, legajo: string): Promise<number> {
     .eq('detalle', legajo)
     .gte('creado_en', desde);
   if (error) return 0;
-  return data?.length ?? 0;
+  return count ?? 0;
 }
 
 export async function loginRoot(formData: FormData): Promise<void> {
