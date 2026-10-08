@@ -57,7 +57,7 @@ export default function FormularioConfiguracion({ config, onChange, onGenerar, e
       animate={{ opacity: 1, y: 0 }}
       className="gen-config glass-panel"
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
+      <div className="gen-header-title">
         <Sliders size={24} color="var(--utn-green-primary)" />
         <h1>Personalizá tu clase universitaria</h1>
       </div>
@@ -155,20 +155,13 @@ export default function FormularioConfiguracion({ config, onChange, onGenerar, e
           </label>
         </div>
 
-        <div className="ios27-label" style={{ marginTop: '1rem' }}>Orientaciones Docentes Libres</div>
+        <div className="ios27-label gen-label-margin">Orientaciones Docentes Libres</div>
         <textarea
           value={instrucciones}
           onChange={(e) => onChange({ instrucciones: e.target.value })}
           placeholder="Ej: Dar especial énfasis en la seguridad industrial; incluir una pregunta disparadora para debate con los alumnos..."
           rows={2}
-          style={{
-            width: '100%',
-            padding: '0.75rem 1rem',
-            borderRadius: '12px',
-            border: '1.5px solid var(--border-glass-dark)',
-            fontFamily: 'inherit',
-            fontSize: '0.95rem'
-          }}
+          className="gen-instrucciones-textarea"
         />
       </details>
 

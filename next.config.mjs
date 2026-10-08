@@ -8,10 +8,11 @@ const SECURITY_HEADERS = [
     key: 'Content-Security-Policy',
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline'",        // Reveal.js + Next inline scripts
-      "style-src 'self' 'unsafe-inline'",         // CSS inline de Next y Reveal
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      "worker-src 'self' blob:",                  // Allow workers from blobs
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",         // CSS inline de Next, Reveal y Google Fonts
       "img-src 'self' data: https:",
-      "font-src 'self' data:",
+      "font-src 'self' data: https://fonts.gstatic.com",
       "connect-src 'self'",
       "frame-src 'self'",                         // iframe del deck (srcDoc)
       "object-src 'none'",

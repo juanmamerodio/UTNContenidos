@@ -28,7 +28,9 @@ export default function MateriaCardPro({ materia }: { materia: Materia }) {
     <motion.article
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -4, transition: { duration: 0.25 } }}
+      whileHover={{ y: -4, scale: 1.01 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ type: 'spring', stiffness: 350, damping: 28 }}
       className="materia-card glass-panel"
       key={materia.id}
     >
@@ -63,8 +65,9 @@ export default function MateriaCardPro({ materia }: { materia: Materia }) {
               key={t.id}
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.05, duration: 0.2 }}
-              whileHover={{ x: 4, transition: { duration: 0.15 } }}
+              transition={{ delay: index * 0.05, type: 'spring', stiffness: 350, damping: 28 }}
+              whileHover={{ x: 4 }}
+              whileTap={{ scale: 0.98 }}
             >
               <div className="tema-info">
                 <BookOpen size={16} color="var(--utn-green-primary)" />

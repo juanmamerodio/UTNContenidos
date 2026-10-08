@@ -36,29 +36,30 @@ export default function GestorApuntes({
   };
 
   return (
-    <div className="grid-2col" style={{ gap: '2rem', marginTop: '2rem' }}>
+    <div className="apuntes-layout">
       {/* Formulario de Ingesta */}
-      <section className="glass-panel">
-        <h2 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Plus size={20} /> Nuevo Apunte
+      <section className="apuntes-panel glass-panel">
+        <h2 className="apuntes-panel-title">
+          <Plus size={20} />
+          <span>Nuevo Apunte</span>
         </h2>
-        
-        <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
+
+        <div className="apuntes-tipo-selector">
           <button
             type="button"
             className={`btn-secondary ${tipo === 'url' ? 'btn-primary' : ''}`}
             onClick={() => setTipo('url')}
-            style={{ flex: 1, justifyContent: 'center' }}
           >
-            <LinkIcon size={16} /> Desde URL
+            <LinkIcon size={16} />
+            <span>Desde URL</span>
           </button>
           <button
             type="button"
             className={`btn-secondary ${tipo === 'texto' ? 'btn-primary' : ''}`}
             onClick={() => setTipo('texto')}
-            style={{ flex: 1, justifyContent: 'center' }}
           >
-            <FileText size={16} /> Pegar Texto
+            <FileText size={16} />
+            <span>Pegar Texto</span>
           </button>
         </div>
 
@@ -72,9 +73,9 @@ export default function GestorApuntes({
             <div className="form-group">
               <label htmlFor="url">URL de la página o artículo</label>
               <input type="url" id="url" name="url" required placeholder="https://..." />
-              <small style={{ color: 'var(--utn-text-muted)', display: 'block', marginTop: '0.5rem' }}>
-                <Info size={12} style={{ display: 'inline', marginRight: '4px' }} />
-                La página debe ser pública y no requerir login.
+              <small className="form-help-text">
+                <Info size={13} />
+                <span>La página debe ser pública y no requerir login.</span>
               </small>
             </div>
           ) : (
@@ -85,6 +86,7 @@ export default function GestorApuntes({
                 name="texto"
                 required
                 rows={8}
+                className="apuntes-textarea"
                 placeholder="Pegá el texto acá... (hasta 100.000 caracteres)"
                 maxLength={100000}
               />
@@ -92,51 +94,58 @@ export default function GestorApuntes({
           )}
 
           {(state as any)?.error && (
-            <div className="alert error" style={{ padding: '1rem', background: '#ffebeb', color: '#c92a2a', borderRadius: '8px', marginBottom: '1rem' }}>
+            <div className="alert error" role="alert">
               {(state as any).error}
             </div>
           )}
 
           {(state as any)?.success && (
-            <div className="alert success" style={{ padding: '1rem', background: '#e6fcf5', color: '#099268', borderRadius: '8px', marginBottom: '1rem' }}>
+            <div className="alert success" role="status">
               Apunte agregado correctamente e indexado para la IA.
             </div>
           )}
 
-          <button type="submit" className="btn-primary" disabled={isPending} style={{ width: '100%', justifyContent: 'center' }}>
-            {isPending ? <><Loader2 size={16} className="spin" /> Procesando e indexando...</> : 'Guardar e Indexar Apunte'}
+          <button type="submit" className="btn-primary apuntes-submit-btn" disabled={isPending}>
+            {isPending ? (
+              <>
+                <Loader2 size={18} className="spin" />
+                <span>Procesando e indexando...</span>
+              </>
+            ) : (
+              'Guardar e Indexar Apunte'
+            )}
           </button>
         </form>
       </section>
 
       {/* Lista de Apuntes Existentes */}
-      <section className="glass-panel">
-        <h2 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <FileText size={20} /> Apuntes Indexados ({apuntesAgrupados.length})
+      <section className="apuntes-panel glass-panel">
+        <h2 className="apuntes-panel-title">
+          <FileText size={20} />
+          <span>Apuntes Indexados ({apuntesAgrupados.length})</span>
         </h2>
-        
+
         {apuntesAgrupados.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--utn-text-muted)' }}>
-            <FileText size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
+          <div className="apuntes-empty">
+            <FileText size={48} />
             <p>No hay apuntes cargados para esta materia.</p>
             <p>Agregá uno desde el panel izquierdo.</p>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div className="apuntes-lista">
             {apuntesAgrupados.map((a) => (
-              <div key={a.titulo} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem', background: 'var(--utn-bg-alt)', borderRadius: '8px' }}>
+              <div key={a.titulo} className="apunte-item">
                 <div>
-                  <h3 style={{ fontSize: '1rem', margin: '0 0 0.25rem' }}>{a.titulo}</h3>
-                  <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--utn-text-muted)' }}>
+                  <h3 className="apunte-item-title">{a.titulo}</h3>
+                  <p className="apunte-item-desc">
                     {a.fragmentos} {a.fragmentos === 1 ? 'fragmento' : 'fragmentos'} ({Math.round(a.bytes / 1024)} KB)
                   </p>
                 </div>
                 <button
                   type="button"
-                  className="btn-secondary"
+                  className="btn-secondary apunte-delete-btn"
                   onClick={() => handleBorrar(a.titulo)}
                   disabled={borrando === a.titulo}
-                  style={{ color: '#c92a2a', borderColor: '#ffc9c9', padding: '0.5rem' }}
                   title="Borrar apunte"
                 >
                   {borrando === a.titulo ? <Loader2 size={16} className="spin" /> : <Trash2 size={16} />}

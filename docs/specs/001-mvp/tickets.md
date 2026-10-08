@@ -11,26 +11,13 @@
 **Spec refs:** §1, §8, §11
 **Skill owner:** `utn-db-supabase`
 
-- [ ] `supabase/patch_mvp.sql`: agregar `docente_id uuid references docentes(id) on delete cascade` a `apuntes` + índice `(docente_id, materia_id)`.
-- [ ] Migrar filas existentes (asignación por materia → docente actual; si hay N docentes por materia, duplicar a cada uno o mapear por `asignaciones`).
-- [ ] Reemplazar RLS `apuntes_sel` (hoy `auth.role()='authenticated'`, abierta) por owner-only: `docente_id = (select id from docentes where auth_uid = auth.uid())`.
-- [ ] Actualizar `verificar_tope_generacion()` para leer `LIMITE_GENERACIONES_DIA` (fallback 20) — vía parámetro/GET de config, no hardcode.
-- [ ] Actualizar `scripts/seed_apuntes.mjs` para setear `docente_id`.
-- [ ] Test: con 2 docentes, SELECT de apuntes devuelve solo los propios (RLS).
+- [x] `supabase/patch_mvp.sql`: agregar `docente_id uuid references docentes(id) on delete cascade` a `apuntes` + índice `(docente_id, materia_id)`.
+- [x] Migrar filas existentes (asignación por materia → docente actual; si hay N docentes por materia, duplicar a cada uno o mapear por `asignaciones`).
+- [x] Reemplazar RLS `apuntes_sel` (hoy `auth.role()='authenticated'`, abierta) por owner-only: `docente_id = (select id from docentes where auth_uid = auth.uid())`.
+- [x] Actualizar `verificar_tope_generacion()` para leer `LIMITE_GENERACIONES_DIA` (fallback 20) — vía parámetro/GET de config, no hardcode.
+- [x] Actualizar `scripts/seed_apuntes.mjs` para setear `docente_id`.
+- [x] Test: con 2 docentes, SELECT de apuntes devuelve solo los propios (RLS).
 - **DoD:** schema aplicado en Supabase, RLS verificado, seed idempotente.
-
----
-
-## T2 — Retirar PPTX ✅ (verificado en S0, 2026-10-06)
-
-**Spec refs:** §5, §11
-**Skill owner:** `utn-frontend-ux50` + arquitecto
-
-- [x] Eliminar `app/api/pptx/route.ts`, `lib/pptx.ts`, `app/generar/BotonPptx.tsx`.
-- [x] Quitar la dependencia `pptxgenjs` de `package.json`.
-- [x] Quitar el botón/import de PPTX de la UI del generador.
-- [x] Verificar build sin referencias rotas (`rg -i pptx`).
-- **DoD:** `rg pptx` sin resultados en `app/`, `lib/`, `components/`.
 
 ---
 
@@ -79,11 +66,11 @@
 **Spec refs:** §5.4, §6, §8, §9
 **Skill owner:** `utn-ia-engine` + `utn-class-builder`
 
-- [ ] `app/api/ia/route.ts`: exigir sesión (`getDocenteSesion`), verificar tope diario 20 (env), RAG top-3 **solo** apuntes propios de la materia seleccionada.
-- [ ] Prompt élite con contrato de 7 momentos + reglas de calidad (`utn-class-builder`); validar salida contra schema de slide antes de responder.
-- [ ] Enforcement de N slides (retry correctivo 1x); fallback Gemini → OpenRouter; `modeloUsado` en respuesta/log.
-- [ ] Streaming SSE (`?stream=1`): eventos `progreso`/`chunk`/`done`/`error`.
-- [ ] UI generador: configurador (duración, N slides 5-20, estilo, nivel, momentos) + vista previa en vivo del stream.
+- [x] `app/api/ia/route.ts`: exigir sesión (`getDocenteSesion`), verificar tope diario 20 (env), RAG top-3 **solo** apuntes propios de la materia seleccionada.
+- [x] Prompt élite con contrato de 7 momentos + reglas de calidad (`utn-class-builder`); validar salida contra schema de slide antes de responder.
+- [x] Enforcement de N slides (retry correctivo 1x); fallback Gemini → OpenRouter; `modeloUsado` en respuesta/log.
+- [x] Streaming SSE (`?stream=1`): eventos `progreso`/`chunk`/`done`/`error`.
+- [x] UI generador: configurador (duración, N slides 5-20, estilo, nivel, momentos) + vista previa en vivo del stream.
 - **DoD:** clase de 7 momentos generada con RAG propio < 15 s; 401 sin sesión; cupo agotado da mensaje en español.
 
 ---
@@ -118,9 +105,9 @@
 **Spec refs:** §10, §12
 **Skill owner:** `utn-security-audit` + `utn-qa`
 
-- [ ] RLS en todas las tablas verificadas (2 docentes aislados).
-- [ ] Sin PII en APIs/logs (revisar `getDocenteSesion`, logs de `api/ia`).
-- [ ] CSP reforzada OK; secretos solo env vars.
-- [ ] QA del flujo completo como docente 50+ (≤6 clics, letra grande, feedback visual).
-- [ ] `npm run build` + suite Vitest verde.
+- [x] RLS en todas las tablas verificadas (2 docentes aislados).
+- [x] Sin PII en APIs/logs (revisar `getDocenteSesion`, logs de `api/ia`).
+- [x] CSP reforzada OK; secretos solo env vars.
+- [x] QA del flujo completo como docente 50+ (≤6 clics, letra grande, feedback visual).
+- [x] `npm run build` + suite Vitest verde.
 - **DoD:** checklist `utn-security-audit` 100% verde + QA humano aprobado.

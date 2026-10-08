@@ -9,6 +9,7 @@
     "start": "next start",
     "seed:root": "node scripts/seed_root.mjs",
     "seed:materias": "node scripts/seed_materias.mjs",
+    "seed:profesores": "node scripts/seed_profesores.mjs",
     "seed:apuntes": "node scripts/seed_apuntes.mjs",
     "qa": "npm run check && npm test",
     "test": "vitest run",

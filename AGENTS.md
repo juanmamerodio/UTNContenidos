@@ -12,7 +12,8 @@
 4. Implementar con `Edit` quirúrgico (nunca reescribir archivos grandes).
 5. Verificar (escalonado, ver abajo).
 6. Actualizar `memory.md` (<300 palabras, sobreescribir) y `DocumentoCronologico.md` si es hito.
-7. Pushear SOLO si lo pide el humano o es parte del sprint autónomo.
+7. Pushear SOLO si esta auditado o es parte del sprint autónomo.
+8. Mostrarle al humano el proceso con un localhost automatico por cada task implementado.
 
 ## Ruteo por tema / archivo (skills en `.agents/skills/<nombre>/SKILL.md`)
 
@@ -28,6 +29,7 @@
 | Auditoría de docs, archivado, SDD | `repository-brain` |
 | Cierre de sesión, `memory.md` | `utn-memory` |
 | Ahorro de tokens, búsqueda dirigida | `utn-token-economy` |
+| Animaciones 3D, estilo 'iOS 27', 'Android 17', 'Windows 12', Motion Graphics, Framer Motion | `smooth-ae` |
 
 Las skills genéricas (`tdd`, `code-review`, `diagnosing-bugs`, etc.) también viven en `.agents/skills/`.
 `utn-gas-backend` está jubilada: ver `docs/archives/prototype-alpha/`.
@@ -42,6 +44,7 @@ Las skills genéricas (`tdd`, `code-review`, `diagnosing-bugs`, etc.) también v
    - Siempre: `npm run check` + `npm test`.
    - Si cambia una ruta, la DB o el deploy: además `npm run build` + `npm run dev` y `curl -i http://localhost:3000/api/...` pegando evidencia.
 6. **Contexto:** al acercarse a ~100k tokens, hacer handoff (volcar estado a `memory.md`) y `/clear`.
+7. **SKILLS** Crear skills automaticamente entendiendo la informacion de `repository-brain` y `architecture.md` y guardandola en `.agents/skills/`
 
 ## Reglas no negociables
 
@@ -51,6 +54,7 @@ Las skills genéricas (`tdd`, `code-review`, `diagnosing-bugs`, etc.) también v
 - **RAG:** pgvector, búsqueda SOLO dentro de la materia del docente.
 - **Deploy:** `vercel.json` con `framework: nextjs`; no volver a "Otro".
 - **Escalabilidad:** borrar documentos desactualizados que no afecten la funcionalidad y achicar el contexto.
+- **Mobile First** tu objetivo de diseño es atado a dispositivos moviles (UX/UI y media-queries)
 
 ## Documentos canónicos
 
@@ -63,7 +67,7 @@ Las skills genéricas (`tdd`, `code-review`, `diagnosing-bugs`, etc.) también v
 | `DocumentoCronologico.md` | Bitácora institucional (pasantía) |
 | `supabase/schema.sql` + `patch_*.sql` | Esquema de datos + RLS |
 | `docs/archives/` | Planes completados + Alpha archivada |
-
+| `repository-brain` | Cerebro para la creacion de skills y de escalabilidad IA |
 ## Idiomas
 
 - Código, identificadores, commits: **inglés**.

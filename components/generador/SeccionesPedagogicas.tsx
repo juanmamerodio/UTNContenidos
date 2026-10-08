@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 
 interface Slide {
   titulo: string;
@@ -25,6 +26,27 @@ interface SeccionesPedagogicasProps {
   onEditarSlide: (index: number) => void;
   onReformularSlide: (index: number) => void;
 }
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.06,
+      delayChildren: 0.05
+    }
+  }
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 25, scale: 0.98 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { type: 'spring' as const, stiffness: 350, damping: 28 }
+  }
+};
 
 export default function SeccionesPedagogicas({
   plan,
@@ -74,25 +96,35 @@ export default function SeccionesPedagogicas({
             Revisá cada diapositiva en formato ficha. Podés retocar textos manualmente o pedirle a la IA que reformule una diapositiva en particular.
           </p>
 
-          <div className="slides-grid">
+          <motion.div
+            className="slides-grid"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
             {slides.map((slide, index) => {
               const lineas = (slide.contenido || '').split('\n').filter((l) => l.trim());
               return (
-                <article key={index} className="slide-card">
+                <motion.article
+                  key={index}
+                  className="slide-card"
+                  variants={cardVariants}
+                  whileHover={{ y: -3, transition: { duration: 0.2 } }}
+                >
                   <div>
                     {slide.categoria && <span className="badge">{slide.categoria}</span>}
-                    <h3 style={{ marginTop: '0.5rem' }}>
+                    <h3 className="slide-card-title">
                       Diap. {index + 1}: {slide.titulo}
                     </h3>
                     {slide.subtitulo && (
-                      <p style={{ color: 'var(--on-surface-2)', fontSize: '0.9rem', marginBottom: '0.6rem' }}>
+                      <p className="slide-card-subtitle">
                         {slide.subtitulo}
                       </p>
                     )}
 
-                    <ul style={{ paddingLeft: '1.2rem', margin: '0.6rem 0', color: 'var(--on-surface)' }}>
+                    <ul className="slide-card-list">
                       {lineas.map((line, i) => (
-                        <li key={i} style={{ marginBottom: '0.4rem', lineHeight: '1.45' }}>
+                        <li key={i}>
                           {line.replace(/^[•\-\*]\s*/, '')}
                         </li>
                       ))}
@@ -103,8 +135,7 @@ export default function SeccionesPedagogicas({
                     <button
                       type="button"
                       onClick={() => onEditarSlide(index)}
-                      className="btn-secondary"
-                      style={{ fontSize: '0.85rem', padding: '0.45rem 0.9rem', minHeight: '40px' }}
+                      className="btn-secondary slide-action-btn"
                     >
                       ✏️ Editar texto
                     </button>
@@ -112,8 +143,7 @@ export default function SeccionesPedagogicas({
                       <button
                         type="button"
                         onClick={() => onReformularSlide(index)}
-                        className="btn-secondary"
-                        style={{ fontSize: '0.85rem', padding: '0.45rem 0.9rem', minHeight: '40px' }}
+                        className="btn-secondary slide-action-btn"
                       >
                         🔄 Reformular con IA
                       </button>
@@ -122,16 +152,16 @@ export default function SeccionesPedagogicas({
 
                   {slide.notasOrador && (
                     <div className="docente-notas">
-                      <strong style={{ display: 'block', fontSize: '0.8rem', color: 'var(--utn-green-dark)', marginBottom: '3px' }}>
+                      <strong className="docente-notas-label">
                         🎙️ NOTAS DE AULA (GUÍA DOCENTE):
                       </strong>
-                      <p style={{ margin: 0 }}>{slide.notasOrador}</p>
+                      <p className="docente-notas-text">{slide.notasOrador}</p>
                     </div>
                   )}
-                </article>
+                </motion.article>
               );
             })}
-          </div>
+          </motion.div>
         </section>
       )}
 
@@ -144,11 +174,11 @@ export default function SeccionesPedagogicas({
           </p>
 
           {plan.objetivos && plan.objetivos.length > 0 && (
-            <div style={{ marginBottom: '1.5rem' }}>
-              <h3 style={{ fontSize: '1.1rem', color: 'var(--utn-green-dark)', marginBottom: '0.6rem' }}>
+            <div className="plan-objetivos-wrap">
+              <h3 className="plan-objetivos-title">
                 Objetivos didácticos de la clase:
               </h3>
-              <ul style={{ paddingLeft: '1.4rem', color: 'var(--on-surface-2)', lineHeight: '1.7' }}>
+              <ul className="plan-objetivos-list">
                 {plan.objetivos.map((obj, i) => (
                   <li key={i}>{obj}</li>
                 ))}
@@ -188,21 +218,13 @@ export default function SeccionesPedagogicas({
           <p className="section-desc">
             Ideas y esquemas sugeridos para ilustrar los conceptos de la clase en pizarra o diapositivas.
           </p>
-          <div style={{ display: 'grid', gap: '1rem' }}>
+          <div className="imagenes-sugerencias-grid">
             {promptsImagenes.map((prompt, i) => (
-              <div
-                key={i}
-                style={{
-                  background: 'var(--surface-0)',
-                  padding: '1.1rem 1.4rem',
-                  borderRadius: '12px',
-                  border: '1px solid var(--border-glass-dark)'
-                }}
-              >
-                <strong style={{ color: 'var(--utn-green-dark)', display: 'block', marginBottom: '0.4rem' }}>
+              <div key={i} className="imagen-sugerencia-card">
+                <strong className="imagen-sugerencia-label">
                   Esquema {i + 1}:
                 </strong>
-                <p style={{ margin: 0, color: 'var(--on-surface-2)', fontStyle: 'italic' }}>
+                <p className="imagen-sugerencia-prompt">
                   &ldquo;{prompt}&rdquo;
                 </p>
               </div>

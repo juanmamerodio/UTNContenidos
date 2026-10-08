@@ -13,18 +13,32 @@ async function createDocente(email, password, nombre) {
     password,
     email_confirm: true
   });
-  if (userErr && !userErr.message.includes('already exists')) {
+  const isAlreadyRegistered = userErr && (
+    userErr.message.toLowerCase().includes('already') ||
+    userErr.message.toLowerCase().includes('exists')
+  );
+  if (userErr && !isAlreadyRegistered) {
     throw new Error('Create user error: ' + userErr.message);
   }
 
-  const { data: authUser } = await sbAdmin.from('docentes').select('auth_uid').eq('email', email).maybeSingle();
-  let authUid = authUser?.auth_uid;
+  let authUid = user?.user?.id;
+  if (!authUid) {
+    const { data: authUser } = await sbAdmin.from('docentes').select('auth_uid').eq('email', email).maybeSingle();
+    authUid = authUser?.auth_uid;
+  }
 
   if (!authUid) {
-    const { data: newUser } = await sbAdmin.auth.admin.listUsers();
-    const u = newUser.users.find(u => u.email === email);
-    authUid = u.id;
+    const { data: userList } = await sbAdmin.auth.admin.listUsers();
+    const u = userList?.users?.find(u => u.email === email);
+    authUid = u?.id;
   }
+
+  if (!authUid) {
+    throw new Error('No se pudo encontrar auth_uid para ' + email);
+  }
+
+  // Garantizar password y confirmación para el test de login
+  await sbAdmin.auth.admin.updateUserById(authUid, { password, email_confirm: true });
 
   // 2. Upsert docente
   const docente = {
@@ -42,6 +56,8 @@ async function createDocente(email, password, nombre) {
     const { data: insDoc, error: insErr } = await sbAdmin.from('docentes').insert(docente).select('id').single();
     if (insErr) throw new Error('Insert docente error: ' + insErr.message);
     docId = insDoc.id;
+  } else if (existingDoc.auth_uid !== authUid) {
+    await sbAdmin.from('docentes').update({ auth_uid: authUid }).eq('id', docId);
   }
   
   // 3. Materia and Asignacion

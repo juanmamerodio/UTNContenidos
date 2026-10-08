@@ -1,6 +1,6 @@
 # Spec del Producto (MVP) — UTNContenidos
 
-Fuente de verdad de producto. Reemplaza a los `PLAN_BETA_*` (pendiente archivar). Principios e invariantes: `docs/constitution.md`.
+Fuente de verdad de producto. Principios e invariantes: `docs/constitution.md`.
 
 ## 1. Visión
 Un docente UTN FRD genera, edita y proyecta una clase completa (7 momentos) con IA, a partir de apuntes propios, en pocos clics.
@@ -39,5 +39,3 @@ PPTX, enlaces públicos, cuentas de alumno, subida de PDF/Word, recopilación/ap
 ## 9. Preguntas abiertas
 - Valor definitivo del límite diario y de tamaño de apunte/URL.
 - Estructura exacta de los 7 momentos y esquema de slide (ver skill `utn-class-builder` / `memory.md`).
-- Qué hacer con `/api/pptx` y `pptxgenjs` existentes (retirar).
-- Archivar/eliminar `PLAN_BETA_*` y `ROADMAP_CIERRE_BETA.md` tras revisar su contenido.

@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, RefreshCw, Loader2 } from 'lucide-react';
 
 interface Slide {
   titulo: string;
@@ -38,7 +40,6 @@ export default function ModalReformular({
     setError('');
 
     try {
-      // Prompt correctivo quirúrgico para regenerar solo una diapositiva puntual
       const prompt = `
 Materia: "${materiaNombre}"
 Tema: "${temaNombre}"
@@ -78,7 +79,6 @@ Devolvé ÚNICAMENTE un objeto JSON válido con la diapositiva corregida:
       const json = await r.json();
       if (!json.success) throw new Error(json.error || 'Error al reformular');
 
-      // Si la API devolvió un slide dentro de slides[] o como objeto
       const slideNueva = (json.slides && json.slides[0]) ? json.slides[0] : json.slide || json;
       if (slideNueva && slideNueva.titulo) {
         onSlideReformulada(slideNueva);
@@ -93,50 +93,95 @@ Devolvé ÚNICAMENTE un objeto JSON válido con la diapositiva corregida:
   }
 
   return (
-    <dialog open style={{ display: 'block', position: 'fixed', inset: 0, zIndex: 250 }}>
-      <div className="dialog-content glass-panel" style={{ background: '#ffffff', maxWidth: '640px' }}>
-        <h2 style={{ marginBottom: '6px', color: 'var(--utn-green-dark)' }}>
-          🔄 Reformular Diapositiva {slideIndex + 1} con IA
-        </h2>
-        <p style={{ marginBottom: '18px', color: 'var(--on-surface-2)', fontSize: '0.9rem' }}>
-          Indicá qué querés cambiar de esta diapositiva puntual. El resto de la clase permanece intacto.
-        </p>
+    <AnimatePresence>
+      <motion.div
+        className="bottom-sheet-overlay"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={`modal-reformular-title-${slideIndex}`}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
+        onClick={(e) => {
+          if (!cargando && e.target === e.currentTarget) onCerrar();
+        }}
+      >
+        <motion.div
+          className="bottom-sheet-container glass-panel"
+          initial={{ y: '100%', opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: '100%', opacity: 0 }}
+          transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+        >
+          <div className="bottom-sheet-handle" aria-hidden="true" />
 
-        <div className="form-group">
-          <label htmlFor="modal-reformular-text">Indicaciones para la IA</label>
-          <textarea
-            id="modal-reformular-text"
-            rows={4}
-            value={instruccion}
-            onChange={(e) => setInstruccion(e.target.value)}
-            placeholder="Ej: Hacela más concisa, cambialo por un ejemplo de la industria regional de Campana/Zárate, simplificá el lenguaje técnico..."
-            style={{
-              width: '100%',
-              padding: '0.75rem 1rem',
-              borderRadius: '10px',
-              border: '1.5px solid var(--border-glass-dark)',
-              fontFamily: 'inherit',
-              fontSize: '0.95rem'
-            }}
-          />
-        </div>
+          <div className="bottom-sheet-header">
+            <h2 id={`modal-reformular-title-${slideIndex}`}>
+              <RefreshCw size={20} className="inline-icon" />
+              <span>Reformular Diapositiva {slideIndex + 1} con IA</span>
+            </h2>
+            <button
+              type="button"
+              onClick={onCerrar}
+              className="bottom-sheet-close-btn"
+              disabled={cargando}
+              aria-label="Cerrar modal"
+            >
+              <X size={20} />
+            </button>
+          </div>
 
-        {error && <p className="login-error">{error}</p>}
+          <div className="bottom-sheet-body">
+            <p className="dialog-desc">
+              Indicá qué querés cambiar de esta diapositiva puntual. El resto de la clase permanece intacto.
+            </p>
 
-        <div className="dialog-actions">
-          <button type="button" onClick={onCerrar} className="btn-secondary" disabled={cargando}>
-            Cancelar
-          </button>
-          <button
-            type="button"
-            onClick={ejecutarReformulacion}
-            className="btn-primary"
-            disabled={cargando || !instruccion.trim()}
-          >
-            {cargando ? 'Reformulando...' : '🔄 Reformular Diapositiva'}
-          </button>
-        </div>
-      </div>
-    </dialog>
+            <div className="form-group">
+              <label htmlFor="modal-reformular-text">Indicaciones para la IA</label>
+              <textarea
+                id="modal-reformular-text"
+                rows={4}
+                value={instruccion}
+                onChange={(e) => setInstruccion(e.target.value)}
+                placeholder="Ej: Hacela más concisa, cambialo por un ejemplo de la industria regional de Campana/Zárate, simplificá el lenguaje técnico..."
+                className="apuntes-textarea"
+                disabled={cargando}
+              />
+            </div>
+
+            {error && (
+              <p className="login-error" role="alert">
+                {error}
+              </p>
+            )}
+          </div>
+
+          <div className="bottom-sheet-footer">
+            <button type="button" onClick={onCerrar} className="btn-secondary" disabled={cargando}>
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={ejecutarReformulacion}
+              className="btn-primary"
+              disabled={cargando || !instruccion.trim()}
+            >
+              {cargando ? (
+                <>
+                  <Loader2 size={18} className="spin" />
+                  <span>Reformulando...</span>
+                </>
+              ) : (
+                <>
+                  <RefreshCw size={18} />
+                  <span>Reformular Diapositiva</span>
+                </>
+              )}
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
   );
 }

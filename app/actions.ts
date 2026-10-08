@@ -15,7 +15,7 @@ const VENTANA_MIN = 15;
 /** B5: tasa de intentos fallidos en la ventana (lockout anti brute-force). */
 async function fallosRecientes(sb: any, legajo: string): Promise<number> {
   const desde = new Date(Date.now() - VENTANA_MIN * 60000).toISOString();
-  const { data, error } = await sb
+  const { count, error } = await sb
     .from('eventos')
     .select('id', { count: 'exact', head: true })
     .eq('accion', 'LOGIN_FALLO')

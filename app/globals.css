@@ -842,13 +842,33 @@ body {
   margin-bottom: 1.4rem;
 }
 
-.ios27-label {
-  font-size: 0.82rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--utn-green-dark);
-  margin-bottom: 0.65rem;
+.gen-header-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.gen-label-margin {
+  margin-top: 1rem;
+}
+
+.gen-instrucciones-textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  border: 1.5px solid var(--border-glass-dark);
+  font-family: inherit;
+  font-size: 0.95rem;
+  background: var(--surface-0);
+  min-height: 80px;
+  resize: vertical;
+}
+
+.gen-instrucciones-textarea:focus {
+  outline: none;
+  border-color: var(--utn-green-primary);
+  box-shadow: 0 0 0 3px var(--utn-green-subtle);
 }
 
 .gen-grid {
@@ -868,6 +888,7 @@ body {
   font-weight: 700;
   font-size: 0.88rem;
   color: var(--on-surface);
+  min-height: 52px;
 }
 
 .gen-pill b {
@@ -1096,6 +1117,33 @@ body {
   flex-wrap: wrap;
 }
 
+.slide-action-btn {
+  font-size: 0.88rem;
+  padding: 0.5rem 1rem;
+  min-height: 44px;
+}
+
+.slide-card-title {
+  margin-top: 0.5rem;
+}
+
+.slide-card-subtitle {
+  color: var(--on-surface-2);
+  font-size: 0.9rem;
+  margin-bottom: 0.6rem;
+}
+
+.slide-card-list {
+  padding-left: 1.2rem;
+  margin: 0.6rem 0;
+  color: var(--on-surface);
+}
+
+.slide-card-list li {
+  margin-bottom: 0.4rem;
+  line-height: 1.45;
+}
+
 .docente-notas {
   margin-top: 1rem;
   padding: 0.85rem 1rem;
@@ -1106,6 +1154,68 @@ body {
   color: var(--on-surface-2);
   font-style: italic;
   line-height: 1.45;
+}
+
+.docente-notas-label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--utn-green-dark);
+  margin-bottom: 3px;
+}
+
+.docente-notas-text {
+  margin: 0;
+}
+
+.plan-objetivos-wrap {
+  margin-bottom: 1.5rem;
+}
+
+.plan-objetivos-title {
+  font-size: 1.1rem;
+  color: var(--utn-green-dark);
+  margin-bottom: 0.6rem;
+}
+
+.plan-objetivos-list {
+  padding-left: 1.4rem;
+  color: var(--on-surface-2);
+  line-height: 1.7;
+}
+
+.imagenes-sugerencias-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.imagen-sugerencia-card {
+  background: var(--surface-0);
+  padding: 1.1rem 1.4rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-glass-dark);
+}
+
+.imagen-sugerencia-label {
+  color: var(--utn-green-dark);
+  display: block;
+  margin-bottom: 0.4rem;
+}
+
+.imagen-sugerencia-prompt {
+  margin: 0;
+  color: var(--on-surface-2);
+  font-style: italic;
+}
+
+.visor-resultado-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.visor-resultado-desc {
+  color: var(--on-surface-2);
+  font-size: 0.9rem;
 }
 
 .gen-frame {
@@ -1378,6 +1488,252 @@ dialog::backdrop {
   display: inline-block;
 }
 
+/* ---------- 16. APUNTES CRUD RESPONSIVE (M2) ---------- */
+.apuntes-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+  width: 100%;
+  max-width: 1100px;
+}
+
+@media (min-width: 900px) {
+  .apuntes-layout {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+    gap: 2rem;
+  }
+}
+
+.apuntes-panel {
+  padding: 1.75rem;
+  border-radius: var(--radius-lg);
+}
+
+.apuntes-panel-title {
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  color: var(--utn-green-dark);
+}
+
+.apuntes-tipo-selector {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.apuntes-tipo-selector button {
+  flex: 1;
+  justify-content: center;
+  min-height: 48px;
+}
+
+.apuntes-textarea {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--border-glass-dark);
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  line-height: 1.5;
+  background: var(--surface-0);
+  min-height: 180px;
+  max-height: 400px;
+  resize: vertical;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.apuntes-textarea:focus {
+  outline: none;
+  border-color: var(--utn-green-primary);
+  box-shadow: 0 0 0 3px var(--utn-green-subtle);
+}
+
+.apuntes-submit-btn {
+  width: 100%;
+  justify-content: center;
+  min-height: 48px;
+  font-size: 1rem;
+  margin-top: 1rem;
+}
+
+.apuntes-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.apunte-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: var(--surface-0);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  transition: all 0.2s var(--press);
+}
+
+.apunte-item:hover {
+  border-color: var(--utn-green-border);
+  box-shadow: var(--elev-1);
+}
+
+.apunte-delete-btn {
+  color: var(--error);
+  border-color: rgba(197, 48, 48, 0.3);
+  padding: 0.6rem;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.apunte-delete-btn:hover {
+  background: var(--error-bg);
+  border-color: var(--error);
+}
+
+.apuntes-empty {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  color: var(--on-surface-3);
+}
+
+.apuntes-empty svg {
+  margin: 0 auto 1rem;
+  opacity: 0.4;
+  color: var(--utn-green-primary);
+}
+
+/* ---------- 17. BOTTOM SHEET & INMERSIVE MODALS (M4 / iOS 27) ---------- */
+.bottom-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: rgba(15, 31, 28, 0.45);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+}
+
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+  .bottom-sheet-overlay {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
+
+.bottom-sheet-container {
+  background: var(--surface-0);
+  border-top-left-radius: var(--radius-xl);
+  border-top-right-radius: var(--radius-xl);
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  width: 100%;
+  max-width: 100%;
+  max-height: 92dvh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 -10px 40px rgba(4, 122, 104, 0.18);
+  border: 1px solid var(--border-glass-dark);
+  border-bottom: none;
+  overflow: hidden;
+}
+
+.bottom-sheet-handle {
+  width: 44px;
+  height: 5px;
+  background: var(--on-surface-3);
+  opacity: 0.35;
+  border-radius: var(--radius-pill);
+  margin: 10px auto 4px auto;
+  flex-shrink: 0;
+}
+
+.bottom-sheet-header {
+  padding: 0.75rem 1.5rem 0.5rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-soft);
+  flex-shrink: 0;
+}
+
+.bottom-sheet-header h2 {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  color: var(--utn-green-dark);
+  margin: 0;
+}
+
+.bottom-sheet-close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  color: var(--on-surface-3);
+}
+
+.bottom-sheet-close-btn:hover {
+  background: var(--utn-green-subtle);
+  color: var(--on-surface);
+}
+
+.bottom-sheet-body {
+  padding: 1.25rem 1.5rem;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  flex: 1;
+}
+
+.bottom-sheet-footer {
+  padding: 1rem 1.5rem;
+  display: flex;
+  gap: 0.75rem;
+  border-top: 1px solid var(--border-soft);
+  background: var(--surface-0);
+  flex-shrink: 0;
+}
+
+.bottom-sheet-footer button {
+  flex: 1;
+  min-height: 48px;
+  justify-content: center;
+}
+
+@media (min-width: 768px) {
+  .bottom-sheet-overlay {
+    align-items: center;
+    padding: 1.5rem;
+  }
+  .bottom-sheet-container {
+    border-radius: var(--radius-xl);
+    max-width: 680px;
+    max-height: 85vh;
+    border: 1px solid var(--border-glass-dark);
+    box-shadow: var(--shadow-premium);
+  }
+  .bottom-sheet-handle {
+    display: none;
+  }
+}
+
 /* ==========================================================================
    17. BREAKPOINTS RESPONSIVOS MOBILE-FIRST (400px, 640px, 768px, 1024px, 1280px)
    ========================================================================== */
@@ -1445,20 +1801,55 @@ dialog::backdrop {
 
 /* ---------- PANTALLAS PEQUEÑAS (<= 640px) ---------- */
 @media (max-width: 640px) {
-  .topic-list li {
+  .topic-list li,
+  .tema-list li {
     flex-direction: column;
     align-items: stretch;
-    gap: 0.6rem;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .tema-list li .btn-primary {
+    width: 100%;
+    justify-content: center;
+    min-height: 48px;
+  }
+
+  .materia-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  .materia-actions .btn-secondary,
+  .materia-actions .btn-agregar-tema {
+    width: 100%;
+    justify-content: center;
+    min-height: 48px;
   }
 
   .educational-guide-steps {
-    gap: 0.4rem;
+    gap: 0.35rem;
     margin: 1rem auto;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .educational-guide-steps::-webkit-scrollbar {
+    display: none;
   }
 
   .guide-step {
-    padding: 0.4rem 0.65rem;
+    padding: 0.45rem 0.65rem;
     font-size: 0.8rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .guide-step:not(.active) .step-label {
+    display: none;
   }
 
   .step-number {
@@ -1502,6 +1893,104 @@ dialog::backdrop {
 
   .app-main-content {
     padding-bottom: 5.5rem;
+  }
+
+  .dash-materias {
+    grid-template-columns: 1fr !important;
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    gap: 1.25rem;
+  }
+
+  .dash-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+    padding: 1.25rem;
+  }
+
+  .dash-header-actions {
+    width: 100%;
+  }
+
+  .dash-header-actions .btn-secondary {
+    width: 100%;
+    justify-content: center;
+    min-height: 48px;
+  }
+
+  .gen-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .gen-pill {
+    width: 100%;
+    min-height: 52px;
+  }
+
+  .gen-pill select,
+  .gen-pill input[type="range"] {
+    min-height: 48px;
+    width: 100%;
+  }
+
+  .momentos-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .momentos-chips .chip {
+    min-height: 48px;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+  }
+
+  .gen-generar {
+    width: 100% !important;
+    min-height: 52px !important;
+    justify-content: center;
+    font-size: 1.05rem;
+  }
+
+  .gen-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.25rem;
+  }
+
+  .gen-botones {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 0.65rem;
+  }
+
+  .gen-botones button {
+    width: 100%;
+    min-height: 48px;
+    justify-content: center;
+  }
+
+  .gen-frame {
+    height: 380px;
+    border-radius: var(--radius-md);
+  }
+
+  .slide-actions {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .slide-action-btn {
+    width: 100%;
+    justify-content: center;
+    min-height: 48px;
   }
 }
 

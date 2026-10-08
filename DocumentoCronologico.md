@@ -435,3 +435,17 @@ Se corrigió un bug en `app/actions.ts` que provocaba un cálculo erróneo de la
 - **Build y Suite Vitest:** Confirmadas 100% en verde con `npm run build` y `npm test`.
 
 Con el ticket T9 cerrado, el MVP Beta culmina la ronda planificada de "Tickets T" y pasa a un estado de preparación para los próximos pasos estratégicos de adopción y escalado de producción.
+
+## **El 7 de octubre (tercera parte) — "Fase Post-T: Refactor UX Mobile-First y Animaciones Hápticas (M1 a M4)"**
+
+Se ejecutó la fase de refactorización móvil para transformar toda la experiencia de usuario hacia una filosofía *Mobile-First*, garantizando la usabilidad táctil desde teléfonos celulares para los docentes de UTN FRD:
+
+| Cambio | Archivo | Para qué |
+| :---- | :---- | :---- |
+| **M1: Tarjetas 3D y Grid Dinámico** | `MateriaCardPro.tsx` y `globals.css` | Se agregaron físicas de resorte (springs en `whileHover` y `whileTap`) y layout forzado a 1 columna pura en anchos menores a 768px. |
+| **M2: Ingesta Responsiva de Apuntes** | `GestorApuntes.tsx` y `globals.css` | Reestructuración de `.apuntes-layout` con textarea vertical scrolleable y prevención de solapamiento por teclados virtuales. |
+| **M3: Formulario Adaptativo & Stepper** | `StepperDidactico.tsx` y `FormularioConfiguracion.tsx` | El stepper colapsa etiquetas en terminales de 320px (`.step-label`) y todos los controles táctiles cumplen con una altura de interacción $\ge 48\text{px}$. |
+| **M4: Bottom Sheets Inmersivos en Visor** | `ModalEditarSlide.tsx`, `ModalReformular.tsx`, `SeccionesPedagogicas.tsx` | Los modales de escritorio tradicionales fueron reemplazados por Bottom Sheets táctiles deslizables con física de resorte y animación en cascada (stagger) en slides. |
+| **Suite de Tests de UX Mobile** | `tests/mobile-ux.test.ts` | 10 pruebas automatizadas validando la presencia de tokens, físicas spring, ergonomía táctil y ausencia de estilos inline. |
+
+Verificación: 36/36 tests pasando en Vitest, compilación limpia en Next.js 15 y checklist de accesibilidad 50+ verificado.

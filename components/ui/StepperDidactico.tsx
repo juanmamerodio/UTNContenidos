@@ -38,7 +38,7 @@ export default function StepperDidactico({ pasoActual }: StepperProps) {
               <span className="step-number">
                 {isCompleted ? <Check size={14} strokeWidth={3} /> : p.num}
               </span>
-              <span>{p.label}</span>
+              <span className="step-label">{p.label}</span>
             </motion.div>
 
             {idx < pasos.length - 1 && (

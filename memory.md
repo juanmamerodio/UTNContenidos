@@ -3,19 +3,20 @@
 > Última actualización: 2026-10-07 · Caché de alta densidad (<300 palabras). Histórico: `DocumentoCronologico.md`.
 
 ## System Status
-- **Stack:** Next.js 15.5 (App Router) + TS estricto + React 19 · Supabase (Postgres + RLS + Auth + pgvector, sin ORM) · Gemini (`IA_MODEL`) / OpenRouter fallback · embeddings `gemini-embedding-2` (3072d) · Reveal.js (HTML + PDF).
-- **Deploy:** Vercel (`framework: nextjs`), $0. Prod: `utncontenidos.vercel.app`.
-- **Estado MVP Tickets:**
-  - T1 Schema: ✅ Preparado (Falta aplicación en Supabase por humano).
-  - T2 Retirar PPTX: ✅
-  - T3 Auth slice: ✅ (Verificado E2E. PII purgado, token revocado).
-  - T4 Materias slice: ✅ (Dashboard funcional con RLS manual. Botones "Preparar clase" agregados).
-  - T5 Apuntes slice: ✅ (CRUD y Server Actions con ingesta por URL + texto pegado implementado. Embeddings con gemini-embedding-2 funcionando. Bloqueo de URLs internas y límite de caracteres operativos).
-  - T6 Generación slice: ✅ (RAG filtrado estricto por docente, validación de schema en fallback y stream, vista previa en vivo implementada).
-  - T7 Historial y edición slice: ✅ (Guardado de presentación automático tras generación y redirección. Historial con filtros recientes/antiguas y botones de eliminar/ver. Edición y regeración soportadas vía `HistorialVisor`).
-  - T8 Salida slice: ✅ (Visor web en `/api/presentacion/[id]`, export a PDF, y descarga de HTML autocontenido usando CDN para Reveal.js).
-  - T9 QA + blindaje transversal: ✅ (Lockout corregido, PII ausente, Vitest/Build verde).
+- **Stack:** Next.js 15.5 (App Router) + TS estricto + React 19 · Supabase (Auth + RLS + pgvector) · Gemini/OpenRouter · Framer Motion (UI 3D).
+- **Deploy:** Vercel, $0. Prod: `utncontenidos.vercel.app`.
+- **Fase Actual:** Post-MVP Mobile-First UX Refactor COMPLETADO (M1-M4 verificados: QA 36/36 tests OK, build OK).
+
+## Completed Tickets (Post-MVP Mobile-First)
+- **M1 (Dashboard & Tarjetas 3D):** Spring physics en `MateriaCardPro` (`whileTap`, `whileHover`), grid 1-columna en `< 768px`.
+- **M2 (CRUD Apuntes Responsive):** Layout responsivo `.apuntes-layout`, textarea con auto-scroll y botones accesibles sin inline styles.
+- **M3 (Generador Form & Stepper):** Stepper colapsable en mobile (`.step-label`), inputs flex-col con altura táctil >= 48px.
+- **M4 (Visor Core & Bottom Sheets):** ModalEditarSlide y ModalReformular transformados en Bottom Sheets táctiles con físicas de resorte y stagger animation en slides.
+
+## Recent Decisions (Last 3)
+1. Estandarización de Bottom Sheets (`bottom-sheet-*`) con físicas de resorte para pantallas táctiles y auto-centrado en desktop.
+2. Eliminación de estilos inline en favor de tokens semánticos en `globals.css` respetando diseño para 50+ y WCAG AAA.
+3. Suite de tests `tests/mobile-ux.test.ts` con 10 pruebas cubriendo invariantes responsivos y animaciones.
 
 ## Blockers / Open Edge Cases
-- **Pendiente humano:** Aplicar `supabase/patch_mvp.sql` en el SQL Editor de Supabase y luego ejecutar `node scripts/test_rls.mjs`.
-- QA manual de Accesibilidad visual (contrastes) y docente 50+ realizado exitosamente mediante Vitest tests.
+- Ninguno. 100% verificado: `npm run qa` verde (36 tests), `next build` OK.

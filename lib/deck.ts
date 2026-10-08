@@ -560,7 +560,8 @@ ${slidesHtml}
 <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
 <script>
   Reveal.initialize({
-    hash: true,
+    hash: false,
+    history: false,
     slideNumber: 'c/t',
     transition: 'fade',
     transitionSpeed: 'fast',

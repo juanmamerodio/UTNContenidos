@@ -58,11 +58,11 @@ export default function VisorResultado({
       <GlassCard className="gen-resultado glass-panel">
         <div className="gen-actions">
           <div>
-            <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h2 className="visor-resultado-title">
               <CheckCircle2 size={22} color="var(--success)" />
               <span>Tu presentación Reveal.js está lista</span>
             </h2>
-            <p style={{ color: 'var(--on-surface-2)', fontSize: '0.9rem' }}>
+            <p className="visor-resultado-desc">
               Podés proyectarla de inmediato o descargarla para su uso sin conexión.
             </p>
           </div>
