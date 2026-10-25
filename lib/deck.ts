@@ -25,7 +25,6 @@ export interface Slide {
   metrica?: Metrica;
   columnas?: ColumnaComparativa[];
   mermaid?: string;
-  notasOrador?: string;
   imagenKeyword?: string;
 }
 
@@ -35,42 +34,67 @@ export interface Clase {
   promptsImagenes?: string[];
 }
 
-const PALETAS: Record<string, { bg: string; fg: string; acento: string; resaltar: string; suave: string; cardBg: string; border: string }> = {
+interface PaletteTokens {
+  bg: string;
+  fg: string;
+  muted: string;
+  acento: string;
+  resaltar: string;
+  suave: string;
+  cardBg: string;
+  border: string;
+  textOnAcento: string;
+  heroGradient: string;
+}
+
+const PALETAS: Record<string, PaletteTokens> = {
   clasica: {
     bg: '#0F172A',
     fg: '#F8FAFC',
+    muted: '#94A3B8',
     acento: '#06A28A',
     resaltar: '#1EC4A8',
     suave: '#1E293B',
     cardBg: 'rgba(30, 41, 59, 0.75)',
-    border: 'rgba(6, 162, 138, 0.3)'
+    border: 'rgba(6, 162, 138, 0.3)',
+    textOnAcento: '#0F172A',
+    heroGradient: 'linear-gradient(135deg, #0F172A 0%, #031c18 100%)'
   },
   minimalista: {
     bg: '#F8FAFC',
     fg: '#0F172A',
+    muted: '#475569',
     acento: '#047A68',
-    resaltar: '#06A28A',
+    resaltar: '#047A68',
     suave: '#E2E8F0',
     cardBg: '#FFFFFF',
-    border: 'rgba(15, 23, 42, 0.12)'
+    border: 'rgba(15, 23, 42, 0.12)',
+    textOnAcento: '#FFFFFF',
+    heroGradient: 'linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 100%)'
   },
   contemporanea: {
     bg: '#090D16',
     fg: '#F3F4F6',
+    muted: '#9CA3AF',
     acento: '#3B82F6',
     resaltar: '#10B981',
     suave: '#1F2937',
-    cardBg: 'rgba(17, 24, 39, 0.8)',
-    border: 'rgba(59, 130, 246, 0.3)'
+    cardBg: 'rgba(17, 24, 39, 0.85)',
+    border: 'rgba(59, 130, 246, 0.3)',
+    textOnAcento: '#090D16',
+    heroGradient: 'linear-gradient(135deg, #090D16 0%, #111827 100%)'
   },
   alta_carga: {
     bg: '#05131E',
     fg: '#F1F5F9',
+    muted: '#94A3B8',
     acento: '#8B5CF6',
     resaltar: '#F59E0B',
     suave: '#0F2942',
     cardBg: 'rgba(15, 41, 66, 0.85)',
-    border: 'rgba(139, 92, 246, 0.35)'
+    border: 'rgba(139, 92, 246, 0.35)',
+    textOnAcento: '#05131E',
+    heroGradient: 'linear-gradient(135deg, #05131E 0%, #0F2942 100%)'
   }
 };
 
@@ -84,16 +108,15 @@ function escapeHtml(s: string): string {
 }
 
 /** Renderiza una diapositiva según su arquetipo NotebookLM */
-function slideToSection(s: Slide, idx: number, total: number, paleta: any, materia: string): string {
+function slideToSection(s: Slide, idx: number, total: number, paleta: PaletteTokens, materia: string): string {
   const layout = s.layout || (s.tipo === 'portada' || idx === 0 ? 'portada' : 'bento');
-  const notas = s.notasOrador ? `<aside class="notes">🎙️ ${escapeHtml(s.notasOrador)}</aside>` : '';
   const categoriaBadge = `<div class="slide-badge">${escapeHtml(s.categoria || 'CÁTEDRA UTN')}</div>`;
   const footerInfo = `<div class="slide-footer"><span>${escapeHtml(materia)}</span><span>${idx + 1} / ${total}</span></div>`;
 
   // 1. PORTADA HERO MONUMENTAL
   if (layout === 'portada' || idx === 0) {
     return `
-<section data-background-gradient="linear-gradient(135deg, ${paleta.bg} 0%, #031c18 100%)">
+<section data-background-gradient="${paleta.heroGradient}">
   <div class="deck-hero-wrapper">
     <div class="hero-header-badge">FACULTAD REGIONAL DELTA · UTN</div>
     <h1 class="hero-title">${escapeHtml(s.titulo || 'Clase Magistral')}</h1>
@@ -104,7 +127,6 @@ function slideToSection(s: Slide, idx: number, total: number, paleta: any, mater
       <span class="pill-meta">⚡ Ciclo Lectivo 2026</span>
     </div>
   </div>
-  ${notas}
 </section>`;
   }
 
@@ -152,7 +174,6 @@ function slideToSection(s: Slide, idx: number, total: number, paleta: any, mater
     </div>
   </div>
   ${footerInfo}
-  ${notas}
 </section>`;
   }
 
@@ -184,7 +205,6 @@ function slideToSection(s: Slide, idx: number, total: number, paleta: any, mater
     </div>
   </div>
   ${footerInfo}
-  ${notas}
 </section>`;
   }
 
@@ -217,7 +237,6 @@ function slideToSection(s: Slide, idx: number, total: number, paleta: any, mater
     ` : ''}
   </div>
   ${footerInfo}
-  ${notas}
 </section>`;
   }
 
@@ -237,7 +256,6 @@ function slideToSection(s: Slide, idx: number, total: number, paleta: any, mater
     ` : ''}
   </div>
   ${footerInfo}
-  ${notas}
 </section>`;
   }
 
@@ -258,7 +276,6 @@ function slideToSection(s: Slide, idx: number, total: number, paleta: any, mater
     </div>
   </div>
   ${footerInfo}
-  ${notas}
 </section>`;
 }
 
@@ -284,12 +301,23 @@ export function buildDeckHtml(clase: Clase, materia: string, tema: string, estil
     --deck-resaltar: ${paleta.resaltar};
     --deck-fg: ${paleta.fg};
     --deck-bg: ${paleta.bg};
+    --deck-muted: ${paleta.muted};
+    --deck-suave: ${paleta.suave};
     --deck-card-bg: ${paleta.cardBg};
     --deck-border: ${paleta.border};
+    --deck-on-acento: ${paleta.textOnAcento};
+  }
+
+  body {
+    background-color: var(--deck-bg);
+    color: var(--deck-fg);
+    margin: 0;
+    padding: 0;
   }
 
   .reveal {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: var(--deck-bg);
     color: var(--deck-fg);
   }
 
@@ -328,13 +356,13 @@ export function buildDeckHtml(clase: Clase, materia: string, tema: string, estil
   .slide-title {
     font-size: 2.75rem;
     line-height: 1.15;
-    color: #ffffff;
+    color: var(--deck-fg);
     margin: 0 0 0.5rem 0;
   }
 
   .slide-subtitle {
     font-size: 1.25rem;
-    color: #94A3B8;
+    color: var(--deck-muted);
     margin-bottom: 1.8rem;
     line-height: 1.4;
   }
@@ -406,14 +434,14 @@ export function buildDeckHtml(clase: Clase, materia: string, tema: string, estil
     font-family: 'Outfit', sans-serif;
     font-size: 3.5rem;
     font-weight: 900;
-    color: #ffffff;
+    color: var(--deck-fg);
     line-height: 1;
     letter-spacing: -0.03em;
   }
 
   .metric-lbl {
     font-size: 0.95rem;
-    color: #94A3B8;
+    color: var(--deck-muted);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     font-weight: 700;
@@ -427,7 +455,7 @@ export function buildDeckHtml(clase: Clase, materia: string, tema: string, estil
   .bento-highlight-card p {
     font-size: 1.1rem;
     line-height: 1.4;
-    color: #E2E8F0;
+    color: var(--deck-fg);
     margin: 0;
     font-style: italic;
   }
@@ -443,7 +471,7 @@ export function buildDeckHtml(clase: Clase, materia: string, tema: string, estil
   .comparison-col .col-title {
     font-size: 1.4rem;
     margin-bottom: 1.2rem;
-    color: #ffffff;
+    color: var(--deck-fg);
   }
 
   .col-list {
@@ -454,9 +482,10 @@ export function buildDeckHtml(clase: Clase, materia: string, tema: string, estil
 
   .col-list li {
     padding: 0.8rem 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid var(--deck-border);
     font-size: 1.15rem;
     line-height: 1.4;
+    color: var(--deck-fg);
   }
 
   /* Process Flow */
@@ -469,7 +498,7 @@ export function buildDeckHtml(clase: Clase, materia: string, tema: string, estil
 
   .process-step-card .step-badge {
     background: var(--deck-resaltar);
-    color: #0F172A;
+    color: var(--deck-on-acento);
     font-weight: 800;
     padding: 0.25rem 0.65rem;
     border-radius: 6px;
@@ -482,6 +511,7 @@ export function buildDeckHtml(clase: Clase, materia: string, tema: string, estil
     margin: 0;
     font-size: 1.1rem;
     line-height: 1.4;
+    color: var(--deck-fg);
   }
 
   /* Hero Portada */
@@ -510,7 +540,7 @@ export function buildDeckHtml(clase: Clase, materia: string, tema: string, estil
 
   .hero-title {
     font-size: 4.5rem;
-    color: #ffffff;
+    color: var(--deck-fg);
     line-height: 1.05;
     margin-bottom: 1.2rem;
     max-width: 950px;
@@ -518,7 +548,7 @@ export function buildDeckHtml(clase: Clase, materia: string, tema: string, estil
 
   .hero-subtitle {
     font-size: 1.85rem;
-    color: #94A3B8;
+    color: var(--deck-muted);
     margin-bottom: 2.5rem;
     max-width: 800px;
   }
@@ -529,8 +559,9 @@ export function buildDeckHtml(clase: Clase, materia: string, tema: string, estil
   }
 
   .pill-meta {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: var(--deck-card-bg);
+    border: 1px solid var(--deck-border);
+    color: var(--deck-fg);
     padding: 0.6rem 1.2rem;
     border-radius: 9999px;
     font-size: 1.05rem;
@@ -546,9 +577,9 @@ export function buildDeckHtml(clase: Clase, materia: string, tema: string, estil
     display: flex;
     justify-content: space-between;
     font-size: 0.85rem;
-    color: #64748B;
+    color: var(--deck-muted);
     font-weight: 600;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border-top: 1px solid var(--deck-border);
     padding-top: 0.6rem;
   }
 </style>

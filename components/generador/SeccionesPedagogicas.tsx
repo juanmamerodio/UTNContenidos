@@ -9,7 +9,6 @@ interface Slide {
   categoria?: string;
   tipo?: string;
   contenido: string;
-  notasOrador?: string;
   imagenKeyword?: string;
 }
 
@@ -149,15 +148,6 @@ export default function SeccionesPedagogicas({
                       </button>
                     )}
                   </div>
-
-                  {slide.notasOrador && (
-                    <div className="docente-notas">
-                      <strong className="docente-notas-label">
-                        🎙️ NOTAS DE AULA (GUÍA DOCENTE):
-                      </strong>
-                      <p className="docente-notas-text">{slide.notasOrador}</p>
-                    </div>
-                  )}
                 </motion.article>
               );
             })}

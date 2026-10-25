@@ -17,7 +17,7 @@ Soy el cerebro. Diseño el prompt élite, orquesto modelos y optimizo tokens.
 ```json
 {
   "plan": { "duracion": "...", "objetivos": [...], "estructura": [{fase,duracion,actividad}] },
-  "slides": [{ titulo, subtitulo, categoria, tipo, contenido, notasOrador, imagenKeyword }],
+  "slides": [{ titulo, subtitulo, categoria, tipo, contenido, imagenKeyword }],
   "promptsImagenes": [...]
 }
 ```

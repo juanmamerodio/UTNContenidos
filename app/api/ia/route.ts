@@ -112,7 +112,6 @@ Estructurá una clase universitaria MEMORABLE, DINÁMICA, RICA EN CONTENIDO Y VI
 4. Si la diapositiva es un flujo o proceso, incluí "mermaid": "graph LR; ...".
 5. Si es comparativa, incluí "columnas": [{"titulo": "...", "puntos": ["..."]}, {"titulo": "...", "puntos": ["..."]}].
 6. Respetá EXACTAMENTE la cantidad de diapositivas solicitadas.
-7. Incluí SIEMPRE "notasOrador" en primera persona para el profesor explicando cómo llevar la dinámica de esa diapositiva.
 `;
 
 export async function POST(req: Request) {
@@ -184,7 +183,6 @@ Respondé ÚNICAMENTE JSON con este esquema enriquecido:
       "metrica": {"valor": "...", "etiqueta": "..."},
       "columnas": [{"titulo": "...", "puntos": ["..."]}],
       "mermaid": "graph LR; ...",
-      "notasOrador": "...",
       "imagenKeyword": "..."
     }
   ],

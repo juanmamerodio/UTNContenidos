@@ -8,7 +8,6 @@ interface Slide {
   titulo: string;
   subtitulo?: string;
   contenido: string;
-  notasOrador?: string;
 }
 
 interface ModalEditarSlideProps {
@@ -27,7 +26,6 @@ export default function ModalEditarSlide({
   const [titulo, setTitulo] = useState(slide.titulo || '');
   const [subtitulo, setSubtitulo] = useState(slide.subtitulo || '');
   const [contenido, setContenido] = useState(slide.contenido || '');
-  const [notasOrador, setNotasOrador] = useState(slide.notasOrador || '');
 
   return (
     <AnimatePresence>
@@ -105,17 +103,6 @@ export default function ModalEditarSlide({
                 className="apuntes-textarea"
               />
             </div>
-
-            <div className="form-group">
-              <label htmlFor="modal-edit-notas">Notas del orador (guía docente)</label>
-              <textarea
-                id="modal-edit-notas"
-                rows={3}
-                value={notasOrador}
-                onChange={(e) => setNotasOrador(e.target.value)}
-                className="apuntes-textarea"
-              />
-            </div>
           </div>
 
           <div className="bottom-sheet-footer">
@@ -124,7 +111,7 @@ export default function ModalEditarSlide({
             </button>
             <button
               type="button"
-              onClick={() => onGuardar({ ...slide, titulo, subtitulo, contenido, notasOrador })}
+              onClick={() => onGuardar({ ...slide, titulo, subtitulo, contenido })}
               className="btn-primary"
             >
               Guardar Cambios

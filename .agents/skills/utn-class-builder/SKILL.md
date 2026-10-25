@@ -18,7 +18,6 @@ Soy el responsable de la CALIDAD DIDÁCTICA. El IA Engineer ejecuta, yo defino e
 
 ## Reglas de calidad (innegociables, van en el prompt)
 - PROHIBIDO bloques densos de texto: máx 3-4 puntos por slide, ultra sintéticos.
-- `notasOrador` OBLIGATORIAS en cada slide, primera persona ("Explicar que...", "Hacer énfasis en...").
 - Los puntos no son títulos, son ideas accionables que el docente puede explicar.
 - Si sobran slides, profundizar el momento correspondiente (ejemplos, sub-pasos) — NO inventar momentos nuevos.
 

@@ -10,7 +10,7 @@ interface Slide {
   categoria?: string;
   tipo?: string;
   contenido: string;
-  notasOrador?: string;
+  imagenKeyword?: string;
 }
 
 interface ModalReformularProps {
@@ -58,8 +58,7 @@ Devolvé ÚNICAMENTE un objeto JSON válido con la diapositiva corregida:
   "subtitulo": "...",
   "categoria": "${slide.categoria || 'Concepto'}",
   "tipo": "${slide.tipo || 'concepto_nucleo'}",
-  "contenido": "• punto 1\\n• punto 2",
-  "notasOrador": "..."
+  "contenido": "• punto 1\\n• punto 2"
 }
 `;
 
