@@ -7,6 +7,7 @@
 import { NextResponse } from 'next/server';
 import { getServiceClient } from '@/lib/supabase';
 import { getDocenteSesion, esHoy } from '@/lib/auth';
+import { parsearJSONIA } from '@/lib/ia-parser';
 
 const MODELO = process.env.IA_MODEL || 'gemini-3.5-flash-lite';
 const API_KEY = process.env.GEMINI_API_KEY || '';
@@ -53,7 +54,7 @@ async function llamarModelo(prompt: string): Promise<string> {
   const payload = {
     systemInstruction: { parts: [{ text: SYSTEM }] },
     contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: { responseMimeType: 'application/json', temperature: 0.2 }
+    generationConfig: { responseMimeType: 'application/json', temperature: 0.2, maxOutputTokens: 8192 }
   };
 
   // Intento 1: Gemini (plan Pro del usuario)
@@ -215,10 +216,15 @@ Respondé ÚNICAMENTE JSON con este esquema enriquecido:
             }
             emit('progreso', { mensaje: 'Validando estructura y cantidad de diapositivas...' });
 
-            const limpio = text.replace(/^```(?:json)?/i, '').replace(/```$/i, '').trim();
-            const inicio = limpio.indexOf('{');
-            const fin = limpio.lastIndexOf('}');
-            let clase = JSON.parse(inicio >= 0 && fin > inicio ? limpio.slice(inicio, fin + 1) : limpio);
+            let clase: any;
+            try {
+              clase = parsearJSONIA(text);
+            } catch {
+              const rescueText = await llamarModelo(
+                `La respuesta anterior no pudo estructurarse como JSON válido. Por favor, respondé ÚNICAMENTE con el objeto JSON válido que respeta el schema pedido, sin comas sobrantes:\n\n${text.slice(0, 8000)}`
+              );
+              clase = parsearJSONIA(rescueText || text);
+            }
 
             const isValid = clase.slides?.every((s: any) => s.titulo && s.layout && s.tipo);
             if ((clase.slides?.length !== numSlides && numSlides >= 3) || !isValid) {
@@ -227,8 +233,7 @@ Respondé ÚNICAMENTE JSON con este esquema enriquecido:
               );
               if (retryText) {
                 try {
-                  const rLimpio = retryText.replace(/^```(?:json)?/i, '').replace(/```$/i, '').trim();
-                  const rClase = JSON.parse(rLimpio.slice(rLimpio.indexOf('{'), rLimpio.lastIndexOf('}') + 1));
+                  const rClase = parsearJSONIA(retryText);
                   if (rClase.slides?.length === numSlides) clase = rClase;
                 } catch { /* usar original */ }
               }
@@ -237,7 +242,10 @@ Respondé ÚNICAMENTE JSON con este esquema enriquecido:
             emit('done', { clase: { success: true, ...clase, configuracionAplicada: true, modeloUsado: MODELO } });
             registrarGeneracion(docente.id, vigentesHoy ? generaciones : 0);
           } catch (e) {
-            emit('error', { error: (e as Error).message });
+            const errMsg = (e as Error).name === 'ErrorJSONIA'
+              ? (e as Error).message
+              : 'No se pudo estructurar la respuesta de la IA. Por favor, intentá generar de nuevo.';
+            emit('error', { error: errMsg });
           } finally {
             controller.close();
           }
@@ -260,11 +268,15 @@ Respondé ÚNICAMENTE JSON con este esquema enriquecido:
       return NextResponse.json({ success: false, error: 'Todos los modelos fallaron (Gemini + OpenRouter).' }, { status: 502 });
     }
 
-    // Parse tolerante (cercos markdown)
-    const limpio = text.replace(/^```(?:json)?/i, '').replace(/```$/i, '').trim();
-    const inicio = limpio.indexOf('{');
-    const fin = limpio.lastIndexOf('}');
-    const clase = JSON.parse(inicio >= 0 && fin > inicio ? limpio.slice(inicio, fin + 1) : limpio);
+    let clase: any;
+    try {
+      clase = parsearJSONIA(text);
+    } catch {
+      const rescueText = await llamarModelo(
+        `La respuesta anterior no pudo estructurarse como JSON válido. Por favor, respondé ÚNICAMENTE con el objeto JSON válido que respeta el schema pedido, sin comas sobrantes:\n\n${text.slice(0, 8000)}`
+      );
+      clase = parsearJSONIA(rescueText || text);
+    }
 
     // Enforcement: si la cantidad no coincide, intento correctivo una vez
     const isValid = clase.slides?.every((s: any) => s.titulo && s.layout && s.tipo);
@@ -274,8 +286,7 @@ Respondé ÚNICAMENTE JSON con este esquema enriquecido:
       );
       if (retryText) {
         try {
-          const rLimpio = retryText.replace(/^```(?:json)?/i, '').replace(/```$/i, '').trim();
-          const rClase = JSON.parse(rLimpio.slice(rLimpio.indexOf('{'), rLimpio.lastIndexOf('}') + 1));
+          const rClase = parsearJSONIA(retryText);
           if (rClase.slides?.length === numSlides) { registrarGeneracion(docente.id, vigentesHoy ? generaciones : 0); return NextResponse.json({ success: true, ...rClase, configuracionAplicada: true, modeloUsado: MODELO }); }
         } catch { /* fallback: usar original */ }
       }
@@ -285,7 +296,10 @@ Respondé ÚNICAMENTE JSON con este esquema enriquecido:
     return NextResponse.json({ success: true, ...clase, configuracionAplicada: true, modeloUsado: MODELO });
   } catch (e) {
     console.error('api/ia error:', e);
-    return NextResponse.json({ success: false, error: 'Error interno: ' + (e as Error).message }, { status: 500 });
+    const errMsg = (e as Error).name === 'ErrorJSONIA'
+      ? (e as Error).message
+      : 'No se pudo estructurar la respuesta de la IA. Por favor, intentá generar de nuevo.';
+    return NextResponse.json({ success: false, error: errMsg }, { status: 500 });
   }
 }
 

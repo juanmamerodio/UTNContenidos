@@ -82,3 +82,17 @@ npm run dev | build | check | test
 npm run seed:root | seed:materias | seed:apuntes
 vercel --prod
 ```
+
+## Agent skills
+
+### Issue tracker
+
+Issues y specs viven en GitHub Issues (`juanmamerodio/UTNContenidos`) vía `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Roles canónicos sin override: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: `GLOSSARY.md` en la raíz + `docs/adr/`. See `docs/agents/domain.md`.

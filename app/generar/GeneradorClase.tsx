@@ -100,7 +100,11 @@ export default function GeneradorClase({ materiaNombre, temaNombre, temaId }: Pr
       }
     } catch (e) {
       if ((e as Error).name === 'AbortError') return; // ya se despachó "cancelar"
-      dispatch({ tipo: 'fallo', error: (e as Error).message });
+      const raw = (e as Error).message || 'Error al generar la clase.';
+      const msgAmigable = raw.includes('JSON') || raw.includes('position')
+        ? 'No se pudo estructurar la respuesta de la IA. Por favor, intentá generar de nuevo.'
+        : raw;
+      dispatch({ tipo: 'fallo', error: msgAmigable });
     }
   }
 
