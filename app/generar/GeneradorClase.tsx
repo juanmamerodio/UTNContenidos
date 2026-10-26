@@ -42,6 +42,7 @@ export default function GeneradorClase({ materiaNombre, temaNombre, temaId }: Pr
   const router = useRouter();
   const [config, setConfig] = useState<Configuracion>(configInicial);
   const [estado, dispatch] = useReducer(faseReducer<any>, faseInicial);
+  const [presentacionId, setPresentacionId] = useState<string | null>(null);
   const [slideEnEdicion, setSlideEnEdicion] = useState<number | null>(null);
   const [slideEnReformulacion, setSlideEnReformulacion] = useState<number | null>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -94,6 +95,7 @@ export default function GeneradorClase({ materiaNombre, temaNombre, temaId }: Pr
       
       const { id, error: errGuardar } = await guardarPresentacion(temaId, temaNombre, config, resultado);
       if (!errGuardar && id) {
+        setPresentacionId(id);
         router.push(`/historial/${id}`);
       } else {
         dispararConfetti();
@@ -144,6 +146,7 @@ export default function GeneradorClase({ materiaNombre, temaNombre, temaId }: Pr
 
       {fase === 'resultado' && clase && (
         <VisorResultado
+          presentacionId={presentacionId || undefined}
           clase={clase}
           materiaNombre={materiaNombre}
           temaNombre={temaNombre}

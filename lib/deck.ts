@@ -280,7 +280,7 @@ function slideToSection(s: Slide, idx: number, total: number, paleta: PaletteTok
 }
 
 /** Genera el HTML completo Reveal.js 5 con estética editorial NotebookLM */
-export function buildDeckHtml(clase: Clase, materia: string, tema: string, estilo: string): string {
+export function buildDeckHtml(clase: Clase, materia: string, tema: string, estilo: string, opciones: { printPdf?: boolean } = {}): string {
   const paleta = PALETAS[estilo] || PALETAS.clasica;
   const slidesHtml = (clase.slides || []).map((s, i) => slideToSection(s, i, clase.slides.length, paleta, materia)).join('\n');
 
@@ -582,6 +582,26 @@ export function buildDeckHtml(clase: Clase, materia: string, tema: string, estil
     border-top: 1px solid var(--deck-border);
     padding-top: 0.6rem;
   }
+
+  @page {
+    size: landscape;
+    margin: 0;
+  }
+
+  @media print {
+    * {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    html, body, .reveal {
+      background-color: var(--deck-bg) !important;
+      color: var(--deck-fg) !important;
+    }
+    .slide-container {
+      page-break-after: always;
+      break-after: page;
+    }
+  }
 </style>
 </head>
 <body>
@@ -590,6 +610,8 @@ ${slidesHtml}
 </div></div>
 <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
 <script>
+  const forzarPrint = ${Boolean(opciones.printPdf)};
+  const isPrintPdf = forzarPrint || Boolean(window.location.search.match(/print-pdf/gi));
   Reveal.initialize({
     hash: false,
     history: false,
@@ -599,10 +621,33 @@ ${slidesHtml}
     controls: true,
     progress: true,
     center: false,
+    navigationMode: 'linear',
+    keyboard: true,
+    view: isPrintPdf ? 'print' : undefined,
     width: 1400,
     height: 800,
     margin: 0.04
   });
+
+  // Listener para avanzar/retroceder con mensajes desde el visor/iframe
+  window.addEventListener('message', function(ev) {
+    if (!ev || !ev.data) return;
+    if (ev.data.tipo === 'SIGUIENTE_SLIDE') {
+      Reveal.next();
+    } else if (ev.data.tipo === 'ANTERIOR_SLIDE') {
+      Reveal.prev();
+    }
+  });
+
+  // Soporte de impresión automática cuando se solicita print-pdf
+  if (isPrintPdf) {
+    document.documentElement.classList.add('reveal-print', 'print-pdf');
+    Reveal.on('ready', function() {
+      setTimeout(function() {
+        window.print();
+      }, 700);
+    });
+  }
 </script>
 </body>
 </html>`;

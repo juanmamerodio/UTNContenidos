@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Download, Printer, CheckCircle2, RefreshCw, MonitorPlay } from 'lucide-react';
 import { buildDeckHtml, nombreArchivoDeck } from '@/lib/deck';
@@ -38,6 +38,57 @@ export default function VisorResultado({
     }
   }, [clase, materiaNombre, temaNombre, estilo]);
 
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return;
+      if (e.key === 'ArrowRight') {
+        iframeRef.current?.contentWindow?.postMessage({ tipo: 'SIGUIENTE_SLIDE' }, '*');
+      } else if (e.key === 'ArrowLeft') {
+        iframeRef.current?.contentWindow?.postMessage({ tipo: 'ANTERIOR_SLIDE' }, '*');
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  function openHtmlWindow(html: string) {
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const win = window.open(url, '_blank');
+    if (!win || win.closed || typeof win.closed === 'undefined') {
+      const popup = window.open('', '_blank');
+      if (popup) {
+        popup.document.open();
+        popup.document.write(html);
+        popup.document.close();
+      }
+    }
+  }
+
+  function proyectar() {
+    if (presentacionId) {
+      window.open(`/api/presentacion/${presentacionId}`, '_blank');
+      return;
+    }
+    if (!deckHtml) return;
+    openHtmlWindow(deckHtml);
+  }
+
+  function imprimirPdf() {
+    if (presentacionId) {
+      window.open(`/api/presentacion/${presentacionId}?print-pdf`, '_blank');
+      return;
+    }
+    try {
+      const printDeckHtml = buildDeckHtml(clase, materiaNombre, temaNombre, estilo, { printPdf: true });
+      openHtmlWindow(printDeckHtml);
+    } catch {
+      if (deckHtml) openHtmlWindow(deckHtml);
+    }
+  }
+
   function descargarHtml() {
     if (!deckHtml) return;
     const blob = new Blob([deckHtml], { type: 'text/html;charset=utf-8' });
@@ -67,17 +118,15 @@ export default function VisorResultado({
             </p>
           </div>
           <div className="gen-botones">
-            {presentacionId && (
-              <MaterialButton variante="primary" onClick={() => window.open(`/api/presentacion/${presentacionId}`, '_blank')}>
-                <MonitorPlay size={18} />
-                <span>Proyectar</span>
-              </MaterialButton>
-            )}
-            <MaterialButton variante={presentacionId ? "secondary" : "primary"} onClick={descargarHtml}>
+            <MaterialButton variante="primary" onClick={proyectar}>
+              <MonitorPlay size={18} />
+              <span>Proyectar</span>
+            </MaterialButton>
+            <MaterialButton variante="secondary" onClick={descargarHtml}>
               <Download size={18} />
               <span>Descargar HTML</span>
             </MaterialButton>
-            <MaterialButton variante="secondary" onClick={() => presentacionId ? window.open(`/api/presentacion/${presentacionId}?print-pdf`, '_blank') : window.print()}>
+            <MaterialButton variante="secondary" onClick={imprimirPdf}>
               <Printer size={18} />
               <span>Imprimir / PDF</span>
             </MaterialButton>
@@ -90,6 +139,7 @@ export default function VisorResultado({
 
         {deckHtml && (
           <iframe
+            ref={iframeRef}
             className="gen-frame"
             title="Vista previa interactiva de la presentación Reveal.js"
             srcDoc={deckHtml}
